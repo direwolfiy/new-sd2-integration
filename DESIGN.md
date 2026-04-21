@@ -1,246 +1,336 @@
-# Design System Inspired by Framer
+# SD2 Design System
 
 ## 1. Visual Theme & Atmosphere
 
-Framer's website is a cinematic, tool-obsessed dark canvas that radiates the confidence of a design tool built by designers who worship craft. The entire experience is drenched in pure black — not a warm charcoal or a cozy dark gray, but an absolute void (`#000000`) that makes every element, every screenshot, every typographic flourish feel like it's floating in deep space. This is a website that treats its own product UI as the hero art, embedding full-fidelity screenshots and interactive demos directly into the narrative flow.
+Pure black dark canvas design system for Chinese-first interfaces. The experience is built on neutral black (`#0a0a0a`) — no blue tint, no warm undertone — providing a neutral stage where content and accents stand on their own. The accent color (default: `#00CAE0`) is deployed sparingly, appearing only in temporary events (focus rings, selection states, progress indicators), never in persistent navigation or structural elements.
 
-The typography is the signature move: GT Walsheim with aggressively tight letter-spacing (as extreme as -5.5px on 110px display text) creates headlines that feel compressed, kinetic, almost spring-loaded — like words under pressure that might expand at any moment. The transition to Inter for body text is seamless, with extensive OpenType feature usage (`cv01`, `cv05`, `cv09`, `cv11`, `ss03`, `ss07`) that gives even small text a refined, custom feel. Framer Blue (`#0099ff`) is deployed sparingly but decisively — as link color, border accents, and subtle ring shadows — creating a cold, electric throughline against the warm-less black.
-
-The overall effect is a nightclub for web designers: dark, precise, seductive, and unapologetically product-forward. Every section exists to showcase what the tool can do, with the website itself serving as proof of concept.
+The typography is bilingual-first: **Inter** for Latin, system fonts for CJK, with careful attention to Chinese-specific spacing and rhythm. Chinese block characters require more generous line-height and restrained letter-spacing compared to Latin text.
 
 **Key Characteristics:**
-- Pure black (`#000000`) void canvas — absolute dark, not warm or gray-tinted
-- GT Walsheim display font with extreme negative letter-spacing (-5.5px at 110px)
-- Framer Blue (`#0099ff`) as the sole accent color — cold, electric, precise
-- Pill-shaped buttons (40px–100px radius) — no sharp corners on interactive elements
-- Product screenshots as hero art — the tool IS the marketing
-- Frosted glass button variants using `rgba(255, 255, 255, 0.1)` on dark surfaces
-- Extensive OpenType feature usage across Inter for refined micro-typography
+- Pure black (`#0a0a0a`) canvas — neutral, no color tint, content-first
+- Inter (local) + system CJK font stack — no external font dependencies for Chinese
+- Single accent color (default `#00CAE0`) — 90% neutrals, 10% accent, never in persistent navigation
+- Pill-shaped buttons (40px+ radius) — no sharp corners on interactive elements
+- Chinese line-height 1.6–1.8× for body text, 1.1–1.2× for large display text
+- Mild negative letter-spacing for Chinese headings (-0.01em to -0.02em) — never extreme
+- Five-level surface hierarchy through background color and subtle borders — depth without color
 
 ## 2. Color Palette & Roles
 
-### Primary
-- **Pure Black** (`#000000`): Primary background, the void canvas that defines Framer's dark-first identity
-- **Pure White** (`#ffffff`): Primary text color on dark surfaces, button text on accent backgrounds
-- **Framer Blue** (`#0099ff`): Primary accent color — links, borders, ring shadows, interactive highlights
+### Neutral Palette
 
-### Secondary & Accent
-- **Muted Silver** (`#a6a6a6`): Secondary text, subdued labels, dimmed descriptions on dark surfaces
-- **Near Black** (`#090909`): Elevated dark surface, shadow ring color for subtle depth separation
+The palette is 90% neutrals. Five surface levels create depth through background brightness alone.
 
-### Surface & Background
-- **Void Black** (`#000000`): Page background, primary canvas
-- **Frosted White** (`rgba(255, 255, 255, 0.1)`): Translucent button backgrounds, glass-effect surfaces on dark
-- **Subtle White** (`rgba(255, 255, 255, 0.5)`): Slightly more opaque frosted elements for hover states
+| Token | Hex | Role |
+|-------|-----|------|
+| Background | `#0a0a0a` | Page canvas, bottom layer |
+| Card | `#141414` | Elevated surfaces, cards, panels |
+| Popover | `#1c1c1c` | Floating elements, dropdowns, tooltips |
+| Input | `#262626` | Input backgrounds, code blocks, embedded areas |
+| Highlight | `#333333` | Selected rows, hover rows (with border) |
 
-### Neutrals & Text
-- **Pure White** (`#ffffff`): Heading text, high-emphasis body text
-- **Muted Silver** (`#a6a6a6`): Body text, descriptions, secondary information
-- **Ghost White** (`rgba(255, 255, 255, 0.6)`): Tertiary text, placeholders on dark surfaces
+### Text
 
-### Semantic & Accent
-- **Framer Blue** (`#0099ff`): Links, interactive borders, focus rings
-- **Blue Glow** (`rgba(0, 153, 255, 0.15)`): Focus ring shadow, subtle blue halo around interactive elements
-- **Default Link Blue** (`#0000ee`): Standard browser link color (used sparingly in content areas)
+| Token | Hex | Role |
+|-------|-----|------|
+| Primary | `#ffffff` | Headings, high-emphasis body text |
+| Secondary | `#999999` | Body text, descriptions, secondary information |
+| Tertiary | `#666666` | Placeholder text, disabled labels, subtle hints |
+
+### Accent System
+
+The accent color is configurable. Default: `#00CAE0`. Auto-generated variants via `makeAccent()`:
+
+```
+makeAccent(hex):
+  color  = hex
+  bg     = rgba(r, g, b, 0.08)
+  border = rgba(r, g, b, 0.15)
+  text   = rgba(r, g, b, 0.8)
+```
+
+**Accent usage rules:**
+- **DO**: Focus rings, card selection borders, progress bars, active toggle, AI generation indicators, badge tags
+- **DO NOT**: Navigation activation, tab indicators, persistent structural elements, status badges (use grayscale instead)
+
+Navigation activation uses **white text + `white/[0.08]` background** — never the accent color.
+
+### Borders & Dividers
+
+| Token | Value | Role |
+|-------|-------|------|
+| Border | `rgba(255,255,255,0.06)` | Card borders, dividers, panel edges |
+| Input border | `rgba(255,255,255,0.08)` | Input field borders |
+| Ring | `rgba(255,255,255,0.12)` | Hover ring on cards |
+
+### Danger
+
+| Token | Hex | Role |
+|-------|-----|------|
+| Danger | `#ef4444` | Delete actions, error states — independent of accent |
 
 ### Gradient System
-- No prominent gradient usage — Framer relies on pure flat black surfaces with occasional blue-tinted glows for depth
-- Subtle radial glow effects behind product screenshots using Framer Blue at very low opacity
+- No prominent gradients — flat surfaces with subtle borders for depth
+- Skeleton shimmer uses `white/5 → white/10 → white/5` gradient animation
 
-## 3. Typography Rules
+## 3. Surface Hierarchy
 
-### Font Family
-- **Display**: `GT Walsheim Framer Medium` / `GT Walsheim Medium` — custom geometric sans-serif, weight 500. Fallbacks: `GT Walsheim Framer Medium Placeholder`, system sans-serif
-- **Body/UI**: `Inter Variable` / `Inter` — variable sans-serif with extensive OpenType features. Fallbacks: `Inter Placeholder`, `-apple-system`, `system-ui`
-- **Accent**: `Mona Sans` — GitHub's open-source font, used for select elements at ultra-light weight (100)
-- **Monospace**: `Azeret Mono` — companion mono for code and technical labels
-- **Rounded**: `Open Runde` — small rounded companion font for micro-labels
+Five elevation levels, from deep to shallow. Depth is communicated through background brightness and border opacity — no drop shadows on static elements.
 
-### Hierarchy
+| Level | Background | Role | Border |
+|-------|-----------|------|--------|
+| L0 — Page | `#0a0a0a` | Page canvas, bottom layer | none |
+| L1 — Card | `#141414` | Cards, panels, sections | `rgba(255,255,255,0.06)` |
+| L2 — Float | `#1c1c1c` | Dropdowns, tooltips, popovers | `rgba(255,255,255,0.08)` |
+| L3 — Embed | `#262626` | Input backgrounds, code blocks | `rgba(255,255,255,0.1)` |
+| L4 — Highlight | `#333333` | Selected rows, hover states | `rgba(255,255,255,0.06)` + ring |
 
-| Role | Font | Size | Weight | Line Height | Letter Spacing | Notes |
-|------|------|------|--------|-------------|----------------|-------|
-| Display Hero | GT Walsheim Framer Medium | 110px | 500 | 0.85 | -5.5px | Extreme negative tracking, compressed impact |
-| Section Display | GT Walsheim Medium | 85px | 500 | 0.95 | -4.25px | OpenType: ss02, tnum |
-| Section Heading | GT Walsheim Medium | 62px | 500 | 1.00 | -3.1px | OpenType: ss02 |
-| Feature Heading | GT Walsheim Medium | 32px | 500 | 1.13 | -1px | Tightest of the smaller headings |
-| Accent Display | Mona Sans | 61.5px | 100 | 1.00 | -3.1px | Ultra-light weight, ethereal |
-| Card Title | Inter Variable | 24px | 400 | 1.30 | -0.01px | OpenType: cv01, cv05, cv09, cv11, ss03, ss07 |
-| Feature Title | Inter | 22px | 700 | 1.20 | -0.8px | OpenType: cv05 |
-| Sub-heading | Inter | 20px | 600 | 1.20 | -0.8px | OpenType: cv01, cv09 |
-| Body Large | Inter Variable | 18px | 400 | 1.30 | -0.01px | OpenType: cv01, cv05, cv09, cv11, ss03, ss07 |
-| Body | Inter Variable | 15px | 400 | 1.30 | -0.01px | OpenType: cv11 |
-| Nav/UI | Inter Variable | 15px | 400 | 1.00 | -0.15px | OpenType: cv06, cv11, dlig, ss03 |
-| Body Readable | Inter Framer Regular | 14px | 400 | 1.60 | normal | Long-form body text |
-| Caption | Inter Variable | 14px | 400 | 1.40 | normal | OpenType: cv01, cv06, cv09, cv11, ss03, ss07 |
-| Label | Inter | 13px | 500 | 1.60 | normal | OpenType: cv06, cv11, ss03 |
-| Small Caption | Inter Variable | 12px | 400 | 1.40 | normal | OpenType: cv01, cv06, cv09, cv11, ss03, ss07 |
-| Micro Code | Azeret Mono | 10.4px | 400 | 1.60 | normal | OpenType: cv06, cv11, ss03 |
-| Badge | Open Runde | 9px | 600 | 1.11 | normal | OpenType: cv01, cv09 |
-| Micro Uppercase | Inter Variable | 7px | 400 | 1.00 | 0.21px | uppercase transform |
+## 4. Typography Rules
+
+### Font Stack
+
+```
+/* TailwindCSS variable mapping */
+--font-inter: Inter (local woff2, weights 400/500)
+--font-heading: same stack as --font-inter (no separate heading font)
+```
+
+- **Latin / Body / UI**: `Inter` (via next/font/local, weights 400/500) — clean geometric sans-serif
+- **CJK**: System fonts only — no external web fonts for Chinese (too large, unreliable)
+- **System fallbacks**: PingFang SC (macOS), Noto Sans SC (Android/Linux), Microsoft YaHei (Windows), system-ui
+- **Heading font**: Uses the same stack as body text (`font-heading` class maps to the same variable). Chinese headings rely on weight 500 and size contrast, not a separate typeface
+
+### Chinese vs English Typography Rules
+
+| Property | English | Chinese | Reason |
+|----------|---------|---------|--------|
+| Line-height (body) | 1.4–1.6 | 1.6–1.8 | Chinese characters are dense block shapes; need more vertical breathing room |
+| Line-height (display) | 0.85–1.0 | 1.1–1.2 | Chinese characters don't have ascenders/descenders, but strokes still need separation |
+| Letter-spacing (display) | -0.03em to -0.05em | -0.01em to -0.02em | Chinese characters are already visually tight; extreme negative tracking causes stroke overlap |
+| Letter-spacing (body) | -0.01em to normal | normal | Body text should never have negative tracking in Chinese |
+| Font-weight (heading) | 500–700 | 500 | Chinese strokes are heavier than Latin at the same weight; 500 is sufficient for emphasis |
+| Font-weight (body) | 400 | 400 | Standard weight for readability |
+| Font-size ratio (mixed) | 1:1 | Chinese 1.05–1.1× English | Chinese characters appear slightly smaller than Latin at the same font-size; consider sizing up |
+
+### Typography Hierarchy
+
+| Role | Size | Weight | Line Height | Letter Spacing | Notes |
+|------|------|--------|-------------|----------------|-------|
+| Display Hero | 64–72px | 500 | 1.1 | -0.02em | Primary hero headline |
+| Section Display | 48px | 500 | 1.15 | -0.02em | Section-level headline |
+| Feature Heading | 32px | 500 | 1.3 | -0.01em | Feature card or subsection heading |
+| Card Title | 24px | 500 | 1.4 | normal | Card component heading |
+| Body Large | 18px | 400 | 1.8 | normal | Emphasized body text, descriptions |
+| Body | 15px | 400 | 1.8 | normal | Standard body text |
+| Nav/UI | 15px | 400 | 1.0 | -0.01em | Navigation links, UI labels |
+| Caption | 14px | 400 | 1.7 | normal | Subtle descriptions, footnotes |
+| Label | 13px | 500 | 1.7 | normal | Button labels, form labels, badges |
+
+### Font Loading Strategy
+- Inter loaded via `next/font/local` from woff2 files (no Google Fonts dependency)
+- CJK uses system fonts exclusively — no web fonts, no layout shift, no network dependency
+- System fonts serve as fallback for both Latin and CJK
 
 ### Principles
-- **Compression as personality**: GT Walsheim's extreme negative letter-spacing (-5.5px at 110px) is the defining typographic gesture — headlines feel spring-loaded, urgent, almost breathless
-- **OpenType maximalism**: Inter is deployed with 6+ OpenType features simultaneously (`cv01`, `cv05`, `cv09`, `cv11`, `ss03`, `ss07`), creating a subtly custom feel even at body sizes
-- **Weight restraint on display**: All GT Walsheim usage is weight 500 (medium) — never bold, never regular. This creates a confident-but-not-aggressive display tone
-- **Ultra-tight line heights**: Display text at 0.85 line-height means letters nearly overlap vertically — intentional density that rewards reading at arm's length
+- **CJK spacing restraint**: Never apply extreme negative letter-spacing to Chinese text. The block character structure means even -0.03em can feel cramped
+- **Generous line-height**: Chinese body text always uses 1.6–1.8× line-height. Tighter values cause visual stroke crowding and reduce readability
+- **Weight ceiling at 500**: Chinese headings use weight 500 (medium). Going to 700 (bold) makes Chinese strokes appear excessively heavy
+- **Mixed-script rhythm**: When Chinese and English/numbers appear together, the font stack automatically selects the correct typeface per glyph
 
-## 4. Component Stylings
+## 5. Icon System
 
-### Buttons
-- **Frosted Pill**: `rgba(255, 255, 255, 0.1)` background, black text (`#000000`), pill shape (40px radius). The glass-effect button that lives on dark surfaces — translucent, ambient, subtle
-- **Solid White Pill**: `rgb(255, 255, 255)` background, black text (`#000000`), full pill shape (100px radius), padding `10px 15px`. The primary CTA — clean, high-contrast on dark, unmissable
-- **Ghost**: No visible background, white text, relies on text styling alone. Hover reveals subtle frosted background
-- **Transition**: Scale-based animations (matrix transform with 0.85 scale factor), opacity transitions for reveal effects
+Uses **Lucide React** — stroke-based linear icons, inheriting color via `currentColor`.
+
+| Property | Value | Notes |
+|----------|-------|-------|
+| Default size | 16px | Navigation, labels, sidebar |
+| Small | 14px | Inside buttons, inline annotations |
+| Medium | 20px | Standalone button icons, toolbars |
+| Large | 24px | Empty states, prominent buttons |
+| Stroke width | 1.5 (default) or 2 (emphasis) | Never use filled variants |
+| Color | `currentColor` only | Never set explicit color on icons |
+
+**Alignment**: Use `flex items-center gap-2` with adjacent text. No manual margin/padding for alignment.
+
+**Import**: `import { IconName } from "lucide-react"`
+
+## 6. Component Stylings
+
+### Button Hierarchy
+
+Five levels, ordered by visual weight. All buttons are pill-shaped (rounded-full).
+
+| Level | Background | Text | Border | Use |
+|-------|-----------|------|--------|-----|
+| Primary | `#ffffff` | `#000000` | none | Page main CTA — one per view |
+| Secondary | `accent/0.08` | `accent/0.8` | `accent/0.15` | Related secondary actions (generate, export) |
+| Tertiary | `white/0.06` | `#ffffff` | none | Low-weight actions (cancel, back) |
+| Ghost | transparent | `accent/0.8` or `#999` | none | Inline links, subtle actions |
+| Danger | `#ef4444/0.1` | `#ef4444` | `#ef4444/0.2` | Destructive actions — independent of accent |
+
+**Sizes**: Small (h-8, px-4, text 12px), Default (h-10, px-6, text 13px), Large (h-12, px-8, text 15px)
+
+**States**: Hover (background brightens), Active (`scale(0.97)` + duration-100), Disabled (`opacity-0.4` + `cursor-not-allowed`), Loading (text → spinner + status text + `pointer-events-none`)
 
 ### Cards & Containers
-- **Dark Surface Card**: Black or near-black (`#090909`) background, `rgba(0, 153, 255, 0.15) 0px 0px 0px 1px` blue ring shadow border, rounded corners (10px–15px radius)
-- **Elevated Card**: Multi-layer shadow — `rgba(255, 255, 255, 0.1) 0px 0.5px 0px 0.5px` (subtle top highlight) + `rgba(0, 0, 0, 0.25) 0px 10px 30px` (deep ambient shadow)
-- **Product Screenshots**: Full-width or padded within dark containers, 8px–12px border-radius for software UI previews
-- **Hover**: Subtle glow increase on Framer Blue ring shadow, or brightness shift on frosted surfaces
+
+- **Default**: `#141414` background, `rgba(255,255,255,0.06)` border, `rounded-lg` (8px)
+- **Hover**: Ring shadow `rgba(255,255,255,0.12) 0px 0px 0px 1px`
+- **Selected**: Accent border `rgba(accent, 0.2)` + accent ring shadow + checkmark badge
+- **Dragging**: `opacity-0.8`, `scale(1.02)`, elevated shadow `0 8px 24px rgba(0,0,0,0.4)`
+- **Drop target**: Dashed border `2px dashed rgba(accent, 0.4)`, `accent/0.05` background
 
 ### Inputs & Forms
-- Minimal form presence on the marketing site
-- Input fields follow dark theme: dark background, subtle border, white text
-- Focus state: Framer Blue (`#0099ff`) ring border, `1px solid #0099ff`
-- Placeholder text in `rgba(255, 255, 255, 0.4)`
 
-### Navigation
-- **Dark floating nav bar**: Black background with frosted glass effect, white text links
-- **Nav links**: Inter at 15px, weight 400, white text with subtle hover opacity change
-- **CTA button**: Pill-shaped, white or frosted, positioned at right end of nav
-- **Mobile**: Collapses to hamburger menu, maintains dark theme
-- **Sticky behavior**: Nav remains fixed at top on scroll
+- **Default**: `#262626` background, `rgba(255,255,255,0.1)` border, white text
+- **Focus**: Accent border + accent ring `ring-1 ring-accent`
+- **Error**: `#ef4444` border + ring + error message below
+- **Disabled**: `opacity-0.4`, `cursor-not-allowed`, `white/5` border
+- **Placeholder**: `white/30` text color
 
-### Image Treatment
-- **Product screenshots as hero art**: Full-width embedded UI screenshots with rounded corners (8px–12px)
-- **Dark-on-dark composition**: Screenshots placed on black backgrounds with subtle shadow for depth separation
-- **16:9 and custom aspect ratios**: Product demos fill their containers
-- **No decorative imagery**: All images are functional — showing the tool, the output, or the workflow
+### Toggle
 
-### Trust & Social Proof
-- Customer logos and testimonials in muted gray on dark surfaces
-- Minimal ornamentation — the product screenshots serve as the trust signal
+- **Off**: `white/20` track, white thumb at left
+- **On**: Accent track, white thumb translated right
+- **Transition**: `duration-200`, color and transform
 
-## 5. Layout Principles
+### Navigation Tabs
+
+- **Inactive**: `#666` text, transparent background
+- **Active**: `white/[0.08]` background, white text, `rounded-md`
+- **Hover**: Text lightens to `#999`
+- **Separator**: `white/[0.06]` vertical border between sections
+
+## 7. Motion & Animation
+
+### Duration Scale
+
+| Name | Value | Tailwind | Use |
+|------|-------|----------|-----|
+| instant | 100ms | `duration-100` | Button active scale, toggle switch |
+| fast | 150ms | `duration-150` | Color changes, fade in/out, tooltip appear |
+| normal | 200ms | `duration-200` | Default — hover, focus, background, border |
+| slow | 300ms | `duration-300` | Layout changes, expand/collapse, panel slide |
+| sluggish | 500ms | `duration-500` | Large displacement, page transitions, skeleton shimmer |
+
+### Easing Curves
+
+| Name | Value | Use |
+|------|-------|-----|
+| ease-out | `cubic-bezier(0, 0, 0.2, 1)` | Elements appearing — entrance, tooltip, panel expand |
+| ease-in | `cubic-bezier(0.4, 0, 1, 1)` | Elements disappearing — exit, panel collapse |
+| ease-in-out | `cubic-bezier(0.4, 0, 0.2, 1)` | State changes — color, size transitions |
+| spring | `cubic-bezier(0.34, 1.56, 0.64, 1)` | Elastic feedback — button press, drag release |
+
+### Shared Transitions by Component Type
+
+| Type | Transition | Duration | Easing |
+|------|-----------|----------|--------|
+| Buttons, links, icons | `transition-colors` | 200ms | ease-in-out |
+| Cards, panels | `transition-shadow` | 200ms | ease-in-out |
+| Expand/collapse | `transition-all` (max-height + opacity) | 300ms | ease-out |
+| Tooltips, popovers, modals | `transition-[opacity,transform]` | 150ms | ease-out |
+
+### Component Animations
+
+| Animation | Implementation | Use |
+|-----------|---------------|-----|
+| Spinner | `border-2 border-white/20 border-t-accent rounded-full animate-spin` | Loading indicators, button loading state |
+| Pulse Dot | `animate-ping opacity-75` (outer) + static dot (inner) | Task in progress, online status |
+| Skeleton Shimmer | `bg-gradient white/5→white/10→white/5`, 1.5s infinite | Content loading placeholders |
+| Scale Press | `active:scale-[0.97] transition-transform duration-100` | Button press feedback |
+
+### Accessibility
+- Respect `prefers-reduced-motion`: disable animations for users who prefer reduced motion
+- Never rely on animation alone to convey information — always pair with text or icon changes
+
+## 8. Layout Patterns
+
+布局模式通过设计系统组件页面（`/design-system/layout`）和实际页面体现，不在此文字描述。参考源码：
+- 全局页面：`src/app/page.tsx`
+- 项目工作台：`src/app/design-system/layout/page.tsx`（项目工作台 section）
+- 分集工作台：同上（分集工作台 section）
+
+## 9. Spacing & Radius
 
 ### Spacing System
-- **Base unit**: 8px
-- **Scale**: 1px, 2px, 3px, 4px, 5px, 6px, 8px, 10px, 12px, 15px, 20px, 30px, 35px
-- **Section padding**: Large vertical spacing (80px–120px between sections)
-- **Card padding**: 15px–30px internal padding
-- **Component gaps**: 8px–20px between related elements
-
-### Grid & Container
-- **Max width**: ~1200px container, centered
-- **Column patterns**: Full-width hero, 2-column feature sections, single-column product showcases
-- **Asymmetric layouts**: Feature sections often pair text (40%) with screenshot (60%)
-
-### Whitespace Philosophy
-- **Breathe through darkness**: Generous vertical spacing between sections — the black background means whitespace manifests as void, creating dramatic pauses between content blocks
-- **Dense within, spacious between**: Individual components are tightly composed (tight line-heights, compressed text) but float in generous surrounding space
-- **Product-first density**: Screenshot areas are allowed to be dense and information-rich, contrasting with the sparse marketing text
+- **Base unit**: 4px
+- **Section padding**: 80px–120px between sections (desktop), 60px (mobile)
+- **Card padding**: 24px internal
+- **Component gaps**: 4px–24px between related elements
 
 ### Border Radius Scale
-- **1px**: Micro-elements, nearly squared precision edges
-- **5px–7px**: Small UI elements, image thumbnails — subtly softened
-- **8px**: Standard component radius — code blocks, buttons, interactive elements
-- **10px–12px**: Cards, product screenshots — comfortably rounded
-- **15px–20px**: Large containers, feature cards — generously rounded
-- **30px–40px**: Navigation pills, pagination — noticeably rounded
-- **100px**: Full pill shape — primary CTAs, tag elements
+- **6px**: Small elements, badges
+- **8px**: Standard components, cards
+- **12px**: Large containers, panels
+- **rounded-full (9999px)**: Buttons, pills, avatars
 
-## 6. Depth & Elevation
-
-| Level | Treatment | Use |
-|-------|-----------|-----|
-| Level 0 (Flat) | No shadow, pure black surface | Page background, empty areas |
-| Level 1 (Ring) | `rgba(0, 153, 255, 0.15) 0px 0px 0px 1px` | Card borders, interactive element outlines — Framer Blue glow ring |
-| Level 2 (Contained) | `rgb(9, 9, 9) 0px 0px 0px 2px` | Near-black ring for subtle containment on dark surfaces |
-| Level 3 (Floating) | `rgba(255, 255, 255, 0.1) 0px 0.5px 0px 0.5px, rgba(0, 0, 0, 0.25) 0px 10px 30px` | Elevated cards, floating elements — subtle white top-edge highlight + deep ambient shadow |
-
-### Shadow Philosophy
-Framer's elevation system is inverted from traditional light-theme designs. Instead of darker shadows on light backgrounds, Framer uses:
-- **Blue-tinted ring shadows** at very low opacity (0.15) for containment — a signature move that subtly brands every bordered element
-- **White edge highlights** (0.5px) on the top edge of elevated elements — simulating light hitting the top surface
-- **Deep ambient shadows** for true floating elements — `rgba(0, 0, 0, 0.25)` at large spread (30px)
-
-### Decorative Depth
-- **Blue glow auras**: Subtle Framer Blue (`#0099ff`) radial gradients behind key interactive areas
-- **No background blur/glassmorphism**: Despite the frosted button effect, there's no heavy glass blur usage — the translucency is achieved through simple rgba opacity
-
-## 7. Do's and Don'ts
+## 10. Do's and Don'ts
 
 ### Do
-- Use pure black (`#000000`) as the primary background — not dark gray, not charcoal
-- Apply extreme negative letter-spacing on GT Walsheim display text (-3px to -5.5px)
-- Keep all buttons pill-shaped (40px+ radius) — never use squared or slightly-rounded buttons
-- Use Framer Blue (`#0099ff`) exclusively for interactive accents — links, borders, focus states
-- Deploy `rgba(255, 255, 255, 0.1)` for frosted glass surfaces on dark backgrounds
-- Maintain GT Walsheim at weight 500 only — the medium weight IS the brand
-- Use extensive OpenType features on Inter text (cv01, cv05, cv09, cv11, ss03, ss07)
-- Let product screenshots be the visual centerpiece — the tool markets itself
-- Apply blue ring shadows (`rgba(0, 153, 255, 0.15) 0px 0px 0px 1px`) for card containment
+- Use pure black (`#0a0a0a`) as the primary background
+- Keep all buttons pill-shaped (rounded-full)
+- Use the accent color only for temporary interactive events
+- Use `white/[0.08]` background + white text for navigation activation
+- Set Chinese body line-height to 1.6–1.8
+- Use weight 500 for all headings
+- Apply letter-spacing of -0.01em to -0.02em for Chinese display text only
+- Use Lucide icons with `currentColor` inheritance
+- Follow the five-level surface hierarchy for elevation
+- Use `transition-colors duration-200` as the default transition
 
 ### Don't
-- Use warm dark backgrounds (no `#1a1a1a`, `#2d2d2d`, or brownish blacks)
-- Apply bold (700+) weight to GT Walsheim display text — medium 500 only
-- Introduce additional accent colors beyond Framer Blue — this is a one-accent-color system
-- Use large border-radius on non-interactive elements (cards use 10px–15px, only buttons get 40px+)
-- Add decorative imagery, illustrations, or icons — the product IS the illustration
-- Use positive letter-spacing on headlines — everything is compressed, negative tracking
-- Create heavy drop shadows — depth is communicated through subtle rings and minimal ambients
-- Place light/white backgrounds behind content sections — the void is sacred
-- Use serif or display-weight fonts — the system is geometric sans-serif only
+- Use the accent color in persistent navigation or structural elements
+- Apply extreme negative letter-spacing to Chinese text (never below -0.03em)
+- Use font-weight 700+ for Chinese headings — 500 is the ceiling
+- Set Chinese body line-height below 1.6 — strokes will visually crowd
+- Introduce multiple accent colors
+- Use squared or slightly-rounded buttons — always pill-shaped
+- Create heavy drop shadows on static elements — use ring borders instead
+- Place light/white backgrounds behind content sections
+- Load external web fonts for CJK — use system fonts
+- Use filled icon variants — stroke-based only
 
-## 8. Responsive Behavior
+## 11. Responsive Behavior
 
 ### Breakpoints
 | Name | Width | Key Changes |
 |------|-------|-------------|
-| Mobile | <809px | Single column, stacked feature sections, reduced hero text (62px→40px), hamburger nav |
-| Tablet | 809px–1199px | 2-column features begin, nav links partially visible, screenshots scale down |
-| Desktop | >1199px | Full layout, expanded nav with all links + CTA, 110px display hero, side-by-side features |
-
-### Touch Targets
-- Pill buttons: minimum 40px height with 10px vertical padding — exceeds 44px WCAG minimum
-- Nav links: 15px text with generous padding for touch accessibility
-- Mobile CTA buttons: Full-width pills on mobile for easy thumb reach
+| Mobile | <809px | Single column, stacked features, hamburger nav |
+| Tablet | 809–1199px | 2-column features, nav partially visible |
+| Desktop | >1199px | Full layout, side-by-side features |
 
 ### Collapsing Strategy
-- **Navigation**: Full horizontal nav → hamburger menu at mobile breakpoint
-- **Hero text**: 110px display → 85px → 62px → ~40px across breakpoints, maintaining extreme negative tracking proportionally
-- **Feature sections**: Side-by-side (text + screenshot) → stacked vertically on mobile
-- **Product screenshots**: Scale responsively within containers, maintaining aspect ratios
-- **Section spacing**: Reduces proportionally — 120px desktop → 60px mobile
+- **Navigation**: Full sidebar → hamburger menu at mobile
+- **Hero text**: 72px → 48px → 36px across breakpoints
+- **Feature sections**: Side-by-side → stacked vertically
+- **Section spacing**: 120px desktop → 60px mobile
+- **Line-height**: Stays constant — CJK rules don't change with screen size
 
-### Image Behavior
-- Product screenshots are responsive, scaling within their container boundaries
-- No art direction changes — same crops across breakpoints
-- Dark background ensures screenshots maintain visual impact at any size
-- Screenshots lazy-load as user scrolls into view
+## 12. Agent Prompt Guide
 
-## 9. Agent Prompt Guide
+### Quick Reference
+- Background: `#0a0a0a` | Text: `#ffffff` | Accent: `#00CAE0`
+- Secondary text: `#999999` | Tertiary text: `#666666`
+- Surface: `#141414` (card) / `#1c1c1c` (popover) / `#262626` (input)
+- Border: `rgba(255,255,255,0.06)` | Ring hover: `rgba(255,255,255,0.12)`
+- Buttons: always `rounded-full`, five-level hierarchy
+- Nav activation: `white/[0.08]` bg + white text, NEVER accent
+- Icons: Lucide React, `currentColor`, default 16px, strokeWidth 1.5
+- Chinese body line-height: 1.8 | English body line-height: 1.5
+- Heading tracking: `-0.02em` (Chinese), `-0.04em` (English)
+- Default transition: `transition-colors duration-200 ease-in-out`
+- Font: Inter (local) + system CJK — no Google Fonts
 
-### Quick Color Reference
-- Primary Background: Void Black (`#000000`)
-- Primary Text: Pure White (`#ffffff`)
-- Accent/CTA: Framer Blue (`#0099ff`)
-- Secondary Text: Muted Silver (`#a6a6a6`)
-- Frosted Surface: Translucent White (`rgba(255, 255, 255, 0.1)`)
-- Elevation Ring: Blue Glow (`rgba(0, 153, 255, 0.15)`)
-
-### Example Component Prompts
-- "Create a hero section on pure black background with 110px GT Walsheim heading in white, letter-spacing -5.5px, line-height 0.85, and a pill-shaped white CTA button (100px radius) with black text"
-- "Design a feature card on black background with a 1px Framer Blue ring shadow border (rgba(0,153,255,0.15)), 12px border-radius, white heading in Inter at 22px weight 700, and muted silver (a6a6a6) body text"
-- "Build a navigation bar with black background, white Inter text links at 15px, and a frosted pill button (rgba(255,255,255,0.1) background, 40px radius) as the CTA"
-- "Create a product showcase section with a full-width screenshot embedded on black, 10px border-radius, subtle multi-layer shadow (white 0.5px top highlight + rgba(0,0,0,0.25) 30px ambient)"
-- "Design a pricing card using pure black surface, Framer Blue (#0099ff) accent for the selected plan border, white text hierarchy (24px Inter bold heading, 14px regular body), and a solid white pill CTA button"
-
-### Iteration Guide
-When refining existing screens generated with this design system:
-1. Focus on ONE component at a time — the dark canvas makes each element precious
-2. Always verify letter-spacing on GT Walsheim headings — the extreme negative tracking is non-negotiable
-3. Check that Framer Blue appears ONLY on interactive elements — never as decorative background or text color for non-links
-4. Ensure all buttons are pill-shaped — any squared corner immediately breaks the Framer aesthetic
-5. Test frosted glass surfaces by checking they have exactly `rgba(255, 255, 255, 0.1)` — too opaque looks like a bug, too transparent disappears
+### Code Generation Checklist
+When generating components, verify:
+1. Chinese text uses `font-heading` class or appropriate font variable
+2. Body text line-height is 1.6–1.8 (not the English default of 1.3)
+3. No extreme negative letter-spacing on Chinese (max -0.02em for display)
+4. Heading font-weight is 500, never 700+ for Chinese
+5. Accent color appears only on interactive/temporary elements
+6. All buttons are pill-shaped (rounded-full)
+7. Borders use `rgba(255,255,255,0.06)` for standard elements
+8. Navigation activation uses white/gray, not accent
+9. Icons inherit color via currentColor, no explicit color
+10. No external web fonts for CJK — system fonts only
