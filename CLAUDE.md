@@ -24,6 +24,7 @@ src/
 
 ## Commands
 - `npm run dev` — 启动开发服务器
+- `npm run dev:fresh` — 清除 .next 缓存后启动（HMR 缓存损坏时使用）
 - `npm run build` — 生产构建（用于验证无编译错误）
 - `npm run lint` — 运行 linter
 
@@ -89,11 +90,15 @@ src/
 
 详见 [DESIGN.md](./DESIGN.md)，以下是高频使用的快速参考：
 
-- **Background**: `#0a0a0f` | **Text**: `#ffffff` | **Accent**: `#0099ff`
-- **Secondary text**: `#a6a6a6` | **Surface**: `#111118` (card) / `rgba(255,255,255,0.1)` (frosted)
-- **Ring**: `rgba(0,153,255,0.15)` (blue glow border)
-- **Buttons**: Always pill-shaped (40px+ radius)
+- **Background**: `#0a0a0a` | **Card**: `#141414` | **Text**: `#ffffff`
+- **Accent**: `#00CAE0` (可配置，详见 makeAccent)
+- **Secondary text**: `#999999` | **Tertiary text**: `#666666`
+- **Border**: `rgba(255,255,255,0.06)` | **Ring hover**: `rgba(255,255,255,0.12)`
+- **Buttons**: Always pill-shaped (rounded-full), 五级层级
+- **Nav activation**: `white/[0.08]` bg + white text, NEVER accent
+- **Icons**: Lucide React, currentColor, 16px default, strokeWidth 1.5
 - **Chinese body line-height**: 1.6–1.8
 - **Chinese heading tracking**: -0.01em to -0.02em
 - **Chinese heading weight**: 500 only
-- **Breakpoints**: Mobile (<809px), Tablet (809–1199px), Desktop (>1199px)
+- **Default transition**: `transition-colors duration-200`
+- **Font**: Inter (local woff2) + system CJK — no Google Fonts
