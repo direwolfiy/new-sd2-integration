@@ -1,0 +1,666 @@
+"use client";
+
+import { useState, useRef, useCallback } from "react";
+import {
+  Image,
+  Film,
+  Pencil,
+  Trash2,
+  RotateCcw,
+  Download,
+  Send,
+  Frame,
+  Crop,
+  Clock,
+  Volume2,
+  Upload,
+  Sparkles,
+  X,
+  Library,
+  Plus,
+  Search,
+  Check,
+} from "lucide-react";
+import { assets } from "@/mocks/assets";
+import type { Asset } from "@/mocks/types";
+
+type TaskStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+type TaskType = "IMAGE" | "VIDEO";
+
+interface GenTask {
+  id: string;
+  type: TaskType;
+  prompt: string;
+  model: string;
+  status: TaskStatus;
+  params: string[];
+  resultCount: number;
+  createdAt: string;
+}
+
+// TODO: [mock] replace with API call
+const mockTasks: GenTask[] = [
+  {
+    id: "t-5",
+    type: "IMAGE",
+    prompt: "秦羽站在星辰之力觉醒的瞬间，全身散发蓝色星光，背景是无垠宇宙，史诗级画面",
+    model: "NanoBanana-2",
+    status: "PROCESSING",
+    params: ["2K", "16:9"],
+    resultCount: 0,
+    createdAt: "刚刚",
+  },
+  {
+    id: "t-4",
+    type: "IMAGE",
+    prompt: "秦羽战斗形态，手持流星泪化形的长剑，身穿星辰铠甲，眼神凌厉，正面全身像",
+    model: "NanoBanana-2",
+    status: "COMPLETED",
+    params: ["2K", "9:16"],
+    resultCount: 1,
+    createdAt: "2 小时前",
+  },
+  {
+    id: "t-3",
+    type: "VIDEO",
+    prompt: "镜头从秦村远景缓慢推进到密室入口，夕阳余晖笼罩山谷，电影级运镜",
+    model: "Seedance 2.0",
+    status: "COMPLETED",
+    params: ["5秒", "16:9", "720p", "有声"],
+    resultCount: 1,
+    createdAt: "5 小时前",
+  },
+  {
+    id: "t-2",
+    type: "IMAGE",
+    prompt: "九剑仙府外景夜景版，月光洒落云海之上，仙府宫阙若隐若现，东方奇幻风格",
+    model: "Seedream 4.5",
+    status: "COMPLETED",
+    params: ["3K", "16:9"],
+    resultCount: 2,
+    createdAt: "昨天",
+  },
+  {
+    id: "t-1",
+    type: "VIDEO",
+    prompt: "流星泪觉醒特效，吊坠爆发出璀璨星光，星光照亮整个密室，粒子特效",
+    model: "Seedance 2.0",
+    status: "FAILED",
+    params: ["5秒", "16:9", "720p"],
+    resultCount: 0,
+    createdAt: "昨天",
+  },
+  {
+    id: "t-0",
+    type: "IMAGE",
+    prompt: "秦村清晨场景，炊烟袅袅，远山薄雾，水墨画风格，宁静祥和的古代村庄",
+    model: "NanoBanana-2",
+    status: "COMPLETED",
+    params: ["1K", "16:9"],
+    resultCount: 1,
+    createdAt: "2 天前",
+  },
+];
+
+const statusConfig: Record<TaskStatus, { label: string; style: string }> = {
+  PENDING: { label: "等待中", style: "bg-white/[0.06] text-[#999]" },
+  PROCESSING: { label: "处理中", style: "bg-[rgba(0,202,224,0.08)] text-[#00CAE0]" },
+  COMPLETED: { label: "已完成", style: "bg-white/[0.08] text-white/60" },
+  FAILED: { label: "失败", style: "bg-[#ef4444]/10 text-[#ef4444]" },
+};
+
+interface ReferenceImage {
+  id: string;
+  source: "local" | "asset" | "inspiration" | "history";
+  thumbnailUrl: string;
+  name: string;
+}
+
+type ImageSource = "local" | "asset" | "inspiration" | "history";
+
+const MAX_REFERENCES = 4;
+
+const sourceTabs: { key: ImageSource; label: string; icon: typeof Upload }[] = [
+  { key: "asset", label: "资产库", icon: Library },
+  { key: "local", label: "本地上传", icon: Upload },
+  { key: "history", label: "历史记录", icon: Clock },
+  { key: "inspiration", label: "灵感库", icon: Sparkles },
+];
+
+const sourceIcons: Record<ImageSource, typeof Upload> = {
+  local: Upload,
+  asset: Library,
+  inspiration: Sparkles,
+  history: Clock,
+};
+
+function TaskCard({ task }: { task: GenTask }) {
+  const cfg = statusConfig[task.status];
+  return (
+    <div className="mb-6">
+      <div className="rounded-xl border border-white/[0.06] bg-[#141414] overflow-hidden">
+        <div className="p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-[14px] text-[#ccc] leading-[1.7]">{task.prompt}</p>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+              <span className="px-2 py-0.5 rounded-full bg-[rgba(0,202,224,0.08)] text-[#00CAE0] text-[11px] font-medium">
+                {task.model}
+              </span>
+              {task.params.map((p) => (
+                <span key={p} className="px-2 py-0.5 rounded-full bg-white/[0.06] text-[#999] text-[11px]">
+                  {p}
+                </span>
+              ))}
+              <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${cfg.style}`}>
+                {cfg.label}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="px-4 pb-4">
+          {task.status === "PROCESSING" ? (
+            <div className="flex gap-2">
+              <div className="w-40 h-28 rounded-lg border border-white/[0.06] bg-[#262626] flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-5 h-5 mx-auto border-2 border-white/20 border-t-[#00CAE0] rounded-full animate-spin mb-2" />
+                  <span className="text-[12px] text-[#00CAE0]">生成中...</span>
+                </div>
+              </div>
+            </div>
+          ) : task.status === "FAILED" ? (
+            <div className="flex gap-2">
+              <div className="w-40 h-28 rounded-lg border border-[#ef4444]/20 bg-[#262626] flex items-center justify-center">
+                <span className="text-[12px] text-[#ef4444]">生成失败</span>
+              </div>
+            </div>
+          ) : task.resultCount > 0 ? (
+            <div className="flex gap-2">
+              {Array.from({ length: task.resultCount }).map((_, i) => (
+                <div
+                  key={i}
+                  className="w-40 h-28 rounded-lg border border-white/[0.06] bg-[#262626] flex items-center justify-center group relative cursor-pointer hover:border-white/[0.12] transition-colors duration-200"
+                >
+                  <span className="text-[11px] text-[#666]">
+                    {task.type === "VIDEO" ? "视频" : "图片"} {i + 1}
+                  </span>
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2">
+                    <button className="w-7 h-7 rounded-md bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors duration-200">
+                      <Download size={14} strokeWidth={1.5} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="flex gap-1 mt-1.5 ml-1">
+        {task.status === "FAILED" && (
+          <button className="w-7 h-7 rounded-md flex items-center justify-center text-[#666] hover:text-white hover:bg-white/[0.06] transition-colors duration-200">
+            <RotateCcw size={14} strokeWidth={1.5} />
+          </button>
+        )}
+        <button className="w-7 h-7 rounded-md flex items-center justify-center text-[#666] hover:text-white hover:bg-white/[0.06] transition-colors duration-200">
+          <Pencil size={14} strokeWidth={1.5} />
+        </button>
+        <button className="w-7 h-7 rounded-md flex items-center justify-center text-[#666] hover:text-white hover:bg-white/[0.06] transition-colors duration-200">
+          <Trash2 size={14} strokeWidth={1.5} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function WorkshopContent() {
+  const [type, setType] = useState<TaskType>("IMAGE");
+  const [prompt, setPrompt] = useState("");
+  const [references, setReferences] = useState<ReferenceImage[]>([]);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<ImageSource>("asset");
+  const [tempSelected, setTempSelected] = useState<Set<string>>(new Set());
+  const [refSearch, setRefSearch] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const existingIds = new Set(references.map((r) => r.id));
+  const imageAssets = assets.filter((a) => a.type === "image");
+  const completedTasks = mockTasks.filter((t) => t.status === "COMPLETED" && t.resultCount > 0);
+
+  const addReference = useCallback((ref: ReferenceImage) => {
+    setReferences((prev) => {
+      if (prev.length >= MAX_REFERENCES || prev.some((r) => r.id === ref.id)) return prev;
+      return [...prev, ref];
+    });
+  }, []);
+
+  const removeReference = useCallback((id: string) => {
+    setReferences((prev) => prev.filter((r) => r.id !== id));
+  }, []);
+
+  const handleLocalFiles = useCallback(
+    (files: FileList) => {
+      Array.from(files).forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          addReference({
+            id: `local-${file.name}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            source: "local",
+            thumbnailUrl: e.target?.result as string,
+            name: file.name,
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+    },
+    [addReference],
+  );
+
+  function toggleTempSelect(id: string) {
+    setTempSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function openPicker() {
+    setActiveTab("asset");
+    setTempSelected(new Set());
+    setRefSearch("");
+    setPickerOpen(true);
+  }
+
+  function closePicker() {
+    setPickerOpen(false);
+    setTempSelected(new Set());
+    setRefSearch("");
+  }
+
+  function confirmPicker() {
+    for (const id of tempSelected) {
+      const asset = imageAssets.find((a) => a.id === id);
+      if (asset) {
+        addReference({ id: asset.id, source: "asset", thumbnailUrl: asset.thumbnailUrl, name: asset.name });
+        continue;
+      }
+      const historyId = id.replace("history-", "");
+      const task = mockTasks.find((t) => t.id === historyId);
+      if (task) {
+        addReference({ id, source: "history", thumbnailUrl: "", name: task.prompt.slice(0, 40) });
+      }
+    }
+    closePicker();
+  }
+
+  const filteredAssets = refSearch
+    ? imageAssets.filter((a) => a.name.toLowerCase().includes(refSearch.toLowerCase()))
+    : imageAssets;
+
+  return (
+    <div className="flex h-full flex-col">
+      {/* Task history list */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-3xl mx-auto px-4 pt-6 pb-72">
+          {mockTasks.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <p className="text-[15px] text-[#666]">暂无生成记录</p>
+              <p className="text-[13px] text-[#444] mt-1">在底部输入框中输入提示词开始创作</p>
+            </div>
+          ) : (
+            mockTasks.map((task) => <TaskCard key={task.id} task={task} />)
+          )}
+        </div>
+      </div>
+
+      {/* Bottom input area */}
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-32px)] max-w-3xl">
+        <div className="rounded-xl border border-white/[0.08] bg-[#1c1c1c]/95 backdrop-blur-xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+          {/* Reference images — always visible */}
+          <div className={`flex items-center gap-2 flex-wrap ${references.length > 0 ? "pb-3 mb-3 border-b border-white/[0.06]" : "mb-3"}`}>
+            {references.map((ref) => {
+              const SourceIcon = sourceIcons[ref.source];
+              return (
+                <div key={ref.id} className="relative group shrink-0" title={ref.name}>
+                  <div className="w-20 h-20 rounded-lg bg-[#262626] border border-white/[0.06] flex items-center justify-center overflow-hidden relative">
+                    {ref.thumbnailUrl ? (
+                      <img src={ref.thumbnailUrl} alt={ref.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <Image size={16} strokeWidth={1.5} className="text-[#666]" />
+                    )}
+                    <div className="absolute bottom-0.5 left-0.5 w-4 h-4 rounded bg-black/60 flex items-center justify-center">
+                      <SourceIcon size={9} strokeWidth={2} className="text-white/70" />
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => removeReference(ref.id)}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#1c1c1c] border border-white/[0.08] flex items-center justify-center text-[#666] opacity-0 group-hover:opacity-100 hover:text-white transition-all duration-200"
+                  >
+                    <X size={10} strokeWidth={1.5} />
+                  </button>
+                </div>
+              );
+            })}
+            {references.length < MAX_REFERENCES && (
+              <button
+                onClick={openPicker}
+                className="w-20 h-20 shrink-0 rounded-lg border border-dashed border-white/[0.1] flex items-center justify-center text-[#666] hover:border-white/[0.2] hover:text-[#999] transition-colors duration-200"
+              >
+                <Plus size={18} strokeWidth={1.5} />
+              </button>
+            )}
+          </div>
+
+          {/* Textarea */}
+          <textarea
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="描述你想生成的内容..."
+            rows={2}
+            className="w-full bg-transparent text-[14px] text-white placeholder:text-white/25 resize-none outline-none leading-[1.7]"
+          />
+
+          {/* Toolbar */}
+          <div className="mt-3 flex items-center gap-2">
+            <div className="flex items-center gap-1 flex-1 flex-wrap">
+              <button
+                onClick={() => setType("IMAGE")}
+                className={`h-7 px-2.5 rounded-full text-[12px] font-medium flex items-center gap-1.5 transition-colors duration-200 ${
+                  type === "IMAGE"
+                    ? "bg-[rgba(0,202,224,0.08)] text-[rgba(0,202,224,0.8)] border border-[rgba(0,202,224,0.15)]"
+                    : "bg-white/[0.06] text-[#999] border border-transparent hover:bg-white/[0.1]"
+                }`}
+              >
+                <Image size={13} strokeWidth={1.5} />
+                图片
+              </button>
+              <button
+                onClick={() => setType("VIDEO")}
+                className={`h-7 px-2.5 rounded-full text-[12px] font-medium flex items-center gap-1.5 transition-colors duration-200 ${
+                  type === "VIDEO"
+                    ? "bg-[rgba(0,202,224,0.08)] text-[rgba(0,202,224,0.8)] border border-[rgba(0,202,224,0.15)]"
+                    : "bg-white/[0.06] text-[#999] border border-transparent hover:bg-white/[0.1]"
+                }`}
+              >
+                <Film size={13} strokeWidth={1.5} />
+                视频
+              </button>
+
+              <div className="w-px h-4 bg-white/[0.06] mx-1" />
+
+              <button className="h-7 px-2.5 rounded-full bg-white/[0.06] text-[12px] text-[#999] flex items-center gap-1 hover:bg-white/[0.1] transition-colors duration-200">
+                {type === "IMAGE" ? "NanoBanana-2" : "Seedance 2.0"}
+              </button>
+
+              {type === "IMAGE" ? (
+                <>
+                  <button className="h-7 px-2.5 rounded-full bg-white/[0.06] text-[12px] text-[#999] flex items-center gap-1 hover:bg-white/[0.1] transition-colors duration-200">
+                    <Frame size={13} strokeWidth={1.5} />
+                    2K
+                  </button>
+                  <button className="h-7 px-2.5 rounded-full bg-white/[0.06] text-[12px] text-[#999] flex items-center gap-1 hover:bg-white/[0.1] transition-colors duration-200">
+                    <Crop size={13} strokeWidth={1.5} />
+                    16:9
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className="h-7 px-2.5 rounded-full bg-white/[0.06] text-[12px] text-[#999] flex items-center gap-1 hover:bg-white/[0.1] transition-colors duration-200">
+                    <Clock size={13} strokeWidth={1.5} />
+                    5秒
+                  </button>
+                  <button className="h-7 px-2.5 rounded-full bg-white/[0.06] text-[12px] text-[#999] flex items-center gap-1 hover:bg-white/[0.1] transition-colors duration-200">
+                    <Crop size={13} strokeWidth={1.5} />
+                    16:9
+                  </button>
+                  <button className="h-7 px-2.5 rounded-full bg-white/[0.06] text-[12px] text-[#999] flex items-center gap-1 hover:bg-white/[0.1] transition-colors duration-200">
+                    <Volume2 size={13} strokeWidth={1.5} />
+                    有声
+                  </button>
+                </>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-[11px] text-[#666]">{prompt.length}/4000</span>
+              <button
+                disabled={!prompt.trim()}
+                className="h-8 px-4 rounded-full bg-white text-black text-[12px] font-medium flex items-center gap-1.5 hover:bg-white/90 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
+              >
+                <Send size={13} strokeWidth={2} />
+                生成
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Reference image picker — centered modal */}
+      {pickerOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="w-[640px] h-[75vh] rounded-xl border border-white/[0.08] bg-[#1c1c1c] shadow-[0_16px_48px_rgba(0,0,0,0.5)] flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0">
+              <h3 className="text-[15px] font-medium">选择参考图</h3>
+              <button
+                onClick={closePicker}
+                className="w-7 h-7 rounded-full flex items-center justify-center text-[#666] hover:text-white hover:bg-white/[0.06] transition-colors duration-200"
+              >
+                <X size={14} strokeWidth={1.5} />
+              </button>
+            </div>
+
+            {/* Segmented tabs */}
+            <div className="flex gap-1 p-1 mx-5 mt-4 rounded-full bg-white/[0.06] shrink-0">
+              {sourceTabs.map(({ key, label, icon: Icon }) => (
+                <button
+                  key={key}
+                  onClick={() => {
+                    setActiveTab(key);
+                    setRefSearch("");
+                  }}
+                  className={`flex-1 h-8 rounded-full text-[12px] flex items-center justify-center gap-1.5 transition-all duration-200 ${
+                    activeTab === key ? "bg-white/10 text-white" : "text-[#999] hover:text-white"
+                  }`}
+                >
+                  <Icon size={13} strokeWidth={1.5} />
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Body */}
+            <div className="flex-1 min-h-0 overflow-y-auto p-5">
+              {/* Asset library */}
+              {activeTab === "asset" && (
+                <>
+                  <div className="flex items-center h-8 px-3 rounded-full bg-[#262626] gap-2 text-[12px] text-[#666] mb-4">
+                    <Search size={14} strokeWidth={1.5} />
+                    <input
+                      value={refSearch}
+                      onChange={(e) => setRefSearch(e.target.value)}
+                      placeholder="搜索资产..."
+                      className="flex-1 bg-transparent outline-none text-[12px] text-white placeholder:text-[#666]"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 gap-3">
+                    {filteredAssets.map((asset) => {
+                      const selected = tempSelected.has(asset.id);
+                      const attached = existingIds.has(asset.id);
+                      return (
+                        <button
+                          key={asset.id}
+                          onClick={() => !attached && toggleTempSelect(asset.id)}
+                          className={`rounded-lg overflow-hidden border transition-all duration-200 ${
+                            attached
+                              ? "border-[rgba(0,202,224,0.2)] opacity-50 cursor-default"
+                              : selected
+                                ? "border-[rgba(0,202,224,0.4)] ring-1 ring-[rgba(0,202,224,0.3)]"
+                                : "border-white/[0.06] hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12)]"
+                          }`}
+                        >
+                          <div className="aspect-square bg-gradient-to-br from-[#222] to-[#141414] flex items-center justify-center relative">
+                            <Image size={20} strokeWidth={1} className="text-white/[0.06]" />
+                            {(selected || attached) && (
+                              <div
+                                className={`absolute top-1.5 right-1.5 w-5 h-5 rounded-full flex items-center justify-center ${
+                                  attached ? "bg-[rgba(0,202,224,0.2)]" : "bg-[#00CAE0]"
+                                }`}
+                              >
+                                <Check
+                                  size={10}
+                                  strokeWidth={2}
+                                  className={attached ? "text-[#00CAE0]" : "text-black"}
+                                />
+                              </div>
+                            )}
+                          </div>
+                          <div className="p-2 bg-[#141414]">
+                            <p className="text-[11px] text-[#ccc] truncate">{asset.name}</p>
+                            <p className="text-[10px] text-[#555] mt-0.5">{asset.sourceProject}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+
+              {/* Local upload */}
+              {activeTab === "local" && (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (e.dataTransfer.files.length) {
+                      handleLocalFiles(e.dataTransfer.files);
+                      closePicker();
+                    }
+                  }}
+                  className="flex flex-col items-center justify-center py-16 border-2 border-dashed border-white/[0.1] rounded-xl hover:border-white/[0.2] transition-colors duration-200 cursor-pointer"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-white/[0.04] flex items-center justify-center mb-4">
+                    <Upload size={24} strokeWidth={1.5} className="text-[#666]" />
+                  </div>
+                  <p className="text-[14px] text-[#999] mb-1">点击或拖拽图片到此区域</p>
+                  <p className="text-[12px] text-[#555]">支持 PNG、JPG、WebP，单张最大 10MB</p>
+                </div>
+              )}
+
+              {/* History */}
+              {activeTab === "history" && (
+                <div className="flex flex-col gap-2">
+                  {completedTasks.map((task) => {
+                    const refId = `history-${task.id}`;
+                    const selected = tempSelected.has(refId);
+                    const attached = existingIds.has(refId);
+                    return (
+                      <button
+                        key={task.id}
+                        onClick={() => !attached && toggleTempSelect(refId)}
+                        className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all duration-200 ${
+                          attached
+                            ? "bg-[rgba(0,202,224,0.05)] border border-[rgba(0,202,224,0.15)] opacity-50 cursor-default"
+                            : selected
+                              ? "bg-[rgba(0,202,224,0.05)] border border-[rgba(0,202,224,0.2)]"
+                              : "border border-white/[0.06] hover:border-white/[0.12]"
+                        }`}
+                      >
+                        <div className="w-12 h-12 rounded-lg bg-[#262626] border border-white/[0.06] flex items-center justify-center shrink-0">
+                          {task.type === "VIDEO" ? (
+                            <Film size={16} strokeWidth={1.5} className="text-[#666]" />
+                          ) : (
+                            <Image size={16} strokeWidth={1.5} className="text-[#666]" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[12px] leading-[1.5] truncate">{task.prompt}</p>
+                          <p className="text-[11px] text-[#666] mt-0.5">
+                            {task.createdAt} · {task.model}
+                          </p>
+                        </div>
+                        {selected || attached ? (
+                          <div
+                            className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
+                              attached ? "bg-[rgba(0,202,224,0.2)]" : "bg-[#00CAE0]"
+                            }`}
+                          >
+                            <Check
+                              size={12}
+                              strokeWidth={2}
+                              className={attached ? "text-[#00CAE0]" : "text-black"}
+                            />
+                          </div>
+                        ) : (
+                          <span className="text-[11px] text-[#444] shrink-0">{task.resultCount} 张</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Inspiration library — placeholder */}
+              {activeTab === "inspiration" && (
+                <div className="flex flex-col items-center justify-center py-16">
+                  <div className="w-12 h-12 rounded-xl bg-white/[0.04] flex items-center justify-center mb-4">
+                    <Sparkles size={24} strokeWidth={1.5} className="text-[#444]" />
+                  </div>
+                  <p className="text-[14px] text-[#666] mb-1">灵感库即将上线</p>
+                  <p className="text-[12px] text-[#555]">精选风格参考，助你快速找到创作方向</p>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between px-5 py-3 border-t border-white/[0.06] shrink-0">
+              <span className="text-[12px] text-[#666]">
+                {tempSelected.size > 0 ? `已选择 ${tempSelected.size} 张` : "点击图片选择"}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={closePicker}
+                  className="h-9 px-4 rounded-full bg-white/[0.06] text-[13px] text-[#999] hover:bg-white/[0.1] hover:text-white transition-colors duration-200"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={confirmPicker}
+                  disabled={tempSelected.size === 0}
+                  className="h-9 px-5 rounded-full bg-white text-black text-[13px] font-medium flex items-center gap-1.5 hover:bg-white/90 active:scale-[0.97] transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none"
+                >
+                  <Plus size={14} strokeWidth={2} />
+                  添加{tempSelected.size > 0 ? ` ${tempSelected.size} 张` : ""}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length) {
+            handleLocalFiles(e.target.files);
+            closePicker();
+          }
+          e.target.value = "";
+        }}
+      />
+    </div>
+  );
+}

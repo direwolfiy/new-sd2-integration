@@ -20,7 +20,7 @@ export default function DesignSystemLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="h-full overflow-y-auto bg-[#0a0a0a] text-white">
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 h-14 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-white/5">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2 text-[#999999] hover:text-white transition-colors">
