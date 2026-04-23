@@ -25,7 +25,7 @@ const stageLabels = [
 ] as const;
 
 export default function EpisodesPage() {
-  const [view, setView] = useState<"list" | "grid">("list");
+  const [view, setView] = useState<"list" | "grid">("grid");
   const params = useParams<{ id: string }>();
   const id = params.id;
   const project = projects.find((p) => p.id === id);
@@ -35,24 +35,14 @@ export default function EpisodesPage() {
     <div className="flex flex-col h-full">
       {/* 工具栏 */}
       <div className="flex items-center justify-between px-6 py-3 border-b border-white/[0.06]">
-        <h2 className="text-[15px] font-medium">
-          分集管理
-          <span className="text-[#666] ml-2 text-[13px]">
-            {project?.name} · 共 {episodeList.length} 集
-          </span>
-        </h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <h2 className="text-[15px] font-medium">
+            分集管理
+            <span className="text-[#666] ml-2 text-[13px]">
+              {project?.name} · 共 {episodeList.length} 集
+            </span>
+          </h2>
           <div className="flex items-center bg-white/[0.04] rounded-md p-0.5">
-            <button
-              onClick={() => setView("list")}
-              className={`h-7 w-7 rounded-[5px] flex items-center justify-center transition-colors duration-200 ${
-                view === "list"
-                  ? "bg-white/[0.08] text-white"
-                  : "text-[#666] hover:text-[#999]"
-              }`}
-            >
-              <List size={14} strokeWidth={1.5} />
-            </button>
             <button
               onClick={() => setView("grid")}
               className={`h-7 w-7 rounded-[5px] flex items-center justify-center transition-colors duration-200 ${
@@ -63,8 +53,19 @@ export default function EpisodesPage() {
             >
               <LayoutGrid size={14} strokeWidth={1.5} />
             </button>
+            <button
+              onClick={() => setView("list")}
+              className={`h-7 w-7 rounded-[5px] flex items-center justify-center transition-colors duration-200 ${
+                view === "list"
+                  ? "bg-white/[0.08] text-white"
+                  : "text-[#666] hover:text-[#999]"
+              }`}
+            >
+              <List size={14} strokeWidth={1.5} />
+            </button>
           </div>
-          <div className="w-px h-5 bg-white/[0.06]" />
+        </div>
+        <div className="flex items-center gap-2">
           <button className="h-8 px-4 rounded-full bg-[rgba(0,202,224,0.08)] text-[rgba(0,202,224,0.8)] text-[12px] font-medium border border-[rgba(0,202,224,0.15)] flex items-center gap-1.5 hover:bg-[rgba(0,202,224,0.12)] transition-colors duration-200">
             <FileText size={14} strokeWidth={1.5} />
             从总剧本拆分

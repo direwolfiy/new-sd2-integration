@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
-import { Layers, List, Sparkles, Users, Settings } from "lucide-react";
+import { Layers, List, Sparkles, Settings } from "lucide-react";
 import { projects } from "@/mocks/projects";
 import { HeaderUserArea } from "@/components/header-user-area";
 
@@ -42,6 +42,12 @@ export default function ProjectLayout({
         </div>
         <div className="flex items-center px-3 border-r border-white/[0.06]">
           <span className="text-[13px] text-white">{projectName}</span>
+          <Link
+            href={`${basePath}/settings`}
+            className="ml-1.5 w-6 h-6 rounded-md flex items-center justify-center text-[#666] hover:text-white hover:bg-white/[0.06] transition-colors duration-200"
+          >
+            <Settings size={14} strokeWidth={1.5} />
+          </Link>
         </div>
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-0.5">
           {tabs.map((tab) => (

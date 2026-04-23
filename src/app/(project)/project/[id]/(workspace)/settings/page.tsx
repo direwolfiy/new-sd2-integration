@@ -1,20 +1,40 @@
-import { Save } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { ArrowLeft, Save, Check } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { projects } from "@/mocks/projects";
 
-export default async function SettingsPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+export default function SettingsPage() {
+  const params = useParams<{ id: string }>();
+  const id = params.id;
   const project = projects.find((p) => p.id === id);
+  const basePath = `/project/${id}`;
+  const [saved, setSaved] = useState(false);
+
+  function handleSave() {
+    // TODO: [mock] replace with API call
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  }
 
   return (
     <div className="p-6">
       <div className="max-w-2xl mx-auto space-y-8">
-        <h2 className="font-heading text-lg font-medium tracking-[-0.01em]">
-          项目设置
-        </h2>
+        <div className="flex items-center gap-3">
+          <Link
+            href={basePath}
+            className="flex items-center gap-1.5 text-[13px] text-[#999] hover:text-white transition-colors duration-200 shrink-0"
+          >
+            <ArrowLeft size={14} strokeWidth={2} />
+            返回
+          </Link>
+          <div className="w-px h-5 bg-white/[0.06]" />
+          <h2 className="text-lg font-medium tracking-[-0.01em]">
+            项目设置
+          </h2>
+        </div>
 
         {/* 基本信息 */}
         <div className="space-y-4">
@@ -108,9 +128,25 @@ export default async function SettingsPage({
 
         {/* 保存 */}
         <div className="flex justify-end pt-4">
-          <button className="h-10 px-6 rounded-full bg-white text-black text-[13px] font-medium flex items-center gap-1.5 hover:bg-white/90 active:scale-[0.97] transition-all duration-200">
-            <Save size={14} strokeWidth={2} />
-            保存设置
+          <button
+            onClick={handleSave}
+            className={`h-10 px-6 rounded-full text-[13px] font-medium flex items-center gap-1.5 transition-all duration-200 ${
+              saved
+                ? "bg-[#00CAE0]/10 text-[#00CAE0] border border-[#00CAE0]/20"
+                : "bg-white text-black hover:bg-white/90 active:scale-[0.97]"
+            }`}
+          >
+            {saved ? (
+              <>
+                <Check size={14} strokeWidth={2} />
+                已保存
+              </>
+            ) : (
+              <>
+                <Save size={14} strokeWidth={2} />
+                保存设置
+              </>
+            )}
           </button>
         </div>
       </div>

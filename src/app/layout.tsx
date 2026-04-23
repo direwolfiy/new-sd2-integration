@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { DevNavigator } from "@/components/dev-navigator";
 import "./globals.css";
 
 const inter = localFont({
@@ -25,6 +26,7 @@ export default function RootLayout({
     <html lang="zh-CN" className={`${inter.variable} h-full antialiased`}>
       <body className="h-full flex flex-col overflow-hidden bg-background text-foreground font-sans">
         {children}
+        <DevNavigator />
       </body>
     </html>
   );

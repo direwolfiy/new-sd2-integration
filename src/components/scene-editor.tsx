@@ -16,7 +16,7 @@ import {
   sceneInfo,
 } from "@/mocks/elements";
 import { SceneState, SceneInfoDetail } from "@/mocks/types";
-import { ImageGenerateOverlay } from "./image-generate-overlay";
+import { SceneImageGenerateOverlay } from "./scene-image-generate-overlay";
 
 interface Props {
   open: boolean;
@@ -600,10 +600,10 @@ export function SceneEditor({
       )}
 
       {/* Image generate overlay */}
-      <ImageGenerateOverlay
+      <SceneImageGenerateOverlay
         open={generateOpen}
         onClose={() => setGenerateOpen(false)}
-        variantName={generateStateName}
+        stateName={generateStateName}
       />
     </div>
   );
