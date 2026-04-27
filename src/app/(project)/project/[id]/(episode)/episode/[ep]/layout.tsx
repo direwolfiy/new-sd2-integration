@@ -4,9 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
 import { ArrowLeft, LayoutGrid, Film, Download, Sparkles, BookOpen, ChevronRight, ChevronDown } from "lucide-react";
-import { projects } from "@/mocks/projects";
-import { episodes } from "@/mocks/episodes";
-import { getScriptByProject } from "@/mocks/scripts";
+import { projectsApi, episodesApi, useApi } from "@/lib/api";
 import { ScriptOverlay } from "@/components/script-overlay";
 import { HeaderUserArea } from "@/components/header-user-area";
 
@@ -26,25 +24,19 @@ export default function EpisodeLayout({
   const projectId = params.id;
   const episodeId = params.ep;
 
-  const project = projects.find((p) => p.id === projectId);
-  const episode = episodes.find((e) => e.id === episodeId);
-  const projectName = project?.name ?? "项目";
-  const episodeTitle = episode
-    ? `第 ${episode.episodeNumber} 集`
-    : "分集";
+  const { data: project } = useApi(() => projectsApi.fetchProject(projectId), [projectId]);
+  const { data: chapter } = useApi(() => episodesApi.fetchChapter(episodeId), [episodeId]);
+
+  const projectName = project?.title ?? "项目";
+  const episodeTitle = chapter ? `第 ${chapter.chapterOrder} 集` : "分集";
 
   const basePath = `/project/${projectId}/episode/${episodeId}`;
 
-  const script = getScriptByProject(projectId);
-  const hasScript = script.metadata !== null;
+  const hasScript = !!chapter?.chapterContent;
   const [scriptOpen, setScriptOpen] = useState(false);
 
   function isStageActive(stageHref: string) {
     return pathname.startsWith(basePath + stageHref);
-  }
-
-  function isStageCompleted(key: string) {
-    return episode?.stages[key as keyof typeof episode.stages] ?? false;
   }
 
   const workshopActive = pathname === `${basePath}/workshop`;
@@ -77,7 +69,6 @@ export default function EpisodeLayout({
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
           {stages.map((stage, i) => {
             const active = isStageActive(stage.href);
-            const completed = isStageCompleted(stage.key);
             return (
               <div key={stage.href} className="flex items-center">
                 <Link
@@ -85,9 +76,7 @@ export default function EpisodeLayout({
                   className={`px-2.5 h-7 flex items-center gap-1.5 text-[13px] rounded-md transition-colors duration-200 ${
                     active
                       ? "bg-white/[0.08] text-white"
-                      : completed
-                        ? "text-white/60"
-                        : "text-[#666] hover:text-[#999]"
+                      : "text-[#666] hover:text-[#999]"
                   }`}
                 >
                   <stage.icon size={14} strokeWidth={1.5} />
@@ -97,7 +86,7 @@ export default function EpisodeLayout({
                   <ChevronRight
                     size={14}
                     strokeWidth={2}
-                    className={`shrink-0 mx-0.5 ${completed ? "text-white/30" : "text-[#333]"}`}
+                    className="shrink-0 mx-0.5 text-[#333]"
                   />
                 )}
               </div>

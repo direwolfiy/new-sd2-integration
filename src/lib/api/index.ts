@@ -1,6 +1,8 @@
 export { get, post, put, del, request, setApiClientTokens, clearApiClientTokens, setTenantId, setOnAuthFailure, getAccessToken } from "./client";
-export type { ApiResult, PageResult, LoginResponse, RefreshTokenRequest } from "./types";
+export type { ApiResult, PageResult, LoginResponse, RefreshTokenRequest, ContentItem, ContentQuery, ChapterItem, TemplateItem, TemplateQuery, SceneScriptItem, AssetResourceItem, StyleItem, TenantAccountOverview } from "./types";
 export { ApiError } from "./errors";
+export { useApi } from "@/hooks/use-api";
+export { useAsyncTask } from "@/hooks/use-async-task";
 export * as authApi from "./auth";
 export * as projectsApi from "./projects";
 export * as episodesApi from "./episodes";

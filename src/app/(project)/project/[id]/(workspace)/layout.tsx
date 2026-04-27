@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
 import { Layers, List, Sparkles, Settings } from "lucide-react";
-import { projects } from "@/mocks/projects";
+import { projectsApi, useApi } from "@/lib/api";
 import { HeaderUserArea } from "@/components/header-user-area";
 
 const tabs = [
@@ -20,8 +20,8 @@ export default function ProjectLayout({
   const pathname = usePathname();
   const params = useParams<{ id: string }>();
   const projectId = params.id;
-  const project = projects.find((p) => p.id === projectId);
-  const projectName = project?.name ?? "项目";
+  const { data: project } = useApi(() => projectsApi.fetchProject(projectId), [projectId]);
+  const projectName = project?.title ?? "项目";
 
   const basePath = `/project/${projectId}`;
 

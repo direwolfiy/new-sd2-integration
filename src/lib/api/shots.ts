@@ -1,9 +1,33 @@
 import { get, post } from "./client";
 
-export function fetchShots(episodeId: string) {
-  return get<unknown[]>(`/novel-show/chapter/${episodeId}/scripts`);
+export function fetchChapterScripts(chapterId: string) {
+  return get<unknown>(`/novel-show/chapter/${chapterId}/scripts`);
 }
 
-export function generateStoryboard(episodeId: string, data: Record<string, unknown>) {
-  return post<unknown>(`/novel-show/chapter/${episodeId}/generate-storyboard`, data);
+export function generateImagePromptQueued(chapterId: string) {
+  return post<unknown>(`/novel-show/chapter/${chapterId}/generate-image-prompt-queued`);
+}
+
+export function getImagePromptStatus(chapterId: string) {
+  return get<unknown>(`/novel-show/chapter/${chapterId}/generate-image-prompt-status`);
+}
+
+export function generateVideoPromptQueued(chapterId: string) {
+  return post<unknown>(`/novel-show/chapter/${chapterId}/generate-video-prompt-queued`);
+}
+
+export function getVideoPromptStatus(chapterId: string) {
+  return get<unknown>(`/novel-show/chapter/${chapterId}/generate-video-prompt-status`);
+}
+
+export function startEpisodeWorkflow(chapterId: string) {
+  return post<unknown>(`/novel-show/chapter/${chapterId}/seedance-episode-workflow/start`);
+}
+
+export function getEpisodeWorkflowStatus(chapterId: string) {
+  return get<unknown>(`/novel-show/chapter/${chapterId}/seedance-episode-workflow/status`);
+}
+
+export function cancelEpisodeWorkflow(chapterId: string) {
+  return post<unknown>(`/novel-show/chapter/${chapterId}/seedance-episode-workflow/cancel`);
 }

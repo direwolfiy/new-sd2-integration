@@ -1,13 +1,17 @@
-import { get, post } from "./client";
+import { get } from "./client";
+import type { ChapterItem } from "./types";
 
-export function fetchEpisodes(projectId: string) {
-  return post<unknown[]>("/novel-show/chapter/list", { projectId });
+export function fetchChapters(contentId: string, includeStats = false) {
+  return get<ChapterItem[]>("/resource/scene-chapter/list", {
+    contentId,
+    includeStats: String(includeStats),
+  });
 }
 
-export function fetchEpisode(episodeId: string) {
-  return get<unknown>(`/novel-show/chapter/${episodeId}`);
+export function fetchChapter(chapterId: string) {
+  return get<ChapterItem>(`/resource/scene-chapter/${chapterId}`);
 }
 
-export function createEpisode(projectId: string, data: Record<string, unknown>) {
-  return post<unknown>("/novel-show/chapter", { projectId, ...data });
+export function fetchChapterScripts(chapterId: string) {
+  return get<unknown>(`/novel-show/chapter/${chapterId}/scripts`);
 }

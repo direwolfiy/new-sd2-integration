@@ -3,7 +3,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Search, Plus, Sparkles, ChevronRight, BookOpen, User, Mountain, Package } from "lucide-react";
-import { getElementsByProject } from "@/mocks/elements";
+import { elementsApi, useApi } from "@/lib/api";
+import { adaptElement } from "@/lib/adapters";
 import { getScriptByProject } from "@/mocks/scripts";
 import { ElementType, ElementItem } from "@/mocks/types";
 import { ScriptOverlay } from "@/components/script-overlay";
@@ -34,7 +35,6 @@ export default function ElementsPage() {
   const [scriptOpen, setScriptOpen] = useState(false);
   const [editingCharacterId, setEditingCharacterId] = useState<string | null>(null);
   const [editingSceneId, setEditingSceneId] = useState<string | null>(null);
-  const [localElements, setLocalElements] = useState<ElementItem[]>(() => getElementsByProject(params.id));
   const [createOpen, setCreateOpen] = useState(false);
   const [createName, setCreateName] = useState("");
   const [moreMenuId, setMoreMenuId] = useState<string | null>(null);
@@ -46,7 +46,19 @@ export default function ElementsPage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [reExtractOpen, setReExtractOpen] = useState(false);
 
-  // TODO: [mock] replace with real extraction results
+  const [localElements, setLocalElements] = useState<ElementItem[]>([]);
+
+  const { data: templatePage, isLoading } = useApi(
+    () => elementsApi.fetchElements({ contentId: params.id }),
+    [params.id],
+  );
+
+  useEffect(() => {
+    if (templatePage?.list) {
+      setLocalElements(templatePage.list.map(adaptElement));
+    }
+  }, [templatePage]);
+
   const mockExtractionResults = [
     { type: "character" as const, name: "秦羽" }, { type: "character" as const, name: "姜立" },
     { type: "character" as const, name: "侯费" }, { type: "character" as const, name: "黑羽" },
@@ -136,7 +148,13 @@ export default function ElementsPage() {
       )}
 
       <div className="flex-1 overflow-auto p-6" onClick={() => setMoreMenuId(null)}>
-        {isEmpty && !hasScript ? (
+        {isLoading ? (
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className="rounded-xl bg-[#1a1a1a] animate-pulse aspect-[9/16]" />
+            ))}
+          </div>
+        ) : isEmpty && !hasScript ? (
           <EmptyStateWithScript onImportScript={() => setScriptImportOpen(true)} onCreateElement={() => setCreateOpen(true)} />
         ) : isEmpty && hasScript ? (
           <ScriptAnalysisView script={script} onViewScript={() => setScriptOpen(true)} onEditScript={() => setScriptImportOpen(true)} onExtract={() => setExtractionProgressOpen(true)} onCreateElement={() => setCreateOpen(true)} />

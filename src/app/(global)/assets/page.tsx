@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { Search, Filter, Plus } from "lucide-react";
-import { getAssetsByType } from "@/mocks/assets";
-import { AssetType } from "@/mocks/types";
+import { assetsApi, useApi } from "@/lib/api";
+import type { AssetType } from "@/mocks/types";
 
 const typeFilters: { key: AssetType | "all"; label: string }[] = [
   { key: "all", label: "全部" },
@@ -18,9 +18,41 @@ const typeLabels: Record<AssetType, string> = {
   audio: "音频",
 };
 
+function GridSkeleton() {
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+      {Array.from({ length: 10 }).map((_, i) => (
+        <div key={i} className="rounded-lg border border-white/[0.06] bg-[#141414] overflow-hidden">
+          <div className="aspect-video bg-[#1a1a1a] animate-pulse" />
+          <div className="p-3 space-y-2">
+            <div className="h-4 bg-[#222] rounded animate-pulse w-20" />
+            <div className="h-3 bg-[#222] rounded animate-pulse w-16" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function AssetsPage() {
   const [activeFilter, setActiveFilter] = useState<string>("all");
-  const assets = getAssetsByType(activeFilter);
+  const { data: page, isLoading } = useApi(
+    () => assetsApi.fetchAssets(),
+    [],
+  );
+
+  const assets = (page?.list ?? []).map((a) => ({
+    id: String(a.id),
+    name: a.resourceName,
+    type: (a.resourceType === 1 ? "image" : a.resourceType === 2 ? "video" : "audio") as AssetType,
+    thumbnailUrl: a.coverUrl ?? "",
+    sourceProject: "",
+    createdAt: a.createdTime?.slice(0, 10) ?? "",
+  }));
+
+  const filtered = activeFilter === "all"
+    ? assets
+    : assets.filter((a) => a.type === activeFilter);
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -44,7 +76,6 @@ export default function AssetsPage() {
         </div>
       </div>
 
-      {/* 类型筛选 */}
       <div className="flex items-center gap-1 mb-6">
         {typeFilters.map((filter) => (
           <button
@@ -61,28 +92,31 @@ export default function AssetsPage() {
         ))}
       </div>
 
-      {/* 资产网格 */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {assets.map((asset) => (
-          <div
-            key={asset.id}
-            className="group rounded-lg border border-white/[0.06] bg-[#141414] overflow-hidden cursor-pointer transition-shadow duration-200 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12)]"
-          >
-            <div className="aspect-video bg-[#262626] flex items-center justify-center text-[#666] text-[12px]">
-              {asset.name}
-            </div>
-            <div className="p-3 space-y-1.5">
-              <p className="text-[13px] font-medium truncate">{asset.name}</p>
-              <div className="flex items-center justify-between text-[11px] text-[#666]">
-                <span className="px-1.5 py-0.5 rounded-full bg-white/[0.04]">
-                  {typeLabels[asset.type]}
-                </span>
-                <span>{asset.sourceProject}</span>
+      {isLoading ? (
+        <GridSkeleton />
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {filtered.map((asset) => (
+            <div
+              key={asset.id}
+              className="group rounded-lg border border-white/[0.06] bg-[#141414] overflow-hidden cursor-pointer transition-shadow duration-200 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12)]"
+            >
+              <div className="aspect-video bg-[#262626] flex items-center justify-center text-[#666] text-[12px]">
+                {asset.name}
+              </div>
+              <div className="p-3 space-y-1.5">
+                <p className="text-[13px] font-medium truncate">{asset.name}</p>
+                <div className="flex items-center justify-between text-[11px] text-[#666]">
+                  <span className="px-1.5 py-0.5 rounded-full bg-white/[0.04]">
+                    {typeLabels[asset.type]}
+                  </span>
+                  <span>{asset.createdAt}</span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

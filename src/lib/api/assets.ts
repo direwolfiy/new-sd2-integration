@@ -1,9 +1,14 @@
-import { get, post } from "./client";
+import { post } from "./client";
+import type { AssetResourceItem, PageResult } from "./types";
 
 export function fetchAssets(data?: Record<string, unknown>) {
-  return post<unknown[]>("/asset/list", data ?? {});
+  return post<PageResult<AssetResourceItem>>("/asset/resource/list", data ?? { pageNum: 1, pageSize: 50 });
 }
 
-export function uploadAsset(data: FormData) {
-  return post<unknown>("/asset/upload", data);
+export function fetchLatestAssets() {
+  return post<unknown[]>("/asset/resource/latest", {});
+}
+
+export function fetchLibraryContent(libraryId: string) {
+  return post<unknown>("/asset/library/content", { libraryId });
 }

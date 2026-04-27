@@ -1,25 +1,22 @@
-import { get, post, put } from "./client";
+import { get, post } from "./client";
+import type { PageResult, ContentItem, ContentQuery } from "./types";
 
-// TODO: align types with backend response shape once endpoints confirmed
-export interface ProjectResponse {
-  id: string;
-  name: string;
-  status: string;
-  // extend as needed
-}
-
-export function fetchProjects() {
-  return post<ProjectResponse[]>("/novel-show/project/list", {});
+export function fetchProjects(query?: ContentQuery) {
+  return post<PageResult<ContentItem>>("/resource/scene-content/list", {
+    pageNum: 1,
+    pageSize: 50,
+    ...query,
+  });
 }
 
 export function fetchProject(id: string) {
-  return get<ProjectResponse>(`/novel-show/project/${id}`);
+  return get<ContentItem>(`/resource/scene-content/${id}`);
 }
 
-export function createProject(data: Record<string, unknown>) {
-  return post<ProjectResponse>("/novel-show/project", data);
+export function createProject(data: Partial<ContentItem> & { title: string }) {
+  return post<ContentItem>("/resource/scene-content", data);
 }
 
-export function updateProject(id: string, data: Record<string, unknown>) {
-  return put<boolean>(`/novel-show/project/${id}`, data);
+export function updateProject(id: string, data: Partial<ContentItem>) {
+  return post<ContentItem>(`/resource/scene-content/${id}`, data);
 }

@@ -13,8 +13,8 @@ import {
   LayoutGrid,
   Play,
 } from "lucide-react";
-import { getEpisodesByProject } from "@/mocks/episodes";
-import { projects } from "@/mocks/projects";
+import { episodesApi, useApi } from "@/lib/api";
+import { adaptChapter } from "@/lib/adapters";
 import { useParams } from "next/navigation";
 
 const stageLabels = [
@@ -24,22 +24,43 @@ const stageLabels = [
   { key: "export", label: "导出", icon: Download },
 ] as const;
 
+function GridSkeleton() {
+  return (
+    <div className="max-w-5xl mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="rounded-lg border border-white/[0.06] bg-[#141414] overflow-hidden">
+          <div className="aspect-video bg-[#1a1a1a] animate-pulse" />
+          <div className="px-3 py-2.5 space-y-2">
+            <div className="h-3 bg-[#222] rounded animate-pulse w-16" />
+            <div className="h-4 bg-[#222] rounded animate-pulse w-24" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function EpisodesPage() {
   const [view, setView] = useState<"list" | "grid">("grid");
   const params = useParams<{ id: string }>();
   const id = params.id;
-  const project = projects.find((p) => p.id === id);
-  const episodeList = getEpisodesByProject(id);
+
+  const { data: chapters, isLoading } = useApi(
+    () => episodesApi.fetchChapters(id),
+    [id],
+  );
+
+  const episodeList = (chapters ?? []).map((ch) => adaptChapter(ch, id));
+  const projectName = "";
 
   return (
     <div className="flex flex-col h-full">
-      {/* 工具栏 */}
       <div className="flex items-center justify-between px-6 py-3 border-b border-white/[0.06]">
         <div className="flex items-center gap-3">
           <h2 className="text-[15px] font-medium">
             分集管理
             <span className="text-[#666] ml-2 text-[13px]">
-              {project?.name} · 共 {episodeList.length} 集
+              共 {episodeList.length} 集
             </span>
           </h2>
           <div className="flex items-center bg-white/[0.04] rounded-md p-0.5">
@@ -77,9 +98,10 @@ export default function EpisodesPage() {
         </div>
       </div>
 
-      {/* 内容区 */}
       <div className="flex-1 overflow-auto p-6">
-        {view === "list" ? (
+        {isLoading ? (
+          <GridSkeleton />
+        ) : view === "list" ? (
           <div className="max-w-4xl mx-auto space-y-2">
             {episodeList.map((episode) => (
               <Link
@@ -128,7 +150,6 @@ export default function EpisodesPage() {
                 href={`/project/${id}/episode/${episode.id}`}
                 className="group rounded-lg border border-white/[0.06] bg-[#141414] overflow-hidden hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12)] transition-shadow duration-200"
               >
-                {/* 视频主体 */}
                 <div className="relative aspect-video bg-[#1a1a1a]">
                   {episode.stages.video ? (
                     <>
@@ -153,7 +174,6 @@ export default function EpisodesPage() {
                     </div>
                   )}
                 </div>
-                {/* 信息栏 */}
                 <div className="px-3 py-2.5">
                   <div className="flex items-center justify-between">
                     <span className="text-[13px] text-[#666]">

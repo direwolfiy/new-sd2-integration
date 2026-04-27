@@ -15,10 +15,7 @@ export const useCreditStore = create<CreditState>((set) => ({
     set({ isLoading: true });
     try {
       const data = await creditsApi.fetchCreditBalance();
-      const balance = typeof data === "object" && data !== null
-        ? (data as Record<string, unknown>).balance as number ?? 0
-        : 0;
-      set({ balance });
+      set({ balance: data?.balance ?? 0 });
     } catch {
       // silently ignore — credit display is non-critical
     } finally {

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Sparkles, Play, Film, BookOpen, ChevronRight, Clock } from "lucide-react";
 import { getShotsByEpisode } from "@/mocks/shots";
-import { getEpisodeById } from "@/mocks/episodes";
+import { episodesApi, useApi } from "@/lib/api";
 import { VideoShotOverlay } from "@/components/video-shot-overlay";
 import { useParams } from "next/navigation";
 
@@ -20,14 +20,15 @@ export default function VideoPage() {
   const projectId = params.id;
   const episodeId = params.ep;
 
-  const episode = getEpisodeById(episodeId);
-  if (!episode) return null;
+  const { data: chapter } = useApi(
+    () => episodesApi.fetchChapter(episodeId),
+    [episodeId],
+  );
 
-  const hasScript = episode.stages.script;
-  const hasStoryboard = episode.stages.storyboard;
+  const hasScript = !!chapter?.chapterContent;
   const shots = getShotsByEpisode(episodeId);
+  const hasStoryboard = shots.length > 0;
 
-  // 没有剧本
   if (!hasScript) {
     const storyboardHref = `/project/${projectId}/episode/${episodeId}/storyboard`;
     return (
@@ -51,7 +52,6 @@ export default function VideoPage() {
     );
   }
 
-  // 有剧本但没分镜
   if (!hasStoryboard) {
     const storyboardHref = `/project/${projectId}/episode/${episodeId}/storyboard`;
     return (
@@ -77,7 +77,6 @@ export default function VideoPage() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* 工具栏 */}
       <div className="flex items-center justify-between px-6 py-3 border-b border-white/[0.06]">
         <span className="text-[13px] text-[#666]">
           {shots.length} 个镜头
@@ -94,7 +93,6 @@ export default function VideoPage() {
         </div>
       </div>
 
-      {/* 镜头列表 */}
       <div className="flex-1 overflow-auto">
         <div className="max-w-5xl mx-auto p-6 space-y-1.5">
           {shots.map((shot) => {
@@ -153,7 +151,6 @@ export default function VideoPage() {
         </div>
       </div>
 
-      {/* Overlay */}
       <VideoShotOverlay
         open={overlayShotId !== null}
         onClose={() => setOverlayShotId(null)}

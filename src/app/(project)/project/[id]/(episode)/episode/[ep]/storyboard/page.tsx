@@ -14,8 +14,8 @@ import {
   LayoutGrid,
 } from "lucide-react";
 import { getShotsByEpisode, Shot } from "@/mocks/shots";
-import { getEpisodeById } from "@/mocks/episodes";
 import { calcStoryboardCost } from "@/mocks/credits";
+import { episodesApi, useApi } from "@/lib/api";
 import { useParams } from "next/navigation";
 
 const statusStyles = {
@@ -198,12 +198,14 @@ export default function StoryboardPage() {
   const projectId = params.id;
   const episodeId = params.ep;
 
-  const episode = getEpisodeById(episodeId);
-  if (!episode) return null;
+  const { data: chapter } = useApi(
+    () => episodesApi.fetchChapter(episodeId),
+    [episodeId],
+  );
 
-  const hasScript = episode.stages.script;
-  const hasStoryboard = episode.stages.storyboard;
+  const hasScript = !!chapter?.chapterContent;
   const shots = getShotsByEpisode(episodeId);
+  const hasStoryboard = shots.length > 0;
 
   if (!hasScript) {
     return (
