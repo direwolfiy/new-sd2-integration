@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 SD2 漫剧生产平台的前端。当前状态是从**高保真原型**向**生产可用前端**重构升级的过渡期。
 
+**禁止 push 代码到远程仓库**，必须经过用户明确同意后才能 push。本地 commit 可以自由进行。
+
 后端 API（`lingify_content_api-release-1.0.0/`）已是完整的生产系统。本项目的目标是：还原原型界面设计，逐步将 mock 数据替换为真实 API 调用，所有界面符合 `DESIGN.md` 的设计规范。
 
 ## Tech Stack
