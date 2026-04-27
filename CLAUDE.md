@@ -64,8 +64,11 @@ src/app/
 
 - `src/components/` — 共享组件（sidebar、各种 overlay、editor）
 - `src/components/ui/` — shadcn/ui 组件（目前只有 button）
-- `src/mocks/` — Mock 数据 + TypeScript 类型定义
-- `src/lib/` — 工具函数（cn helper）
+- `src/mocks/` — Mock 数据 + TypeScript 类型定义（UI 共享类型）
+- `src/lib/` — 工具函数（cn helper、adapters、API client）
+- `src/lib/api/` — API 客户端层（类型定义 + 各域 API 函数）
+- `src/stores/` — Zustand 全局状态（auth-store、credit-store）
+- `src/hooks/` — 自定义 hooks（useApi、useAsyncTask）
 - `public/fonts/` — Inter woff2 字体文件
 
 ### Component Inventory
@@ -92,69 +95,50 @@ src/app/
 
 ### Mock Data
 
-所有 mock 数据在 `src/mocks/`，以 `// TODO: [mock]` 标记。文件及内容：
+Mock 数据在 `src/mocks/`，以 `// TODO: [mock]` 标记。
 
-| File | Content |
-|------|---------|
-| `types.ts` | 所有数据类型定义（Project, Episode, Element, Asset, Script, Shot 等） |
-| `projects.ts` | 8 个不同状态的项目（进行中/完结/归档） |
-| `episodes.ts` | 分集数据，关联项目 |
-| `elements.ts` | 角色/场景/道具/音效元素 |
-| `scripts.ts` | 剧本元数据 + 分集内容 |
-| `shots.ts` | 分镜镜头数据 + 版本历史 |
-| `assets.ts` | 全局资产（图片/视频/音频） |
-| `credits.ts` | 积分余额和消耗计算 |
-| `export.ts` | 导出相关数据（BGM、音效、转场、字幕） |
-
-组件通过 props 接收数据，不在内部 import mock。替换 API 时只改页面级数据获取。
+| File | Content | API Status |
+|------|---------|------------|
+| `types.ts` | UI 共享类型（Project, Episode, Element 等） | 作为 UI 层类型保留 |
+| `projects.ts` | 8 个不同状态的项目 | 已替换为 API |
+| `episodes.ts` | 分集数据 | 已替换为 API |
+| `elements.ts` | 角色/场景/道具元素详情 | 已替换为 API（列表），详情仍 mock |
+| `scripts.ts` | 剧本元数据 + 分集内容 | 待替换（无对应 script 查询 API） |
+| `shots.ts` | 分镜镜头 + 版本历史 | 待替换（需章节脚本 API） |
+| `assets.ts` | 全局资产 | 已替换为 API |
+| `credits.ts` | 积分消耗计算 | 待替换 |
+| `export.ts` | BGM/音效/转场/字幕 | 待替换 |
 
 ---
 
 ## Current Implementation Status
 
-### Completed Pages (原型完整，交互可用)
+### Phase 1 (Complete): 基础设施层
+- Auth 系统（login/refresh/logout + AuthProvider + Login 页面）
+- API 客户端层（client.ts + 10 个域 API 文件 + 类型定义）
+- Zustand stores（auth-store + credit-store）
+- Hooks（useApi + useAsyncTask）
+- Next.js dev proxy 配置
 
-| Page | File | Lines | Notes |
-|------|------|-------|-------|
-| 项目列表 | `(global)/page.tsx` | 107 | 卡片网格 + 搜索筛选 + 新建入口 |
-| 创建项目 | `(global)/project/new/page.tsx` | ~90 | 名称 + 封面 + 风格预设 |
-| 全局资产库 | `(global)/assets/page.tsx` | ~80 | 类型筛选 + 网格浏览 |
-| 元素库 | `(workspace)/elements/page.tsx` | 673 | **最复杂的页面**: 4种类型tab、剧本提取流程、空状态、搜索、创建/删除、角色编辑器、场景编辑器 |
-| 分集管理 | `(workspace)/episodes/page.tsx` | 177 | 列表/网格视图切换、阶段状态标签 |
-| 项目设置 | `(workspace)/settings/page.tsx` | ~100 | 基本信息编辑表单 |
-| 分镜 | `(episode)/.../storyboard/page.tsx` | 223 | 镜头列表、AI生成入口、拖拽占位 |
-| 视频 | `(episode)/.../video/page.tsx` | 165 | 镜头状态、prompt编辑、生成详情overlay |
-| 成片导出 | `(episode)/.../export/page.tsx` | 694 | **第二复杂**: 时间线编辑器、素材源面板、音频/字幕/转场tab |
-| 工坊 | `workshop/page.tsx` + `workshop-content.tsx` | 666 | AI图像/视频生成、任务历史、模型选择 |
+### Phase 2 (Complete): 逐页面 Mock 替换
+- 项目列表、资产库、项目设置 → 使用 `useApi` + API 调用 + loading skeleton
+- 分集管理 → `fetchChapters` API
+- 元素库 → `fetchElements` API + adaptElement 适配器
+- 布局组件 → `fetchProject` / `fetchChapter` API
+- 分镜/视频页 → 章节 API 获取内容状态
+- 导出页 → 仍使用 mock（shot 版本数据无对应 API）
+- 所有页面添加了 loading skeleton 和 error 处理
 
-### Overlays (完整实现)
+### Phase 3 (Complete): 大组件拆分
+- `workshop-content.tsx` (666→40) → task-card + generation-form
+- `character-editor.tsx` (613→165) → character-edit-modal + character-variant-card
+- `scene-editor.tsx` (610→160) → scene-edit-modal + scene-state-card
+- `elements/page.tsx` (673→244) → create-element-modal + delete-confirm-modal + element-grid
 
-10+ overlay 组件覆盖完整的剧本导入→分析→提取→编辑→生成流程。
-
-### Layout Components
-
-3 套布局已完整：全局布局（TopBar+Sidebar）、项目工作台布局（Tab导航）、分集工作台布局（步骤导航）。
-
-### Not Yet Implemented (PRD 中列出但代码中缺失)
-
-- 帮助中心 (`/help`)
-- 意见反馈 (`/feedback`)
-- 个人中心 (`/settings`)
-- 总剧本编辑模块（PRD 3.3.1，当前只有查看 overlay，无独立编辑页面）
-
----
-
-## Large Files Needing Refactoring
-
-以下文件超过 600 行，在生产化重构时应拆分：
-
-| File | Lines | Issue |
-|------|-------|-------|
-| `elements/page.tsx` | 673 | 混合了页面逻辑、创建modal、删除确认、多种元素类型渲染 |
-| `export/page.tsx` | 694 | 完整的时间线编辑器，应拆为 TimelineClip、SourcePanel 等子组件 |
-| `workshop-content.tsx` | 666 | 任务管理 + 生成面板 + 历史记录，应拆分 |
-| `character-editor.tsx` | 613 | 编辑器可拆为属性面板、形象管理、生成面板 |
-| `scene-editor.tsx` | 610 | 同上 |
+### Remaining Work
+- `export/page.tsx` (694 行) — 仍为 mock，需等待后端视频合成 API 确认
+- 脚本导入/分析 overlay 组件 — 内部仍使用 mock 流程
+- 请求签名（后端可通过 `APP_ENABLE_REQUEST_SIGN=false` 关闭）
 
 ---
 
@@ -166,10 +150,10 @@ src/app/
 - 设计系统参考页在 `/design-system/*`，可作为实际代码参考
 
 ### Data Flow
-- 组件通过 props 接收数据，不在内部 import mock
-- 页面级组件负责数据获取（当前从 mocks，后续替换为 API）
-- Mock 数据在 `src/mocks/`，以 `// TODO: [mock]` 标记硬编码边界
-- Mock 数据要真实可信（合理中文姓名、地址、金额），不用 "Lorem ipsum"
+- 页面通过 `useApi` hook 从 API 获取数据
+- API 响应通过 `adapters.ts` 转换为 UI 类型
+- `src/mocks/types.ts` 仍作为 UI 层共享类型使用
+- 组件通过 props 接收数据，不直接调用 API 或 import mock
 
 ### Component Conventions
 - TailwindCSS class 直接写样式，不抽 custom CSS
@@ -183,36 +167,33 @@ src/app/
 - URL 状态用 Next.js searchParams
 - 如需全局状态优先 zustand
 
-### What to Skip (still prototype-adjacent)
+### What to Skip
 - 不做 SEO 优化
 - 不引入 i18n 框架，直接硬编码中文
 - 不做性能优化（除非页面明显卡顿）
 - 不写 storybook/组件文档
-- 不引入 API 层，mock 数据继续使用直到后端集成阶段
 
 ---
 
 ## Backend API Reference
 
-后端 (`lingify_content_api-release-1.0.0/`) 是完整的生产系统，运行在 `localhost:8000`。关键 API 路由组：
+后端 (`lingify_content_api-release-1.0.0/`) 是完整的生产系统。所有端点前缀 `/api-content/v1/`。
 
-| Domain | Route Prefix | Description |
-|--------|-------------|-------------|
-| 认证 | `/login/` | 登录鉴权 |
-| 项目 | `/anime/`, `/novel_show/` | 动漫项目、解说剧项目 CRUD |
-| 章节/分集 | `/novel_show/chapter/` | 分集管理 |
-| 剧本 | `/resource/script/`, `/novel_show/script/` | 剧本编辑、AI分析 |
-| 角色/场景 | `/resource/element/`, `/resource/scene_role/` | 元素管理 |
-| 图片生成 | `/image/` | 图片生成任务提交+查询 |
-| 视频生成 | `/video/` | 视频任务提交+查询 |
-| 音频 | `/audio/` | 音频任务提交+查询+BGM库 |
-| 资产 | `/asset/`, `/material/` | 资产库、素材库 |
-| 工坊/AI | `/ai/chat/` | AI对话（策略路由） |
-| 文件 | `/file/` | 文件上传下载、ZIP打包 |
-| 计费 | `/system/` | 租户账户、充值、价格规则 |
-| 监控 | `/monitoring/` | 健康检查 |
+| 前端域 | 后端端点 | API 文件 |
+|--------|---------|---------|
+| 认证 | `/admin-user/login`, `/admin-user/refresh-token`, `/admin-user/logout` | `auth.ts` |
+| 项目列表 | `/resource/scene-content/list` (POST) | `projects.ts` |
+| 项目详情 | `/resource/scene-content/{id}` (GET) | `projects.ts` |
+| 章节/分集 | `/resource/scene-chapter/list` (GET), `/resource/scene-chapter/{id}` (GET) | `episodes.ts` |
+| 元素/模板 | `/resource/template/list` (POST) | `elements.ts` |
+| 章节脚本 | `/novel-show/chapter/{id}/scripts` (GET) | `shots.ts` |
+| 风格 | `/novel-show/project/styles` (GET) | `scripts.ts` |
+| 资产 | `/asset/resource/list` (POST) | `assets.ts` |
+| 图片生成 | `/image-generation/edit-image` (POST) | `images.ts` |
+| 视频生成 | `/video/generation/unified/submit` (POST) | `videos.ts` |
+| 积分 | `/system/tenant-account/current` (GET) | `credits.ts` |
 
-所有 API 响应封装为 `Result<T>`。异步 AI 任务流程：前端创建 PENDING → 后台调度执行 → 前端轮询状态。
+所有 API 响应封装为 `Result<T>`。ID 字段为雪花 ID（后端序列化为字符串避免前端精度丢失）。异步 AI 任务：前端创建 PENDING → 后台调度执行 → 前端轮询状态。
 
 ## Design System Quick Reference
 
