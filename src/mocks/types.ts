@@ -95,6 +95,23 @@ export interface Asset {
   createdAt: string;
 }
 
+export interface ScriptMetadata {
+  genre: string;
+  summary: string;
+  totalWordCount: number;
+  episodeCount: number;
+  tags: string[];
+}
+
+export interface ScriptEpisode {
+  episodeNumber: number;
+  title: string;
+  summary: string;
+  content: string;
+  wordCount: number;
+  characters: string[];
+}
+
 export interface StoryboardShot {
   id: string;
   episodeId: string;

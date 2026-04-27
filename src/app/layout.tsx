@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { AuthProvider } from "@/components/providers/auth-provider";
 import { DevNavigator } from "@/components/dev-navigator";
 import "./globals.css";
 
@@ -25,7 +26,9 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" className={`${inter.variable} h-full antialiased`}>
       <body className="h-full flex flex-col overflow-hidden bg-background text-foreground font-sans">
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
         <DevNavigator />
       </body>
     </html>

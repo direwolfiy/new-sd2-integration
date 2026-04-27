@@ -1,24 +1,19 @@
 "use client";
 
-import { Sparkles, Check, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Sparkles, Check, X } from "lucide-react";
+
+export interface RecognizedElement {
+  type: "character" | "scene" | "prop" | "audio";
+  name: string;
+}
 
 interface Props {
   open: boolean;
   onClose: () => void;
+  onConfirm: (selected: RecognizedElement[]) => void;
+  results: RecognizedElement[];
 }
-
-// TODO: [mock] replace with real recognition flow
-const mockResults = [
-  { type: "character", name: "秦羽", status: "done" as const },
-  { type: "character", name: "姜立", status: "done" as const },
-  { type: "character", name: "侯费", status: "done" as const },
-  { type: "character", name: "黑羽", status: "done" as const },
-  { type: "scene", name: "秦村黄昏", status: "done" as const },
-  { type: "scene", name: "九剑仙府外景", status: "done" as const },
-  { type: "scene", name: "潜龙大陆山顶", status: "done" as const },
-  { type: "prop", name: "流星泪", status: "done" as const },
-  { type: "prop", name: "黑炎君之戒", status: "done" as const },
-];
 
 const typeLabels: Record<string, string> = {
   character: "角色",
@@ -27,99 +22,133 @@ const typeLabels: Record<string, string> = {
   audio: "音效",
 };
 
-export function RecognitionOverlay({ open, onClose }: Props) {
+const typeOrder = ["character", "scene", "prop", "audio"] as const;
+
+export function RecognitionOverlay({ open, onClose, onConfirm, results }: Props) {
+  const [selected, setSelected] = useState<Set<string>>(() => new Set(results.map((r) => r.name)));
+
+  useEffect(() => {
+    if (!open) {
+      setSelected(new Set(results.map((r) => r.name)));
+    }
+  }, [open, results]);
+
+  function toggle(name: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  }
+
+  function toggleAll(type: string) {
+    const names = results.filter((r) => r.type === type).map((r) => r.name);
+    const allSelected = names.every((n) => selected.has(n));
+    setSelected((prev) => {
+      const next = new Set(prev);
+      for (const n of names) {
+        if (allSelected) next.delete(n);
+        else next.add(n);
+      }
+      return next;
+    });
+  }
+
   if (!open) return null;
 
-  // TODO: [mock] show progress state then results
-  const phase: string = "result";
+  const selectedCount = results.filter((r) => selected.has(r.name)).length;
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="w-[440px] rounded-xl border border-white/[0.08] bg-[#1c1c1c] shadow-[0_16px_48px_rgba(0,0,0,0.5)]">
+      <div className="w-[540px] rounded-xl border border-white/[0.08] bg-[#1c1c1c] shadow-[0_16px_48px_rgba(0,0,0,0.5)]">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-white/[0.06]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-[#00CAE0]/10 flex items-center justify-center">
               <Sparkles size={16} strokeWidth={1.5} className="text-[#00CAE0]" />
             </div>
             <div>
-              <h3 className="text-[15px] font-medium">
-                {phase === "progress" ? "AI 正在识别元素..." : "识别完成"}
-              </h3>
+              <h3 className="text-[15px] font-medium">提取结果</h3>
               <p className="text-[12px] text-[#666] mt-0.5">
-                {phase === "progress"
-                  ? "正在分析剧本内容，提取角色、场景、道具等"
-                  : `共识别出 ${mockResults.length} 个元素`}
+                共提取 {results.length} 个元素，已选 {selectedCount} 项
               </p>
             </div>
           </div>
+          <button
+            onClick={onClose}
+            className="w-7 h-7 rounded-full flex items-center justify-center text-[#666] hover:text-white hover:bg-white/[0.06] transition-colors duration-200"
+          >
+            <X size={14} strokeWidth={1.5} />
+          </button>
         </div>
 
         {/* Body */}
-        {phase === "progress" ? (
-          <div className="p-8 flex flex-col items-center justify-center">
-            <Loader2 size={32} strokeWidth={1.5} className="text-[#00CAE0] animate-spin mb-4" />
-            <p className="text-[13px] text-[#999]">正在分析剧本内容...</p>
-            <div className="w-full h-1.5 bg-white/[0.06] rounded-full mt-4 overflow-hidden">
-              <div className="h-full bg-[#00CAE0] rounded-full animate-pulse" style={{ width: "60%" }} />
-            </div>
-          </div>
-        ) : (
-          <div className="p-5 max-h-[400px] overflow-auto">
-            {(["character", "scene", "prop", "audio"] as const).map((type) => {
-              const items = mockResults.filter((r) => r.type === type);
+        <div className="p-5 max-h-[400px] overflow-auto">
+            {typeOrder.map((type) => {
+              const items = results.filter((r) => r.type === type);
               if (items.length === 0) return null;
+              const allSelected = items.every((r) => selected.has(r.name));
               return (
                 <div key={type} className="mb-4 last:mb-0">
-                  <p className="text-[11px] text-[#666] font-medium mb-1.5">
-                    {typeLabels[type]}（{items.length}）
-                  </p>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <p className="text-[11px] text-[#666] font-medium">
+                      {typeLabels[type]}（{items.length}）
+                    </p>
+                    <button
+                      onClick={() => toggleAll(type)}
+                      className="text-[11px] text-[#666] hover:text-[#999] transition-colors duration-200"
+                    >
+                      {allSelected ? "取消全选" : "全选"}
+                    </button>
+                  </div>
                   <div className="space-y-1">
-                    {items.map((item) => (
-                      <div
-                        key={item.name}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.03]"
-                      >
-                        <Check
-                          size={14}
-                          strokeWidth={2}
-                          className="text-[#00CAE0] shrink-0"
-                        />
-                        <span className="text-[13px] text-[#ccc]">{item.name}</span>
-                      </div>
-                    ))}
+                    {items.map((item) => {
+                      const isChecked = selected.has(item.name);
+                      return (
+                        <button
+                          key={item.name}
+                          onClick={() => toggle(item.name)}
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] transition-colors duration-200 text-left"
+                        >
+                          <div
+                            className={`w-4 h-4 rounded-[3px] border flex items-center justify-center shrink-0 transition-colors duration-200 ${
+                              isChecked
+                                ? "bg-[#00CAE0] border-[#00CAE0]"
+                                : "border-white/[0.15] hover:border-white/[0.3]"
+                            }`}
+                          >
+                            {isChecked && <Check size={10} strokeWidth={2.5} className="text-black" />}
+                          </div>
+                          <span className={`text-[13px] transition-colors duration-200 ${isChecked ? "text-[#ccc]" : "text-[#666]"}`}>
+                            {item.name}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               );
             })}
-          </div>
-        )}
+        </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-white/[0.06]">
-          {phase === "progress" ? (
-            <button
-              onClick={onClose}
-              className="h-9 px-4 rounded-full bg-white/[0.06] text-[13px] text-[#999] hover:bg-white/[0.1] hover:text-white transition-colors duration-200"
-            >
-              取消
-            </button>
-          ) : (
-            <>
-              <button
-                onClick={onClose}
-                className="h-9 px-4 rounded-full bg-white/[0.06] text-[13px] text-[#999] hover:bg-white/[0.1] hover:text-white transition-colors duration-200"
-              >
-                跳过
-              </button>
-              <button
-                onClick={onClose}
-                className="h-9 px-5 rounded-full bg-white text-black text-[13px] font-medium hover:bg-white/90 active:scale-[0.97] transition-all duration-200"
-              >
-                添加到元素库
-              </button>
-            </>
-          )}
+        <div className="flex items-center justify-between px-5 py-3 border-t border-white/[0.06]">
+          <button
+            onClick={onClose}
+            className="h-9 px-4 rounded-full bg-white/[0.06] text-[13px] text-[#999] hover:bg-white/[0.1] hover:text-white transition-colors duration-200"
+          >
+            跳过
+          </button>
+          <button
+            onClick={() => {
+              onConfirm(results.filter((r) => selected.has(r.name)));
+            }}
+            disabled={selectedCount === 0}
+            className="h-9 px-5 rounded-full bg-white text-black text-[13px] font-medium hover:bg-white/90 active:scale-[0.97] transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none"
+          >
+            添加 {selectedCount} 项到元素库
+          </button>
         </div>
       </div>
     </div>

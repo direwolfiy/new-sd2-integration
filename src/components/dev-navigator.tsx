@@ -21,20 +21,26 @@ const scenarios: { group: string; items: Scenario[] }[] = [
     items: [
       {
         state: "无剧本 · 无元素",
-        path: "/project/proj-7/elements",
+        path: "/project/proj-8/elements",
         hint: "导入剧本引导（粘贴 / 上传 / 跳过）",
-        project: "末日快递",
+        project: "空白项目",
       },
       {
         state: "有剧本 · 无元素",
-        path: "/project/proj-3/elements",
-        hint: "AI 识别引导（识别 / 手动添加 / 查看剧本）",
-        project: "食堂争霸",
+        path: "/project/proj-7/elements",
+        hint: "AI 提取引导（提取 / 手动添加 / 查看剧本）",
+        project: "末日快递",
       },
       {
         state: "有元素 · Tab 为空",
         path: "/project/proj-2/elements?tab=prop",
         hint: "道具 Tab 空状态 → 添加道具按钮",
+        project: "都市暗影",
+      },
+      {
+        state: "有元素 · 音频为空",
+        path: "/project/proj-2/elements?tab=audio",
+        hint: "音频 Tab 空状态 → 添加音效按钮",
         project: "都市暗影",
       },
       {
@@ -50,15 +56,21 @@ const scenarios: { group: string; items: Scenario[] }[] = [
     items: [
       {
         state: "导入剧本 · 粘贴",
-        path: "/project/proj-7/elements",
-        hint: "点击「粘贴剧本文本」→ 打开导入 Overlay",
+        path: "/project/proj-8/elements",
+        hint: "点击「从剧本提取元素」→ 打开导入 Overlay",
+        project: "空白项目",
+      },
+      {
+        state: "剧本分析中",
+        path: "/project/proj-7/elements?overlay=script-analysis-progress",
+        hint: "AI 分析剧本 · 类型识别 + 分集拆分",
         project: "末日快递",
       },
       {
-        state: "AI 识别中",
-        path: "/project/proj-7/elements",
-        hint: "点击「识别元素」→ 识别进度 + 结果预览",
-        project: "任意项目",
+        state: "提取进度",
+        path: "/project/proj-7/elements?overlay=extraction-progress",
+        hint: "提取元素进度 · 6 步模拟",
+        project: "末日快递",
       },
       {
         state: "搜索无结果",
@@ -70,6 +82,12 @@ const scenarios: { group: string; items: Scenario[] }[] = [
         state: "删除确认",
         path: "/project/proj-1/elements",
         hint: "悬停元素 → 菜单 → 删除 → 确认对话框",
+        project: "星辰变",
+      },
+      {
+        state: "创建元素",
+        path: "/project/proj-1/elements?overlay=create-element",
+        hint: "创建元素弹窗 · 输入名称后创建",
         project: "星辰变",
       },
     ],
@@ -163,8 +181,11 @@ export function DevNavigator() {
     (path: string) => {
       const [basePath, query] = path.split("?");
       if (query) {
-        const tab = new URLSearchParams(query).get("tab");
+        const params = new URLSearchParams(query);
+        const tab = params.get("tab");
         if (tab) sessionStorage.setItem("dev-nav-tab", tab);
+        const overlay = params.get("overlay");
+        if (overlay) sessionStorage.setItem("dev-nav-overlay", overlay);
       }
       router.push(basePath);
       setOpen(false);
@@ -219,24 +240,51 @@ export function DevNavigator() {
                   </div>
                   <div className="px-3 pb-2 space-y-0.5">
                     {group.items.map((s) => {
-                      const isActive = pathname === s.path.split("?")[0];
+                      const [basePath, query] = s.path.split("?");
+                      const params = query ? new URLSearchParams(query) : new URLSearchParams();
+                      const expectedTab = params.get("tab");
+                      const expectedOverlay = params.get("overlay");
+
+                      const pathMatch = pathname === basePath;
+                      let isActive = pathMatch;
+
+                      if (pathMatch && (expectedTab || expectedOverlay)) {
+                        let currentState: { tab?: string; overlay?: string | null } = {};
+                        try {
+                          const raw = sessionStorage.getItem("dev-nav-state");
+                          if (raw) currentState = JSON.parse(raw);
+                        } catch {}
+                        if (expectedTab && currentState.tab !== expectedTab) isActive = false;
+                        if (expectedOverlay && currentState.overlay !== expectedOverlay) isActive = false;
+                      } else if (pathMatch && !expectedTab && !expectedOverlay) {
+                        let currentState: { tab?: string; overlay?: string | null } = {};
+                        try {
+                          const raw = sessionStorage.getItem("dev-nav-state");
+                          if (raw) currentState = JSON.parse(raw);
+                        } catch {}
+                        if (currentState.overlay) isActive = false;
+                      }
+
                       return (
                         <button
                           key={s.path}
                           onClick={() => navigate(s.path)}
-                          className={`w-full flex items-start gap-3 px-3 py-2.5 rounded-lg text-left transition-colors duration-200 group ${
+                          className={`w-full flex items-start gap-3 px-3 py-2.5 rounded-lg text-left transition-colors duration-200 group relative overflow-hidden ${
                             isActive
                               ? "bg-white/[0.06] text-white"
                               : "text-[#999] hover:bg-white/[0.04] hover:text-white"
                           }`}
                         >
+                          {isActive && (
+                            <div className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-full bg-[#00CAE0]" />
+                          )}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="text-[13px] font-medium">
+                              <span className={`text-[13px] font-medium ${isActive ? "text-[#00CAE0]" : ""}`}>
                                 {s.state}
                               </span>
                               {s.project && (
-                                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-white/[0.06] text-[#666]">
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isActive ? "bg-[#00CAE0]/10 text-[#00CAE0]/70" : "bg-white/[0.06] text-[#666]"}`}>
                                   {s.project}
                                 </span>
                               )}

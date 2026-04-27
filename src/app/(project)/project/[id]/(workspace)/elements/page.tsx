@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useState, useCallback, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { Search, Plus, FileText, Upload, Sparkles, ChevronRight, BookOpen, User, Mountain, Package, X, MoreHorizontal, Trash2, Loader2, AlertTriangle } from "lucide-react";
 import { getElementsByProject } from "@/mocks/elements";
 import { getScriptByProject } from "@/mocks/scripts";
@@ -10,8 +10,10 @@ import { ScriptOverlay } from "@/components/script-overlay";
 import { CharacterEditor } from "@/components/character-editor";
 import { SceneEditor } from "@/components/scene-editor";
 import { ScriptImportOverlay } from "@/components/script-import-overlay";
-import { RecognitionOverlay } from "@/components/recognition-overlay";
 import { ExtractionProgressOverlay } from "@/components/extraction-progress-overlay";
+import { ScriptAnalysisProgressOverlay } from "@/components/script-analysis-progress-overlay";
+import { ScriptAnalysisResultOverlay } from "@/components/script-analysis-result-overlay";
+import { ScriptSummary } from "@/components/script-summary";
 
 const typeTabs: { key: ElementType; label: string }[] = [
   { key: "character", label: "角色" },
@@ -30,6 +32,7 @@ const typeLabels: Record<string, string> = {
 
 export default function ElementsPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>(() => {
     if (typeof window !== "undefined") {
       const tab = sessionStorage.getItem("dev-nav-tab");
@@ -39,19 +42,75 @@ export default function ElementsPage() {
       }
     }
     return "character";
-  });  const [scriptOpen, setScriptOpen] = useState(false);
+  });
+  const [scriptOpen, setScriptOpen] = useState(false);
   const [editingCharacterId, setEditingCharacterId] = useState<string | null>(null);
   const [editingSceneId, setEditingSceneId] = useState<string | null>(null);
   const [localElements, setLocalElements] = useState<ElementItem[]>(() => getElementsByProject(params.id));
-  const [createOpen, setCreateOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(() => {
+    if (typeof window !== "undefined" && sessionStorage.getItem("dev-nav-overlay") === "create-element") {
+      sessionStorage.removeItem("dev-nav-overlay");
+      return true;
+    }
+    return false;
+  });
   const [createName, setCreateName] = useState("");
   const [moreMenuId, setMoreMenuId] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [scriptImportOpen, setScriptImportOpen] = useState(false);
-  const [recognitionOpen, setRecognitionOpen] = useState(false);
-  const [extractionProgressOpen, setExtractionProgressOpen] = useState(false);
+  const [analysisProgressOpen, setAnalysisProgressOpen] = useState(() => {
+    if (typeof window !== "undefined" && sessionStorage.getItem("dev-nav-overlay") === "script-analysis-progress") {
+      sessionStorage.removeItem("dev-nav-overlay");
+      return true;
+    }
+    return false;
+  });
+  const [extractionProgressOpen, setExtractionProgressOpen] = useState(() => {
+    if (typeof window !== "undefined" && sessionStorage.getItem("dev-nav-overlay") === "extraction-progress") {
+      sessionStorage.removeItem("dev-nav-overlay");
+      return true;
+    }
+    return false;
+  });
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [reExtractOpen, setReExtractOpen] = useState(false);
+
+  // TODO: [mock] replace with real extraction results
+  const mockExtractionResults = [
+    { type: "character" as const, name: "秦羽" },
+    { type: "character" as const, name: "姜立" },
+    { type: "character" as const, name: "侯费" },
+    { type: "character" as const, name: "黑羽" },
+    { type: "scene" as const, name: "秦村黄昏" },
+    { type: "scene" as const, name: "九剑仙府外景" },
+    { type: "scene" as const, name: "潜龙大陆山顶" },
+    { type: "prop" as const, name: "流星泪" },
+    { type: "prop" as const, name: "黑炎君之戒" },
+  ];
+
+  const handleExtractionConfirm = useCallback(() => {
+    const newElements: ElementItem[] = mockExtractionResults.map((item, idx) => ({
+      id: `el-extracted-${Date.now()}-${idx}`,
+      projectId: params.id,
+      type: item.type,
+      name: item.name,
+      thumbnailUrl: "",
+      tags: [],
+      createdAt: new Date().toISOString().slice(0, 10),
+    }));
+    setLocalElements((prev) => [...prev, ...newElements]);
+  }, [params.id]);
+
+  // 同步当前状态到 sessionStorage，供演示导航精确匹配
+  useEffect(() => {
+    const openOverlay = analysisProgressOpen ? "script-analysis-progress"
+      : extractionProgressOpen ? "extraction-progress"
+      : reExtractOpen ? "script-analysis-result"
+      : createOpen ? "create-element"
+      : null;
+    sessionStorage.setItem("dev-nav-state", JSON.stringify({ tab: activeTab, overlay: openOverlay }));
+  }, [activeTab, analysisProgressOpen, extractionProgressOpen, reExtractOpen, createOpen]);
 
   function deleteElement(id: string) {
     setLocalElements((prev) => prev.filter((e) => e.id !== id));
@@ -59,7 +118,7 @@ export default function ElementsPage() {
     setMoreMenuId(null);
   }
   const script = getScriptByProject(params.id);
-  const hasScript = script.content !== null;
+  const hasScript = script.metadata !== null;
 
   // 过滤掉 script 类型，按当前 Tab 筛选
   const visibleElements = localElements.filter((e) => e.type !== "script");
@@ -136,11 +195,11 @@ export default function ElementsPage() {
             </button>
           )}
           <button
-            onClick={() => setExtractionProgressOpen(true)}
+            onClick={() => setReExtractOpen(true)}
             className="h-8 px-3 rounded-full bg-white/[0.06] text-[12px] text-[#999] flex items-center gap-1.5 hover:bg-white/[0.1] hover:text-white transition-colors duration-200"
           >
             <Sparkles size={14} strokeWidth={1.5} />
-            {isEmpty ? "识别元素" : "重新识别"}
+            重新提取
           </button>
           <button onClick={() => setCreateOpen(true)} className="h-8 px-4 rounded-full bg-white text-black text-[12px] font-medium flex items-center gap-1.5 hover:bg-white/90 active:scale-[0.97] transition-all duration-200">
             <Plus size={14} strokeWidth={1.5} />
@@ -198,60 +257,53 @@ export default function ElementsPage() {
             </div>
           </div>
         ) : isEmpty && hasScript ? (
-          /* 状态2：有剧本 + 无元素 → 开始识别 */
-          <div className="flex items-center justify-center h-full">
-            <div className="max-w-md w-full space-y-8 text-center">
-              <div>
-                <div className="w-14 h-14 mx-auto rounded-xl bg-[#00CAE0]/10 flex items-center justify-center mb-5">
-                  <Sparkles size={28} strokeWidth={1.5} className="text-[#00CAE0]" />
+          /* 状态2：有剧本 · 无元素 → 内容布局 + sticky 底栏 CTA */
+          <div className="flex flex-col h-full">
+            {/* Scrollable content */}
+            <div className="flex-1 overflow-auto p-6 pb-3">
+              <div className="max-w-lg mx-auto space-y-5">
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-medium">剧本分析</h2>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setScriptOpen(true)}
+                      className="h-7 px-3 rounded-full bg-white/[0.06] text-[12px] text-[#999] flex items-center gap-1.5 hover:bg-white/[0.1] hover:text-white transition-colors duration-200"
+                    >
+                      <BookOpen size={12} strokeWidth={1.5} />
+                      查看完整剧本
+                    </button>
+                    <button
+                      onClick={() => setScriptImportOpen(true)}
+                      className="h-7 px-3 rounded-full text-[12px] text-[#666] hover:text-[#999] transition-colors duration-200"
+                    >
+                      修改剧本
+                    </button>
+                  </div>
                 </div>
-                <h2 className="text-lg font-medium mb-2">开始构建元素库</h2>
-                <p className="text-[14px] text-[#666] leading-[1.7]">
-                  剧本已就绪，AI 将自动分析并提取角色、场景、道具等元素。
-                </p>
+
+                {/* Script content */}
+                {script.metadata && script.episodes && (
+                  <ScriptSummary metadata={script.metadata} episodes={script.episodes} />
+                )}
               </div>
+            </div>
 
-              <div className="space-y-3">
-                <button
-                  onClick={() => setRecognitionOpen(true)}
-                  className="w-full flex items-center gap-4 p-4 rounded-xl border border-[#00CAE0]/20 bg-[#00CAE0]/[0.04] text-left hover:shadow-[0_0_0_1px_rgba(0,202,224,0.3)] transition-shadow duration-200 group"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-[#00CAE0]/15 flex items-center justify-center shrink-0">
-                    <Sparkles size={18} strokeWidth={1.5} className="text-[#00CAE0]" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[14px] font-medium">从剧本提取元素</p>
-                    <p className="text-[12px] text-[#666] mt-0.5">AI 自动分析剧本并提取所有元素</p>
-                  </div>
-                  <ChevronRight size={16} strokeWidth={1.5} className="text-[#00CAE0]/40 group-hover:text-[#00CAE0] transition-colors duration-200" />
-                </button>
-
+            {/* Sticky bottom bar */}
+            <div className="shrink-0 border-t border-white/[0.06] bg-[#0a0a0a] px-6 py-4">
+              <div className="max-w-lg mx-auto flex items-center justify-end gap-2">
                 <button
                   onClick={() => setCreateOpen(true)}
-                  className="w-full flex items-center gap-4 p-4 rounded-xl border border-white/[0.06] bg-[#141414] text-left hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12)] transition-shadow duration-200 group"
+                  className="h-9 px-4 rounded-full bg-white/[0.06] text-[13px] text-[#999] hover:bg-white/[0.1] hover:text-white transition-colors duration-200"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-white/[0.06] flex items-center justify-center shrink-0">
-                    <Plus size={18} strokeWidth={1.5} className="text-[#999]" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[14px] font-medium">手动添加</p>
-                    <p className="text-[12px] text-[#666] mt-0.5">逐个添加角色、场景等元素</p>
-                  </div>
-                  <ChevronRight size={16} strokeWidth={1.5} className="text-[#444] group-hover:text-[#999] transition-colors duration-200" />
+                  跳过提取，手动添加
                 </button>
-
                 <button
-                  onClick={() => setScriptOpen(true)}
-                  className="w-full flex items-center gap-4 p-4 rounded-xl border border-white/[0.06] bg-[#141414] text-left hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12)] transition-shadow duration-200 group"
+                  onClick={() => setExtractionProgressOpen(true)}
+                  className="h-9 px-5 rounded-full bg-white text-black text-[13px] font-medium flex items-center gap-1.5 hover:bg-white/90 active:scale-[0.97] transition-all duration-200"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-white/[0.06] flex items-center justify-center shrink-0">
-                    <BookOpen size={18} strokeWidth={1.5} className="text-[#999]" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[14px] font-medium">查看剧本</p>
-                    <p className="text-[12px] text-[#666] mt-0.5">先回顾剧本内容再决定</p>
-                  </div>
-                  <ChevronRight size={16} strokeWidth={1.5} className="text-[#444] group-hover:text-[#999] transition-colors duration-200" />
+                  <Sparkles size={14} strokeWidth={1.5} />
+                  提取元素
                 </button>
               </div>
             </div>
@@ -543,8 +595,35 @@ export default function ElementsPage() {
         onClose={() => setScriptImportOpen(false)}
         onAnalysisStart={() => {
           setScriptImportOpen(false);
+          if (!hasScript) {
+            sessionStorage.setItem("dev-nav-overlay", "script-analysis-progress");
+            router.push("/project/proj-7/elements");
+          } else {
+            setAnalysisProgressOpen(true);
+          }
+        }}
+      />
+
+      {/* 剧本分析进度 */}
+      <ScriptAnalysisProgressOverlay
+        open={analysisProgressOpen}
+        onCancel={() => setAnalysisProgressOpen(false)}
+        onComplete={() => {
+          setAnalysisProgressOpen(false);
+        }}
+      />
+
+      {/* 重新提取确认 — only for re-extraction, not first-time flow */}
+      {/* 重新提取确认 */}
+      <ScriptAnalysisResultOverlay
+        open={reExtractOpen}
+        onClose={() => setReExtractOpen(false)}
+        onStartExtraction={() => {
+          setReExtractOpen(false);
           setExtractionProgressOpen(true);
         }}
+        projectId={params.id}
+        warning="重新提取将覆盖当前元素库中的所有已有元素，此操作无法撤销。"
       />
 
       {/* 提取进度 */}
@@ -553,14 +632,8 @@ export default function ElementsPage() {
         onCancel={() => setExtractionProgressOpen(false)}
         onComplete={() => {
           setExtractionProgressOpen(false);
-          setRecognitionOpen(true);
+          handleExtractionConfirm();
         }}
-      />
-
-      {/* AI 识别 Overlay */}
-      <RecognitionOverlay
-        open={recognitionOpen}
-        onClose={() => setRecognitionOpen(false)}
       />
 
       {/* 删除确认 */}

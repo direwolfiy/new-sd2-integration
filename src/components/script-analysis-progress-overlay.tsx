@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Loader2, Check, Circle, Sparkles } from "lucide-react";
 
-export interface ExtractionStep {
+export interface AnalysisStep {
   key: string;
   label: string;
   status: "done" | "active" | "pending";
@@ -16,27 +16,24 @@ interface Props {
   onComplete: () => void;
 }
 
-const initialSteps: ExtractionStep[] = [
-  { key: "parse", label: "解析剧本内容", status: "pending" },
-  { key: "character", label: "识别角色", status: "pending" },
-  { key: "scene", label: "识别场景", status: "pending" },
-  { key: "prop", label: "识别道具", status: "pending" },
-  { key: "audio", label: "识别音效", status: "pending" },
-  { key: "organize", label: "整理提取结果", status: "pending" },
+const initialSteps: AnalysisStep[] = [
+  { key: "identify", label: "识别剧本类型与概要", status: "pending" },
+  { key: "split", label: "分集拆分", status: "pending" },
 ];
 
 const stepMessages: Record<string, string> = {
-  parse: "正在解析剧本结构与段落...",
-  character: "正在分析角色对话与描述...",
-  scene: "正在提取场景描写...",
-  prop: "正在识别道具与物品...",
-  audio: "正在分析音效需求...",
-  organize: "正在整理并去重...",
+  identify: "正在分析剧本内容，识别类型与故事概要...",
+  split: "正在按集拆分剧本内容...",
 };
 
-// TODO: [mock] replace with real extraction pipeline
+const stepDetails: Record<string, string> = {
+  identify: "已识别类型与概要",
+  split: "已拆分为多集",
+};
+
+// TODO: [mock] replace with real analysis pipeline
 function useSimulatedProgress(onComplete: () => void, open: boolean) {
-  const [steps, setSteps] = useState<ExtractionStep[]>(initialSteps);
+  const [steps, setSteps] = useState<AnalysisStep[]>(initialSteps);
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -44,7 +41,7 @@ function useSimulatedProgress(onComplete: () => void, open: boolean) {
   onCompleteRef.current = onComplete;
 
   const reset = useCallback(() => {
-    setSteps(initialSteps.map((s) => ({ ...s, status: "pending" as const, detail: undefined })));
+    setSteps(initialSteps.map((s) => ({ ...s, status: "pending" as const })));
     setProgress(0);
     setMessage("");
   }, []);
@@ -66,7 +63,7 @@ function useSimulatedProgress(onComplete: () => void, open: boolean) {
           prev.map((s) => ({ ...s, status: "done" as const }))
         );
         setProgress(100);
-        setMessage("提取完成");
+        setMessage("分析完成");
         timerRef.current = setTimeout(() => {
           onCompleteRef.current();
         }, 1500);
@@ -74,16 +71,6 @@ function useSimulatedProgress(onComplete: () => void, open: boolean) {
       }
 
       const key = stepOrder[currentIdx];
-      // TODO: [mock] replace with real extraction results per project
-      const details: Record<string, string> = {
-        parse: "已识别 4 集内容",
-        character: "4 个角色",
-        scene: "3 个场景",
-        prop: "2 个道具",
-        audio: "2 个音效",
-        organize: "共 11 个元素",
-      };
-
       setSteps((prev) =>
         prev.map((s) => {
           if (s.key === key) return { ...s, status: "active" as const };
@@ -92,7 +79,7 @@ function useSimulatedProgress(onComplete: () => void, open: boolean) {
       );
       setMessage(stepMessages[key]);
 
-      const stepDuration = 800 + Math.random() * 1200;
+      const stepDuration = 1200 + Math.random() * 1000;
       const startProg = currentIdx * (100 / stepOrder.length);
       const endProg = (currentIdx + 1) * (100 / stepOrder.length);
       const progSteps = 10;
@@ -109,7 +96,7 @@ function useSimulatedProgress(onComplete: () => void, open: boolean) {
           setSteps((prev) =>
             prev.map((s) => {
               if (s.key === key)
-                return { ...s, status: "done" as const, detail: details[key] };
+                return { ...s, status: "done" as const, detail: stepDetails[key] };
               return s;
             })
           );
@@ -128,12 +115,12 @@ function useSimulatedProgress(onComplete: () => void, open: boolean) {
     };
   }, [open, reset]);
 
-  const estimatedTimeLeft = progress >= 100 ? 0 : Math.max(1, Math.round((100 - progress) / 15));
+  const estimatedTimeLeft = progress >= 100 ? 0 : Math.max(1, Math.round((100 - progress) / 20));
 
   return { steps, progress, message, estimatedTimeLeft };
 }
 
-export function ExtractionProgressOverlay({ open, onCancel, onComplete }: Props) {
+export function ScriptAnalysisProgressOverlay({ open, onCancel, onComplete }: Props) {
   const { steps, progress, message, estimatedTimeLeft } = useSimulatedProgress(onComplete, open);
 
   if (!open) return null;
@@ -152,7 +139,7 @@ export function ExtractionProgressOverlay({ open, onCancel, onComplete }: Props)
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-[15px] font-medium">
-              {progress >= 100 ? "提取完成" : "正在提取元素"}
+              {progress >= 100 ? "分析完成" : "正在分析剧本"}
             </h3>
             <p className="text-[12px] text-[#666] mt-0.5 truncate">
               {message || "准备中..."}
@@ -204,7 +191,6 @@ export function ExtractionProgressOverlay({ open, onCancel, onComplete }: Props)
           </div>
           <div className="flex justify-between mt-1.5">
             <span className="text-[11px] text-[#555]">{progress}%</span>
-            <span className="text-[11px] text-[#555]">11 个元素</span>{/* TODO: [mock] */}
           </div>
         </div>
 

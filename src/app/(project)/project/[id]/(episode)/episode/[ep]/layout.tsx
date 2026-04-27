@@ -36,7 +36,7 @@ export default function EpisodeLayout({
   const basePath = `/project/${projectId}/episode/${episodeId}`;
 
   const script = getScriptByProject(projectId);
-  const hasScript = script.content !== null;
+  const hasScript = script.metadata !== null;
   const [scriptOpen, setScriptOpen] = useState(false);
 
   function isStageActive(stageHref: string) {
