@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { ApiError } from "@/lib/api/errors";
+import { useAuthStore } from "@/stores/auth-store";
 
 interface UseApiState<T> {
   data: T | null;
@@ -17,6 +18,8 @@ export function useApi<T>(
   const [data, setData] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
+  const isInitialized = useAuthStore((s) => s.isInitialized);
+  const hasToken = useAuthStore((s) => s.accessToken !== null);
 
   const fetch = useCallback(() => {
     setIsLoading(true);
@@ -31,8 +34,10 @@ export function useApi<T>(
   }, deps);
 
   useEffect(() => {
+    if (!isInitialized) return;
+    if (!hasToken) { setIsLoading(false); return; }
     fetch();
-  }, [fetch]);
+  }, [fetch, isInitialized, hasToken]);
 
   return { data, isLoading, error, refetch: fetch };
 }
