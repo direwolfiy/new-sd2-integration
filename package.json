@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -H 0.0.0.0",
-    "dev:fresh": "rm -rf .next && next dev",
+    "dev:fresh": "rm -rf .next src/app/.next tsconfig.tsbuildinfo && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

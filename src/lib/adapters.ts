@@ -7,6 +7,13 @@ const PRODUCTION_STAGE_MAP: Record<number, string> = {
   3: "已完成",
 };
 
+const TEMPLATE_TYPE_MAP: Record<string, ElementType> = {
+  ROLE: "character",
+  SCENE: "scene",
+  PROP: "prop",
+  AUDIO: "audio",
+};
+
 export function adaptProject(c: ContentItem): Project {
   const stage = c.productionStage ?? 1;
   const status = PRODUCTION_STAGE_MAP[stage] ?? "进行中";
@@ -48,35 +55,20 @@ export function adaptChapter(ch: ChapterItem, projectId: string): Episode {
   };
 }
 
-const TEMPLATE_TYPE_MAP: Record<number, ElementType> = {
-  0: "character",
-  1: "scene",
-  2: "prop",
-  3: "audio",
-};
-
 export function adaptElement(t: TemplateItem): ElementItem {
-  const type = TEMPLATE_TYPE_MAP[t.templateType] ?? "prop";
-  const tags = t.tags ? t.tags.split(",").map((s) => s.trim()).filter(Boolean) : [];
-  let variants: string[] | undefined;
-  if (t.extraData) {
-    try {
-      const parsed = JSON.parse(t.extraData);
-      if (Array.isArray(parsed?.variants)) {
-        variants = parsed.variants.map((v: { name: string }) => v.name);
-      }
-    } catch { /* ignore */ }
-  }
+  const type = TEMPLATE_TYPE_MAP[t.template_type] ?? "prop";
+  const tags: string[] = [];
+  if (t.role_type) tags.push(t.role_type);
+  if (t.template_category) tags.push(t.template_category);
 
   return {
     id: String(t.id),
-    projectId: t.contentId ?? "",
+    projectId: String(t.contentId),
     type,
-    name: t.templateName,
-    thumbnailUrl: t.coverUrl ?? "",
+    name: t.template_name,
+    thumbnailUrl: t.cover_image ?? t.primaryImageUrl ?? "",
     tags,
-    variants,
-    createdAt: t.createdTime?.slice(0, 10) ?? "",
+    createdAt: t.created_time?.slice(0, 10) ?? "",
   };
 }
 

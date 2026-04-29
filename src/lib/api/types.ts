@@ -8,8 +8,8 @@ export interface ApiResult<T> {
 export interface PageResult<T> {
   list: T[];
   total: number;
-  pageNum: number;
-  pageSize: number;
+  page_num: number;
+  page_size: number;
   pages?: number;
 }
 
@@ -110,18 +110,22 @@ export interface ChapterItem {
 
 // Backend: ResourceTemplateBaseDTO (elements = templates)
 export interface TemplateItem {
-  id: string;
-  contentId?: string | null;
-  templateName: string;
-  templateType: number; // 0=character, 1=scene, 2=prop
+  id: number;
+  contentId: number;
+  template_name: string;
+  template_type: string; // "ROLE", "SCENE", "PROP", "AUDIO", etc.
   description?: string | null;
-  coverUrl?: string | null;
-  tags?: string | null;
+  cover_image?: string | null;
   status?: number | null;
-  createdTime?: string | null;
-  updatedTime?: string | null;
-  sortOrder?: number | null;
-  extraData?: string | null; // JSON string with variant info
+  created_time?: string | null;
+  updated_time?: string | null;
+  role_type?: string | null;
+  template_category?: string | null;
+  voice_profile?: Record<string, unknown> | null;
+  appearance?: unknown | null;
+  primaryImageUrl?: string | null;
+  usage_count?: number | null;
+  autoCreated?: boolean | null;
 }
 
 export interface TemplateQuery {
@@ -175,8 +179,10 @@ export interface StyleItem {
 
 // Tenant account
 export interface TenantAccountOverview {
-  balance: number;
-  frozenAmount: number;
-  totalRecharged: number;
-  totalConsumed: number;
+  tenantId: number;
+  tenantName: string;
+  totalBalance: string;
+  availableBalance: string;
+  frozenBalance: string;
+  totalRechargeAmount: string;
 }

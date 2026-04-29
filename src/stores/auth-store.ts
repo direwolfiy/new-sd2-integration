@@ -17,6 +17,7 @@ interface AuthUser {
 interface StoredAuth {
   accessToken: string;
   refreshToken: string;
+  signKey: string;
   user: AuthUser;
   tenantId: number | null;
 }
@@ -62,7 +63,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   initialize() {
     const stored = readStoredAuth();
     if (stored) {
-      setApiClientTokens(stored.accessToken, stored.refreshToken);
+      setApiClientTokens(stored.accessToken, stored.refreshToken, stored.signKey);
       if (stored.tenantId != null) setApiClientTenantId(stored.tenantId);
       set({
         user: stored.user,
@@ -85,12 +86,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     };
     const tenantId = data.lastActiveTenantId ?? data.defaultTenantId ?? null;
 
-    setApiClientTokens(data.accessToken, data.refreshToken);
+    setApiClientTokens(data.accessToken, data.refreshToken, data.signKey);
     if (tenantId != null) setApiClientTenantId(tenantId);
 
     writeStoredAuth({
       accessToken: data.accessToken,
       refreshToken: data.refreshToken,
+      signKey: data.signKey,
       user,
       tenantId,
     });
@@ -130,7 +132,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 }));
 
-// Wire up auth failure callback to trigger logout
 setOnAuthFailure(() => {
   useAuthStore.getState().logout();
 });
