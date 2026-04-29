@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api-content/:path*",
-        destination: "http://localhost:8000/api-content/:path*",
+        destination: "https://precontent.lingify.cn/api-content/:path*",
       },
     ];
   },
