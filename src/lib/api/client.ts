@@ -238,11 +238,18 @@ export async function request<T>(
     signal,
   });
 
-  if (res.status === 401) {
-    const errBody = await res.json().catch(() => null);
-    const bizCode = errBody?.detail?.bizCode ?? errBody?.bizCode;
+  if (res.status >= 400) {
+    const errText = await res.text();
+    console.error(`[API] ${method} ${path} → ${res.status}`, errText.slice(0, 500));
 
-    if (bizCode === "AUTH_TOKEN_EXPIRED" && refreshToken) {
+    let errBody: Record<string, unknown> | null = null;
+    try { errBody = JSON.parse(errText); } catch {}
+
+    const detail = errBody?.detail as Record<string, unknown> | undefined;
+    const bizCode = (detail?.bizCode ?? errBody?.bizCode) as string | undefined;
+    const errMessage = (detail?.message ?? errBody?.message ?? `HTTP ${res.status}`) as string;
+
+    if (res.status === 401 && bizCode === "AUTH_TOKEN_EXPIRED" && refreshToken) {
       try {
         const newToken = await refreshOrWait();
         headers["Authorization"] = `Bearer ${newToken}`;
@@ -260,8 +267,10 @@ export async function request<T>(
       }
     }
 
-    onAuthFailure?.();
-    throw new ApiError(401, errBody?.detail?.message ?? "认证失败", bizCode);
+    if (res.status === 401) {
+      onAuthFailure?.();
+    }
+    throw new ApiError(res.status, errMessage, bizCode);
   }
 
   const result: ApiResult<T> = await res.json();
