@@ -19,20 +19,20 @@ interface StoredAuth {
   refreshToken: string;
   signKey: string;
   user: AuthUser;
-  tenantId: number | null;
+  tenantId: string | null;
 }
 
 interface AuthState {
   user: AuthUser | null;
   accessToken: string | null;
   refreshToken: string | null;
-  tenantId: number | null;
+  tenantId: string | null;
   isInitialized: boolean;
 
   initialize: () => void;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  setTenant: (tenantId: number) => void;
+  setTenant: (tenantId: string) => void;
 }
 
 function readStoredAuth(): StoredAuth | null {
@@ -121,7 +121,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
 
-  setTenant(tenantId: number) {
+  setTenant(tenantId: string) {
     setApiClientTenantId(tenantId);
     set({ tenantId });
     const stored = readStoredAuth();

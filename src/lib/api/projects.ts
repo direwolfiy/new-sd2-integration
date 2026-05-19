@@ -5,6 +5,7 @@ export function fetchProjects(query?: ContentQuery) {
   return post<PageResult<ContentItem>>("/resource/scene-content/list", {
     pageNum: 1,
     pageSize: 50,
+    businessType: 5,
     ...query,
   });
 }

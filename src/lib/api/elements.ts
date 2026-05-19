@@ -1,12 +1,8 @@
 import { get, post, put, del } from "./client";
-import type { PageResult, TemplateItem, TemplateQuery } from "./types";
+import type { PageResult, SceneRoleItem, TemplateItem, TemplateQuery } from "./types";
 
-export function fetchElements(query?: TemplateQuery) {
-  return post<PageResult<TemplateItem>>("/resource/template/list", {
-    pageNum: 1,
-    pageSize: 200,
-    ...query,
-  });
+export function fetchElements(contentId: string) {
+  return get<SceneRoleItem[]>(`/resource/scene-role/content/${contentId}`);
 }
 
 export function fetchElement(templateId: string) {
@@ -27,4 +23,39 @@ export function deleteElement(templateId: string) {
 
 export function batchDeleteElements(templateIds: string[]) {
   return post<{ deletedCount: number }>("/resource/template/batch-delete", { templateIds });
+}
+
+// Project-level character CRUD (Seedance)
+
+export interface CreateCharacterParams {
+  templateName: string;
+  contentId: string;
+  description?: string;
+  coverImage?: string;
+}
+
+export function createCharacter(projectId: string, data: CreateCharacterParams) {
+  return post<TemplateItem>(`/novel-show/project/${projectId}/role`, {
+    template_name: data.templateName,
+    content_id: data.contentId,
+    description: data.description,
+    cover_image: data.coverImage,
+  });
+}
+
+export interface UpdateCharacterParams {
+  templateId: string;
+  templateName?: string;
+  description?: string;
+  coverImage?: string;
+  timbreDescription?: string;
+}
+
+export function updateCharacter(data: UpdateCharacterParams) {
+  const { templateId, ...body } = data;
+  return put<TemplateItem>(`/novel-show/project/role/${templateId}`, { template_id: templateId, ...body });
+}
+
+export function deleteSceneRole(roleId: string) {
+  return del<boolean>(`/resource/scene-role/${roleId}`);
 }

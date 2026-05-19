@@ -2,7 +2,7 @@ import { post } from "./client";
 import type { AssetResourceItem, PageResult } from "./types";
 
 export function fetchAssets(data?: Record<string, unknown>) {
-  return post<PageResult<AssetResourceItem>>("/asset/resource/list", data ?? { pageNum: 1, pageSize: 50 });
+  return post<PageResult<AssetResourceItem>>("/asset/resource/list", data ?? { page_num: 1, page_size: 50 });
 }
 
 export function fetchLatestAssets() {

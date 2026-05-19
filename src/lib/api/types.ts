@@ -19,8 +19,8 @@ export interface LoginResponse {
   roleId?: number;
   userType?: number;
   nickName?: string;
-  defaultTenantId?: number;
-  lastActiveTenantId?: number;
+  defaultTenantId?: string;
+  lastActiveTenantId?: string;
   tenantCount: number;
   token: string;
   accessToken: string;
@@ -108,6 +108,28 @@ export interface ChapterItem {
   subtitlesResultUrl?: string | null;
 }
 
+// Backend: ResourceSceneRoleDTO (project-level elements via scene-role binding)
+export interface SceneRoleItem {
+  id: string;
+  content_id?: string | null;
+  resource_temp_id?: string | null;
+  status?: number | null;
+  type?: number | null;
+  chapter_id?: string | null;
+  template_name?: string | null;
+  template_type?: string | null;
+  role_type?: string | null;
+  template_category?: string | null;
+  description?: string | null;
+  cover_image?: string | null;
+  voice_profile?: Record<string, unknown> | null;
+  appearance?: Record<string, unknown> | null;
+  template_metadata?: Record<string, unknown> | null;
+  seedance_asset_uuid?: string | null;
+  seedance_asset_status?: string | null;
+  is_referenced_from_project?: boolean | null;
+}
+
 // Backend: ResourceTemplateBaseDTO (elements = templates)
 export interface TemplateItem {
   id: number;
@@ -130,7 +152,7 @@ export interface TemplateItem {
 
 export interface TemplateQuery {
   contentId?: string;
-  templateType?: number;
+  templateType?: string;
   keyword?: string;
   status?: number;
   pageNum?: number;
@@ -179,10 +201,13 @@ export interface StyleItem {
 
 // Tenant account
 export interface TenantAccountOverview {
-  tenantId: number;
+  tenantId: string;
   tenantName: string;
+  tenantType?: string;
   totalBalance: string;
   availableBalance: string;
   frozenBalance: string;
   totalRechargeAmount: string;
+  totalConsumedAmount?: string;
+  totalRefundAmount?: string;
 }

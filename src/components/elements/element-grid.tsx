@@ -47,7 +47,11 @@ function CharacterCard({ element, moreMenuId, onSetMoreMenuId, onEdit, onDeleteR
   return (
     <div onClick={() => { if (moreMenuId !== element.id) onEdit(element.id); }} className={`group relative rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-[0_8px_24px_rgba(0,0,0,0.5)] ${moreMenuId === element.id ? "z-10" : ""}`}>
       <div className="relative aspect-[9/16] bg-gradient-to-br from-[#1a1a1a] to-[#141414] flex items-center justify-center">
-        <User size={32} strokeWidth={1} className="text-white/[0.06]" />
+        {element.thumbnailUrl ? (
+          <img src={element.thumbnailUrl} alt={element.name} className="absolute inset-0 w-full h-full object-cover object-top" />
+        ) : (
+          <User size={32} strokeWidth={1} className="text-white/[0.06]" />
+        )}
         <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/60 via-black/20 to-transparent p-2.5 pt-12">
           <p className="text-xs font-medium text-white truncate">{element.name}</p>
           {element.variants && element.variants.length > 1 && (<p className="mt-0.5 text-[10px] text-white/60">{element.variants.length} 个形象</p>)}
@@ -67,7 +71,11 @@ function SceneCard({ element, moreMenuId, onSetMoreMenuId, onEdit, onDeleteReque
   return (
     <div onClick={() => { if (moreMenuId !== element.id) onEdit(element.id); }} className={`group relative rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-[0_8px_24px_rgba(0,0,0,0.5)] ${moreMenuId === element.id ? "z-10" : ""}`}>
       <div className="relative aspect-video bg-gradient-to-br from-[#1a1a1a] to-[#141414] flex items-center justify-center">
-        <Mountain size={32} strokeWidth={1} className="text-white/[0.06]" />
+        {element.thumbnailUrl ? (
+          <img src={element.thumbnailUrl} alt={element.name} className="absolute inset-0 w-full h-full object-cover" />
+        ) : (
+          <Mountain size={32} strokeWidth={1} className="text-white/[0.06]" />
+        )}
         <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/60 via-black/20 to-transparent p-3 pt-14">
           <p className="text-sm font-medium text-white truncate">{element.name}</p>
         </div>
@@ -86,7 +94,11 @@ function PropCard({ element, moreMenuId, onSetMoreMenuId, onDeleteRequest }: { e
   return (
     <div className={`group relative rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-[0_8px_24px_rgba(0,0,0,0.5)] ${moreMenuId === element.id ? "z-10" : ""}`}>
       <div className="relative aspect-square bg-gradient-to-br from-[#1a1a1a] to-[#141414] flex items-center justify-center">
-        <Package size={32} strokeWidth={1} className="text-white/[0.06]" />
+        {element.thumbnailUrl ? (
+          <img src={element.thumbnailUrl} alt={element.name} className="absolute inset-0 w-full h-full object-cover" />
+        ) : (
+          <Package size={32} strokeWidth={1} className="text-white/[0.06]" />
+        )}
         <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/60 via-black/20 to-transparent p-2.5 pt-8">
           <p className="text-xs font-medium text-white truncate">{element.name}</p>
           {element.tags.length > 0 && (<p className="mt-0.5 text-[10px] text-white/60 truncate">{element.tags.join(" · ")}</p>)}

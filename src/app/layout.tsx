@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { DevNavigator } from "@/components/dev-navigator";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const inter = localFont({
@@ -29,6 +30,7 @@ export default function RootLayout({
         <AuthProvider>
           {children}
         </AuthProvider>
+        <Toaster theme="dark" position="top-center" richColors />
         <DevNavigator />
       </body>
     </html>
