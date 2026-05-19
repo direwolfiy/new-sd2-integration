@@ -237,3 +237,33 @@ export interface TenantAccountOverview {
   totalConsumedAmount?: string;
   totalRefundAmount?: string;
 }
+
+// Image generation history
+export interface ImageGenerationHistoryQuery {
+  pageNum?: number;
+  pageSize?: number;
+  businessId?: string;
+  businessType?: string;
+  contentId?: string;
+  taskStatus?: string;
+  modelId?: string;
+  prompt?: string;
+}
+
+export interface ImageGenerationHistoryItem {
+  taskId: number;
+  createdTime?: string | null;
+  updateTime?: string | null;
+  status?: string | null;
+  title?: string | null;
+  modelId?: string | null;
+  resolution?: string | null;
+  imageUrls?: string[] | null;
+  thumbnailUrl?: string | null;
+  errorMessage?: string | null;
+  prompt?: string | null;
+  progress?: number | null;
+  generationType?: string | null;
+  aspectRatio?: string | null;
+  imageCount?: number | null;
+}

@@ -16,8 +16,8 @@ import {
   Search,
   Coins,
 } from "lucide-react";
-import { aiApi, useApi } from "@/lib/api";
-import type { AiImageModelConfigDTO } from "@/lib/api/types";
+import { aiApi, imagesApi, useApi } from "@/lib/api";
+import type { AiImageModelConfigDTO, ImageGenerationHistoryItem } from "@/lib/api/types";
 
 interface GenerationImage {
   id: string;
@@ -33,14 +33,6 @@ interface GenerationRecord {
   createdAt: string;
   images: GenerationImage[];
 }
-
-// TODO: [mock] replace with API call
-const mockHistory: GenerationRecord[] = [
-  { id: "gen-1", prompt: "少年侠客，青色布衣，束发佩剑，目光坚毅", model: "SDXL", ratio: "3:4", createdAt: "2025-12-06 14:32", images: [{ id: "gi-1a", name: "图片 1", url: null }] },
-  { id: "gen-2", prompt: "少年侠客正面像，青色布衣，束发佩剑", model: "SDXL", ratio: "3:4", createdAt: "2025-12-06 14:28", images: [{ id: "gi-2a", name: "图片 2", url: null }] },
-  { id: "gen-3", prompt: "少年侠客侧面像，阳光下的村庄背景", model: "Flux Pro", ratio: "3:4", createdAt: "2025-12-05 10:15", images: [{ id: "gi-3a", name: "图片 3", url: null }] },
-  { id: "gen-4", prompt: "少年侠客全身像，青色布衣随风飘动", model: "Flux Pro", ratio: "9:16", createdAt: "2025-12-05 10:02", images: [{ id: "gi-4a", name: "图片 4", url: null }] },
-];
 
 // TODO: [mock] replace with API call
 const mockLibrary = [
@@ -101,15 +93,32 @@ interface Props {
   open: boolean;
   onClose: () => void;
   variantName: string;
+  projectId: string;
+  variantId: string;
 }
 
-export function ImageGenerateOverlay({ open, onClose, variantName }: Props) {
+function adaptHistory(items: ImageGenerationHistoryItem[]): GenerationRecord[] {
+  return items.map((item) => ({
+    id: `gen-${item.taskId}`,
+    prompt: item.prompt ?? "",
+    model: item.modelId ?? "",
+    ratio: item.aspectRatio ?? "1:1",
+    createdAt: item.createdTime?.slice(0, 16).replace("T", " ") ?? "",
+    images: (item.imageUrls ?? []).map((url, i) => ({
+      id: `gi-${item.taskId}-${i}`,
+      name: `图片 ${i + 1}`,
+      url,
+    })),
+  }));
+}
+
+export function ImageGenerateOverlay({ open, onClose, variantName, projectId, variantId }: Props) {
   const [prompt, setPrompt] = useState("");
   const [selectedModelId, setSelectedModelId] = useState<number>(0);
   const [selectedRatio, setSelectedRatio] = useState("");
   const [selectedCount, setSelectedCount] = useState(counts[2]);
   const [addedImages, setAddedImages] = useState<Set<string>>(new Set());
-  const [activeRecordId, setActiveRecordId] = useState<string>(mockHistory[0]?.id ?? "");
+  const [activeRecordId, setActiveRecordId] = useState<string>("");
   const recordRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const { data: modelList } = useApi(() => aiApi.fetchImageModels(), []);
@@ -119,6 +128,12 @@ export function ImageGenerateOverlay({ open, onClose, variantName }: Props) {
   const ratios = selectedModel?.supported_aspect_ratios ?? [];
   const defaultRatio = ratios[0] ?? "1:1";
 
+  const { data: historyData } = useApi(
+    () => imagesApi.fetchImageHistory({ businessId: variantId, pageSize: 50 }),
+    [variantId],
+  );
+  const history: GenerationRecord[] = adaptHistory(historyData?.list ?? []);
+
   useEffect(() => {
     if (models.length > 0 && selectedModelId === 0) {
       const first = models[0];
@@ -126,6 +141,12 @@ export function ImageGenerateOverlay({ open, onClose, variantName }: Props) {
       setSelectedRatio(first.supported_aspect_ratios?.[0] ?? "1:1");
     }
   }, [models, selectedModelId]);
+
+  useEffect(() => {
+    if (history.length > 0 && !activeRecordId) {
+      setActiveRecordId(history[0].id);
+    }
+  }, [history, activeRecordId]);
 
   // Reference image modal
   const [refModalOpen, setRefModalOpen] = useState(false);
@@ -267,7 +288,7 @@ export function ImageGenerateOverlay({ open, onClose, variantName }: Props) {
             </div>
           </div>
 
-          {mockHistory.length === 0 ? (
+          {history.length === 0 ? (
             <div className="flex-1 flex items-center justify-center">
               <p className="text-[13px] text-[#444]">尚无生成记录</p>
             </div>
@@ -275,7 +296,7 @@ export function ImageGenerateOverlay({ open, onClose, variantName }: Props) {
             <div className="flex-1 flex min-h-0">
               {/* Main scroll area */}
               <div className="flex-1 overflow-y-auto p-4 space-y-5">
-                {mockHistory.map((record) => {
+                {history.map((record) => {
                   const img = record.images[0];
                   const isAdded = img ? addedImages.has(img.id) : false;
                   return (
@@ -334,7 +355,7 @@ export function ImageGenerateOverlay({ open, onClose, variantName }: Props) {
 
               {/* Thumbnail strip */}
               <div className="w-[56px] shrink-0 overflow-y-auto py-3 pl-1 pr-2 space-y-2">
-                {mockHistory.map((record) => {
+                {history.map((record) => {
                   const img = record.images[0];
                   const isAdded = img ? addedImages.has(img.id) : false;
                   const isActive = activeRecordId === record.id;

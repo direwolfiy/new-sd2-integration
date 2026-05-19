@@ -348,6 +348,8 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
         open={generateVariantId !== null}
         onClose={() => setGenerateVariantId(null)}
         variantName={generateVariant ? String(getAppearance(generateVariant)?.name ?? "") : ""}
+        projectId={projectId}
+        variantId={generateVariant?.resource_temp_id ?? generateVariant?.id ?? generateVariantId ?? ""}
       />
     </div>
   );

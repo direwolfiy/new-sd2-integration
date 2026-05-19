@@ -16,8 +16,8 @@ import {
   Search,
   Coins,
 } from "lucide-react";
-import { aiApi, useApi } from "@/lib/api";
-import type { AiImageModelConfigDTO } from "@/lib/api/types";
+import { aiApi, imagesApi, useApi } from "@/lib/api";
+import type { AiImageModelConfigDTO, ImageGenerationHistoryItem } from "@/lib/api/types";
 
 interface GenerationImage {
   id: string;
@@ -33,13 +33,6 @@ interface GenerationRecord {
   createdAt: string;
   images: GenerationImage[];
 }
-
-// TODO: [mock] replace with API call
-const mockHistory: GenerationRecord[] = [
-  { id: "sgen-1", prompt: "夕阳下的偏远山村，三面环山，小溪穿村而过，炊烟袅袅，金色余晖洒满屋顶", model: "SDXL", ratio: "16:9", createdAt: "2025-12-11 16:20", images: [{ id: "sgi-1a", name: "图片 1", url: null }] },
-  { id: "sgen-2", prompt: "星空下的宁静村庄，灯火点点，远处山峦剪影，银河横跨天际", model: "Flux Pro", ratio: "16:9", createdAt: "2025-12-11 15:45", images: [{ id: "sgi-2a", name: "图片 2", url: null }] },
-  { id: "sgen-3", prompt: "悬浮于云海之上的仙家府邸，九把巨剑插于山巅，金光万道", model: "SDXL", ratio: "16:9", createdAt: "2025-12-13 09:30", images: [{ id: "sgi-3a", name: "图片 3", url: null }] },
-];
 
 // TODO: [mock] replace with API call
 const mockLibrary = [
@@ -98,15 +91,32 @@ interface Props {
   open: boolean;
   onClose: () => void;
   stateName: string;
+  projectId: string;
+  variantId: string;
 }
 
-export function SceneImageGenerateOverlay({ open, onClose, stateName }: Props) {
+function adaptHistory(items: ImageGenerationHistoryItem[]): GenerationRecord[] {
+  return items.map((item) => ({
+    id: `gen-${item.taskId}`,
+    prompt: item.prompt ?? "",
+    model: item.modelId ?? "",
+    ratio: item.aspectRatio ?? "1:1",
+    createdAt: item.createdTime?.slice(0, 16).replace("T", " ") ?? "",
+    images: (item.imageUrls ?? []).map((url, i) => ({
+      id: `gi-${item.taskId}-${i}`,
+      name: `图片 ${i + 1}`,
+      url,
+    })),
+  }));
+}
+
+export function SceneImageGenerateOverlay({ open, onClose, stateName, projectId, variantId }: Props) {
   const [prompt, setPrompt] = useState("");
   const [selectedModelId, setSelectedModelId] = useState<number>(0);
   const [selectedRatio, setSelectedRatio] = useState("");
   const [selectedCount, setSelectedCount] = useState(counts[2]);
   const [addedImages, setAddedImages] = useState<Set<string>>(new Set());
-  const [activeRecordId, setActiveRecordId] = useState<string>(mockHistory[0]?.id ?? "");
+  const [activeRecordId, setActiveRecordId] = useState<string>("");
   const recordRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const { data: modelList } = useApi(() => aiApi.fetchImageModels(), []);
@@ -116,6 +126,12 @@ export function SceneImageGenerateOverlay({ open, onClose, stateName }: Props) {
   const ratios = selectedModel?.supported_aspect_ratios ?? [];
   const defaultRatio = ratios[0] ?? "1:1";
 
+  const { data: historyData } = useApi(
+    () => imagesApi.fetchImageHistory({ businessId: variantId, pageSize: 50 }),
+    [variantId],
+  );
+  const history: GenerationRecord[] = adaptHistory(historyData?.list ?? []);
+
   useEffect(() => {
     if (models.length > 0 && selectedModelId === 0) {
       const first = models[0];
@@ -123,6 +139,12 @@ export function SceneImageGenerateOverlay({ open, onClose, stateName }: Props) {
       setSelectedRatio(first.supported_aspect_ratios?.[0] ?? "1:1");
     }
   }, [models, selectedModelId]);
+
+  useEffect(() => {
+    if (history.length > 0 && !activeRecordId) {
+      setActiveRecordId(history[0].id);
+    }
+  }, [history, activeRecordId]);
 
   // Reference image modal
   const [refModalOpen, setRefModalOpen] = useState(false);
@@ -264,7 +286,7 @@ export function SceneImageGenerateOverlay({ open, onClose, stateName }: Props) {
             </div>
           </div>
 
-          {mockHistory.length === 0 ? (
+          {history.length === 0 ? (
             <div className="flex-1 flex items-center justify-center">
               <p className="text-[13px] text-[#444]">尚无生成记录</p>
             </div>
@@ -272,7 +294,7 @@ export function SceneImageGenerateOverlay({ open, onClose, stateName }: Props) {
             <div className="flex-1 flex min-h-0">
               {/* Main scroll area */}
               <div className="flex-1 overflow-y-auto p-4 space-y-5">
-                {mockHistory.map((record) => {
+                {history.map((record) => {
                   const img = record.images[0];
                   const isAdded = img ? addedImages.has(img.id) : false;
                   return (
@@ -328,7 +350,7 @@ export function SceneImageGenerateOverlay({ open, onClose, stateName }: Props) {
 
               {/* Thumbnail strip */}
               <div className="w-[56px] shrink-0 overflow-y-auto py-3 pl-1 pr-2 space-y-2">
-                {mockHistory.map((record) => {
+                {history.map((record) => {
                   const img = record.images[0];
                   const isAdded = img ? addedImages.has(img.id) : false;
                   const isActive = activeRecordId === record.id;
