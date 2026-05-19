@@ -16,7 +16,8 @@ import {
   Search,
   Coins,
 } from "lucide-react";
-import { calcImageCost } from "@/lib/pricing";
+import { aiApi, useApi } from "@/lib/api";
+import type { AiImageModelConfigDTO } from "@/lib/api/types";
 
 interface GenerationImage {
   id: string;
@@ -54,8 +55,6 @@ const mockLibrary = [
   { id: "slib-10", name: "山脉远景素材", source: "平台资源" },
 ];
 
-const models = ["SDXL", "Flux Pro", "Midjourney"];
-const ratios = ["16:9", "4:3", "21:9", "1:1"];
 const counts = ["1 张", "2 张", "4 张"];
 const countMap: Record<string, number> = { "1 张": 1, "2 张": 2, "4 张": 4 };
 
@@ -103,12 +102,27 @@ interface Props {
 
 export function SceneImageGenerateOverlay({ open, onClose, stateName }: Props) {
   const [prompt, setPrompt] = useState("");
-  const [selectedModel, setSelectedModel] = useState(models[0]);
-  const [selectedRatio, setSelectedRatio] = useState(ratios[0]);
+  const [selectedModelId, setSelectedModelId] = useState<number>(0);
+  const [selectedRatio, setSelectedRatio] = useState("");
   const [selectedCount, setSelectedCount] = useState(counts[2]);
   const [addedImages, setAddedImages] = useState<Set<string>>(new Set());
   const [activeRecordId, setActiveRecordId] = useState<string>(mockHistory[0]?.id ?? "");
   const recordRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const { data: modelList } = useApi(() => aiApi.fetchImageModels(), []);
+  const models: AiImageModelConfigDTO[] = modelList?.items ?? [];
+  const selectedModel = models.find((m) => m.id === selectedModelId);
+  const modelNames = models.map((m) => m.model_name);
+  const ratios = selectedModel?.supported_aspect_ratios ?? [];
+  const defaultRatio = ratios[0] ?? "1:1";
+
+  useEffect(() => {
+    if (models.length > 0 && selectedModelId === 0) {
+      const first = models[0];
+      setSelectedModelId(first.id);
+      setSelectedRatio(first.supported_aspect_ratios?.[0] ?? "1:1");
+    }
+  }, [models, selectedModelId]);
 
   // Reference image modal
   const [refModalOpen, setRefModalOpen] = useState(false);
@@ -216,14 +230,14 @@ export function SceneImageGenerateOverlay({ open, onClose, stateName }: Props) {
           <div className="shrink-0 px-4 py-3 border-t border-white/[0.06]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Dropdown value={selectedModel} options={models} onChange={setSelectedModel} />
-                <Dropdown value={selectedRatio} options={ratios} onChange={setSelectedRatio} />
+                <Dropdown value={selectedModel?.model_name ?? "选择模型"} options={modelNames} onChange={(name) => { const m = models.find((x) => x.model_name === name); if (m) { setSelectedModelId(m.id); setSelectedRatio(m.supported_aspect_ratios?.[0] ?? "1:1"); } }} />
+                <Dropdown value={selectedRatio || defaultRatio} options={ratios.length > 0 ? ratios : [defaultRatio]} onChange={setSelectedRatio} />
                 <Dropdown value={selectedCount} options={counts} onChange={setSelectedCount} />
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-[12px] text-[#666] flex items-center gap-1">
                   <Coins size={12} strokeWidth={1.5} className="text-[#00CAE0]" />
-                  {calcImageCost(selectedModel, selectedCount)} 积分
+                  {Math.round((selectedModel?.cost_per_image ?? 0) * parseCount(selectedCount))} 积分
                 </span>
                 <button className="h-9 px-5 rounded-full bg-white text-black text-[13px] font-medium flex items-center gap-1.5 hover:bg-white/90 active:scale-[0.97] transition-all duration-200">
                   <Send size={14} strokeWidth={2} />

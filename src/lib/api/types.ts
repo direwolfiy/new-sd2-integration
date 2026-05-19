@@ -199,6 +199,32 @@ export interface StyleItem {
   sortOrder?: number | null;
 }
 
+// AI model config
+export interface AiImageModelConfigDTO {
+  id: number;
+  model_id: string;
+  model_name: string;
+  model_version?: string | null;
+  status?: string | null;
+  platform?: string | null;
+  vendor?: string | null;
+  support_reference_image?: boolean | null;
+  support_image_to_image?: boolean | null;
+  max_reference_image_count?: number | null;
+  supported_aspect_ratios?: string[] | null;
+  max_resolution?: string | null;
+  cost_per_image?: number | null;
+  business_type?: number | null;
+  business_type_array?: number[] | null;
+}
+
+export interface AiImageModelListResult {
+  total: number;
+  page_num: number;
+  page_size: number;
+  items: AiImageModelConfigDTO[];
+}
+
 // Tenant account
 export interface TenantAccountOverview {
   tenantId: string;

@@ -13,3 +13,4 @@ export * as imagesApi from "./images";
 export * as videosApi from "./videos";
 export * as assetsApi from "./assets";
 export * as creditsApi from "./credits";
+export * as aiApi from "./ai";
