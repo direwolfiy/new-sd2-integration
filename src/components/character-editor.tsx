@@ -84,20 +84,27 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
     if (!editVariantId || !selectedGroup) return;
     setSaving(true);
     try {
+      const tags = draftTags.split(/[,，、]/).map(t => t.trim()).filter(Boolean);
       await elementsApi.updateCharacter({
         templateId: editVariantId,
         templateName: `${selectedGroup.name}-${draftName}`,
         description: draftDesc,
+        tags,
+        appearance: {
+          name: draftName,
+          description: draftDesc,
+          tags,
+        },
       });
       setEditVariantId(null);
       onRefresh();
       sonnerToast.success("保存成功");
-    } catch (e) {
+    } catch {
       sonnerToast.error("保存失败");
     } finally {
       setSaving(false);
     }
-  }, [editVariantId, selectedGroup, draftName, draftDesc, onRefresh]);
+  }, [editVariantId, selectedGroup, draftName, draftDesc, draftTags, onRefresh]);
 
   if (!open || !selectedGroup) return null;
 
@@ -116,25 +123,12 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
     setMoreMenuId(null);
   }
 
-  function setPrimary(variantId: string) {
-    if (!selectedGroup) return;
-    const idx = selectedGroup.variants.findIndex((v) => String(v.id) === variantId);
-    if (idx > 0) {
-      const v = selectedGroup.variants.splice(idx, 1)[0];
-      selectedGroup.variants.unshift(v);
-    }
-  }
 
   function deleteVariant(variantId: string) {
-    if (!selectedGroup) return;
-    const role = selectedGroup.variants.find((v) => String(v.id) === variantId);
-    if (!role) return;
     elementsApi.deleteSceneRole(variantId).then(() => {
-      selectedGroup.variants.splice(selectedGroup.variants.findIndex((v) => String(v.id) === variantId), 1);
       onRefresh();
       sonnerToast.success("已删除");
-    }).catch((e) => {
-      console.error("删除失败", e);
+    }).catch(() => {
       sonnerToast.error("删除失败");
     });
     setMoreMenuId(null);
@@ -261,14 +255,10 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
                             ) : (
                               <User size={32} strokeWidth={1} className="text-white/[0.06]" />
                             )}
-                            {isPrimary ? (
+                            {isPrimary && (
                               <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#00CAE0]/20 flex items-center justify-center">
                                 <Star size={10} strokeWidth={1.5} className="text-[#00CAE0] fill-[#00CAE0]" />
                               </div>
-                            ) : (
-                              <button onClick={(e) => { e.stopPropagation(); setPrimary(String(variant.id)); }} className="absolute top-2 right-2 w-5 h-5 rounded-full bg-white/[0.06] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-white/[0.12]">
-                                <Star size={10} strokeWidth={1.5} className="text-[#666] group-hover:text-[#999]" />
-                              </button>
                             )}
                           </div>
                           <div className="px-2 py-1.5 border-t border-white/[0.04]">

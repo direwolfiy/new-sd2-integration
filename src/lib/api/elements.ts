@@ -49,11 +49,18 @@ export interface UpdateCharacterParams {
   description?: string;
   coverImage?: string;
   timbreDescription?: string;
+  appearance?: Record<string, unknown>;
+  tags?: string[];
 }
 
 export function updateCharacter(data: UpdateCharacterParams) {
-  const { templateId, ...body } = data;
-  return put<TemplateItem>(`/novel-show/project/role/${templateId}`, { template_id: templateId, ...body });
+  const { templateId, tags, ...rest } = data;
+  const body: Record<string, unknown> = {
+    template_id: templateId,
+    ...rest,
+  };
+  if (tags) body.tags = tags;
+  return put<TemplateItem>(`/novel-show/project/role/${templateId}`, body);
 }
 
 export function deleteSceneRole(roleId: string) {
