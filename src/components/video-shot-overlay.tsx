@@ -18,7 +18,7 @@ import {
   Coins,
 } from "lucide-react";
 import { type Shot, type VideoVersion, getVersionsByShot } from "@/mocks/shots";
-import { calcVideoCost, currentUserCredits } from "@/mocks/credits";
+import { calcVideoCost } from "@/lib/pricing";
 
 const statusConfig = {
   pending: { label: "等待中", style: "bg-white/[0.06] text-[#999]" },

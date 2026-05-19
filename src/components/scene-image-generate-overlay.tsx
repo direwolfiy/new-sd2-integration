@@ -16,7 +16,7 @@ import {
   Search,
   Coins,
 } from "lucide-react";
-import { calcImageCost, currentUserCredits } from "@/mocks/credits";
+import { calcImageCost } from "@/lib/pricing";
 
 interface GenerationImage {
   id: string;

@@ -14,7 +14,7 @@ import {
   LayoutGrid,
 } from "lucide-react";
 import { getShotsByEpisode, Shot } from "@/mocks/shots";
-import { calcStoryboardCost } from "@/mocks/credits";
+import { calcStoryboardCost } from "@/lib/pricing";
 import { episodesApi, useApi } from "@/lib/api";
 import { useParams } from "next/navigation";
 
