@@ -157,3 +157,12 @@ export interface VideoVersion {
   createdAt: string;
   prompt: string;
 }
+
+export interface ScriptData {
+  projectId: string;
+  rawContent: string | null;
+  metadata: ScriptMetadata | null;
+  episodes: ScriptEpisode[] | null;
+  lastEditedBy: string | null;
+  lastEditedAt: string | null;
+}

@@ -1,23 +1,20 @@
 "use client";
 
 import { X, Sparkles, AlertTriangle } from "lucide-react";
-import { getScriptByProject } from "@/mocks/scripts";
+import type { ScriptMetadata, ScriptEpisode } from "@/mocks/types";
 import { ScriptSummary } from "@/components/script-summary";
 
 interface Props {
   open: boolean;
   onClose: () => void;
   onStartExtraction: () => void;
-  projectId: string;
+  metadata: ScriptMetadata | null;
+  episodes: ScriptEpisode[] | null;
   warning?: string;
 }
 
-export function ScriptAnalysisResultOverlay({ open, onClose, onStartExtraction, projectId, warning }: Props) {
+export function ScriptAnalysisResultOverlay({ open, onClose, onStartExtraction, metadata, episodes, warning }: Props) {
   if (!open) return null;
-
-  const script = getScriptByProject(projectId);
-  const metadata = script.metadata;
-  const episodes = script.episodes;
 
   if (!metadata || !episodes) return null;
 

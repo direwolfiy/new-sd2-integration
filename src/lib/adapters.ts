@@ -1,5 +1,5 @@
 import type { ContentItem, ChapterItem, SceneRoleItem, SceneScriptItem } from "@/lib/api/types";
-import type { Project, Episode, ElementItem, ElementType, Shot, VideoVersion } from "@/mocks/types";
+import type { Project, Episode, ElementItem, ElementType, Shot, VideoVersion, ScriptMetadata, ScriptEpisode } from "@/mocks/types";
 
 const PRODUCTION_STAGE_MAP: Record<number, string> = {
   1: "进行中",
@@ -147,4 +147,27 @@ function normalizeVideoStatus(status: string | null | undefined): Shot["videoSta
   if (status === "generating") return "generating";
   if (status === "completed") return "completed";
   return "pending";
+}
+
+export function adaptScriptMetadata(content: ContentItem, chapters: ChapterItem[]): ScriptMetadata {
+  const rawScript = content.script ?? "";
+  return {
+    genre: content.style ?? "",
+    summary: content.summary ?? "",
+    totalWordCount: rawScript.length,
+    episodeCount: chapters.length,
+    tags: [],
+  };
+}
+
+export function adaptScriptEpisode(ch: ChapterItem): ScriptEpisode {
+  const content = ch.chapterContent ?? "";
+  return {
+    episodeNumber: ch.chapterOrder,
+    title: ch.chapterTitle ?? `第 ${ch.chapterOrder} 集`,
+    summary: content.slice(0, 100),
+    content,
+    wordCount: content.length,
+    characters: [],
+  };
 }

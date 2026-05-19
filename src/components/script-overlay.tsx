@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { BookOpen, X, Users } from "lucide-react";
-import { getScriptByProject } from "@/mocks/scripts";
+import type { ScriptData } from "@/mocks/types";
 
 type TabKey = "info" | "episodes" | "raw";
 
@@ -15,16 +15,15 @@ const tabs: { key: TabKey; label: string }[] = [
 export function ScriptOverlay({
   open,
   onClose,
-  projectId,
+  script,
 }: {
   open: boolean;
   onClose: () => void;
-  projectId: string;
+  script: ScriptData | null;
 }) {
   const [activeTab, setActiveTab] = useState<TabKey>("info");
   const [activeEpisode, setActiveEpisode] = useState(0);
-  const script = getScriptByProject(projectId);
-  const hasData = script.metadata !== null;
+  const hasData = script?.metadata != null;
 
   useEffect(() => {
     if (open) {

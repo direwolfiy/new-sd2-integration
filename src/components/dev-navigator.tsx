@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { X, ChevronRight, Zap } from "lucide-react";
 import { elements } from "@/mocks/elements";
-import { scripts } from "@/mocks/scripts";
 import { episodes } from "@/mocks/episodes";
 import { projects } from "@/mocks/projects";
 

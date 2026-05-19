@@ -3,10 +3,9 @@
 import { useState, useCallback, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Search, Plus, Sparkles, ChevronRight, BookOpen, User, Mountain, Package } from "lucide-react";
-import { elementsApi, useApi } from "@/lib/api";
-import { adaptElement } from "@/lib/adapters";
-import { getScriptByProject } from "@/mocks/scripts";
-import { ElementType, ElementItem } from "@/mocks/types";
+import { elementsApi, scriptsApi, useApi } from "@/lib/api";
+import { adaptElements, adaptScriptMetadata, adaptScriptEpisode } from "@/lib/adapters";
+import { ElementType, ElementItem, ScriptData } from "@/mocks/types";
 import { ScriptOverlay } from "@/components/script-overlay";
 import { CharacterEditor } from "@/components/character-editor";
 import { SceneEditor } from "@/components/scene-editor";
@@ -48,16 +47,16 @@ export default function ElementsPage() {
 
   const [localElements, setLocalElements] = useState<ElementItem[]>([]);
 
-  const { data: templatePage, isLoading } = useApi(
-    () => elementsApi.fetchElements({ contentId: params.id }),
+  const { data: roles, isLoading, refetch: refetchRoles } = useApi(
+    () => elementsApi.fetchElements(params.id),
     [params.id],
   );
 
   useEffect(() => {
-    if (templatePage?.list) {
-      setLocalElements(templatePage.list.map(adaptElement));
+    if (roles) {
+      setLocalElements(adaptElements(roles));
     }
-  }, [templatePage]);
+  }, [roles]);
 
   const mockExtractionResults = [
     { type: "character" as const, name: "秦羽" }, { type: "character" as const, name: "姜立" },
@@ -93,8 +92,19 @@ export default function ElementsPage() {
     setCreateName(""); setCreateOpen(false);
   }
 
-  const script = getScriptByProject(params.id);
-  const hasScript = script.metadata !== null;
+  const { data: projectScript, isLoading: scriptLoading } = useApi(
+    () => scriptsApi.fetchProjectScript(params.id),
+    [params.id],
+  );
+  const script: ScriptData | null = projectScript ? {
+    projectId: params.id,
+    rawContent: projectScript.content.script ?? null,
+    metadata: projectScript.content.script ? adaptScriptMetadata(projectScript.content, projectScript.chapters) : null,
+    episodes: projectScript.content.script ? projectScript.chapters.map(adaptScriptEpisode) : null,
+    lastEditedBy: projectScript.content.producerName ?? null,
+    lastEditedAt: projectScript.content.updatedTime ?? null,
+  } : null;
+  const hasScript = script?.metadata != null;
   const visibleElements = localElements.filter((e) => e.type !== "script");
   const filtered = visibleElements.filter((e) => {
     if (e.type !== activeTab) return false;
@@ -148,7 +158,7 @@ export default function ElementsPage() {
       )}
 
       <div className="flex-1 overflow-auto p-6" onClick={() => setMoreMenuId(null)}>
-        {isLoading ? (
+        {isLoading || scriptLoading ? (
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
             {Array.from({ length: 12 }).map((_, i) => (
               <div key={i} className="rounded-xl bg-[#1a1a1a] animate-pulse aspect-[9/16]" />
@@ -171,14 +181,16 @@ export default function ElementsPage() {
 
       <CreateElementModal open={createOpen} activeTab={activeTab as ElementType} name={createName} setName={setCreateName}
         onClose={() => { setCreateOpen(false); setCreateName(""); }} onConfirm={handleCreate} />
-      <ScriptOverlay open={scriptOpen} onClose={() => setScriptOpen(false)} projectId={params.id} />
-      <CharacterEditor open={editingCharacterId !== null} onClose={() => setEditingCharacterId(null)} projectId={params.id} characterId={editingCharacterId ?? ""} />
-      <SceneEditor open={editingSceneId !== null} onClose={() => setEditingSceneId(null)} projectId={params.id} sceneId={editingSceneId ?? ""} />
+      <ScriptOverlay open={scriptOpen} onClose={() => setScriptOpen(false)} script={script} />
+      <CharacterEditor open={editingCharacterId !== null} onClose={() => setEditingCharacterId(null)} projectId={params.id} characterId={editingCharacterId ?? ""} roles={roles ?? []} onRefresh={refetchRoles} />
+      <SceneEditor open={editingSceneId !== null} onClose={() => setEditingSceneId(null)} projectId={params.id} sceneId={editingSceneId ?? ""} roles={roles ?? []} />
       <ScriptImportOverlay open={scriptImportOpen} onClose={() => setScriptImportOpen(false)}
         onAnalysisStart={() => { setScriptImportOpen(false); if (!hasScript) { router.push("/project/proj-7/elements"); } else { setAnalysisProgressOpen(true); } }} />
       <ScriptAnalysisProgressOverlay open={analysisProgressOpen} onCancel={() => setAnalysisProgressOpen(false)} onComplete={() => setAnalysisProgressOpen(false)} />
       <ScriptAnalysisResultOverlay open={reExtractOpen} onClose={() => setReExtractOpen(false)}
-        onStartExtraction={() => { setReExtractOpen(false); setExtractionProgressOpen(true); }} projectId={params.id}
+        onStartExtraction={() => { setReExtractOpen(false); setExtractionProgressOpen(true); }}
+        metadata={script?.metadata ?? null}
+        episodes={script?.episodes ?? null}
         warning="重新提取将覆盖当前元素库中的所有已有元素，此操作无法撤销。" />
       <ExtractionProgressOverlay open={extractionProgressOpen} onCancel={() => setExtractionProgressOpen(false)}
         onComplete={() => { setExtractionProgressOpen(false); handleExtractionConfirm(); }} />
@@ -213,7 +225,7 @@ function EmptyStateWithScript({ onImportScript, onCreateElement }: { onImportScr
   );
 }
 
-function ScriptAnalysisView({ script, onViewScript, onEditScript, onExtract, onCreateElement }: { script: ReturnType<typeof getScriptByProject>; onViewScript: () => void; onEditScript: () => void; onExtract: () => void; onCreateElement: () => void }) {
+function ScriptAnalysisView({ script, onViewScript, onEditScript, onExtract, onCreateElement }: { script: ScriptData; onViewScript: () => void; onEditScript: () => void; onExtract: () => void; onCreateElement: () => void }) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-auto p-6 pb-3">

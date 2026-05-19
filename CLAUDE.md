@@ -128,7 +128,6 @@ Mock 数据在 `src/mocks/`，以 `// TODO: [mock]` 标记。API 层已完整建
 | `projects.ts` | 项目列表 mock | 页面已用 API，仅 `dev-navigator.tsx` 引用 |
 | `episodes.ts` | 分集 mock | 页面已用 API，`dev-navigator` + `export/page` 仍引用 |
 | `elements.ts` | 角色/场景/道具 mock | 页面已用 API，仅 `dev-navigator.tsx` 引用 |
-| `scripts.ts` | 剧本内容 mock | `script-overlay`、`script-analysis-result-overlay`、`elements/page`、`dev-navigator` 仍引用 |
 | `shots.ts` | 分镜镜头 mock 数据 + `getVersionsByShot` | `storyboard/page` / `video/page` 已用 API；`export/page` + `video-shot-overlay`(versions) 仍引用 |
 | `assets.ts` | 全局资产 mock | 页面已用 API，`workshop/generation-form`、`export/page` 仍引用 |
 | `export.ts` | BGM/音效/转场/字幕 mock | 仅 `export/page.tsx` 引用 |
@@ -139,11 +138,8 @@ Mock 数据在 `src/mocks/`，以 `// TODO: [mock]` 标记。API 层已完整建
 |-----------|------------|------|
 | `export/page.tsx` | shots, episodes, assets, export（4 个 mock 源） | 最重度的 mock 依赖，694 行，等待后端视频合成 API |
 | `video-shot-overlay.tsx` | shots (getVersionsByShot) | 版本数据通过 videosApi.fetchVideoHistory 获取，mock 作为 fallback |
-| `elements/page.tsx` | scripts | 元素列表已用 API，剧本提取流程用 mock |
-| `script-overlay.tsx` | scripts | 剧本查看 |
-| `script-analysis-result-overlay.tsx` | scripts | AI 分析结果确认 |
 | `workshop/generation-form.tsx` | assets | 工坊生成表单 |
-| `dev-navigator.tsx` | projects, episodes, elements, scripts | 开发导航器（仅开发用） |
+| `dev-navigator.tsx` | projects, episodes, elements | 开发导航器（仅开发用） |
 | `script-import-overlay.tsx` | — | 文件上传功能待实现 |
 | `image-generate-overlay.tsx` | —（内部 mock 数据） | 图片生成，生成历史/资源库仍为内部 mock |
 | `scene-image-generate-overlay.tsx` | —（内部 mock 数据） | 场景图生成，生成历史/资源库仍为内部 mock |
@@ -228,10 +224,11 @@ Mock 数据在 `src/mocks/`，以 `// TODO: [mock]` 标记。API 层已完整建
 
 按优先级排列：
 
-1. **剧本 overlay** — `scripts.ts` mock 被 4 个文件引用，需接入 `scriptsApi`（API 已有）
+1. **导出页** `export/page.tsx`（694 行）— 依赖 4 个 mock 源，需等待后端视频合成 API 确认
 2. **video-shot-overlay 版本数据** — `getVersionsByShot` 已替换为 `videosApi.fetchVideoHistory`，响应类型需进一步确认
-3. **导出页** `export/page.tsx`（694 行）— 依赖 4 个 mock 源，需等待后端视频合成 API 确认
-4. **dev-navigator.tsx** — 引用 4 个 mock 数据数组，开发工具，低优先级
+3. **dev-navigator.tsx** — 引用 3 个 mock 数据数组（projects, episodes, elements），开发工具，低优先级
+4. **内部 mock 数据** — `image-generate-overlay`、`scene-image-generate-overlay`、`workshop/generation-form` 仍有内部 mock 数据（生成历史、资源库等）
+5. **`src/mocks/` 目录整** — 待全部替换后删除
 
 ---
 

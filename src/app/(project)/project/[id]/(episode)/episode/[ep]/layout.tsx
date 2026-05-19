@@ -4,7 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
 import { ArrowLeft, LayoutGrid, Film, Download, Sparkles, BookOpen, ChevronRight, ChevronDown } from "lucide-react";
-import { projectsApi, episodesApi, useApi } from "@/lib/api";
+import { projectsApi, episodesApi, scriptsApi, useApi } from "@/lib/api";
+import { adaptScriptMetadata, adaptScriptEpisode } from "@/lib/adapters";
+import type { ScriptData } from "@/mocks/types";
 import { ScriptOverlay } from "@/components/script-overlay";
 import { HeaderUserArea } from "@/components/header-user-area";
 
@@ -26,6 +28,16 @@ export default function EpisodeLayout({
 
   const { data: project } = useApi(() => projectsApi.fetchProject(projectId), [projectId]);
   const { data: chapter } = useApi(() => episodesApi.fetchChapter(episodeId), [episodeId]);
+  const { data: projectScriptData } = useApi(() => scriptsApi.fetchProjectScript(projectId), [projectId]);
+
+  const script: ScriptData | null = projectScriptData ? {
+    projectId,
+    rawContent: projectScriptData.content.script ?? null,
+    metadata: projectScriptData.content.script ? adaptScriptMetadata(projectScriptData.content, projectScriptData.chapters) : null,
+    episodes: projectScriptData.content.script ? projectScriptData.chapters.map(adaptScriptEpisode) : null,
+    lastEditedBy: projectScriptData.content.producerName ?? null,
+    lastEditedAt: projectScriptData.content.updatedTime ?? null,
+  } : null;
 
   const projectName = project?.title ?? "项目";
   const episodeTitle = chapter ? `第 ${chapter.chapterOrder} 集` : "分集";
@@ -108,7 +120,7 @@ export default function EpisodeLayout({
         <HeaderUserArea />
       </header>
       <main className="flex-1 overflow-auto bg-[#0a0a0a]">{children}</main>
-      <ScriptOverlay open={scriptOpen} onClose={() => setScriptOpen(false)} projectId={projectId} />
+      <ScriptOverlay open={scriptOpen} onClose={() => setScriptOpen(false)} script={script} />
     </div>
   );
 }
