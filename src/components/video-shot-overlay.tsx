@@ -17,8 +17,10 @@ import {
   ChevronDown,
   Coins,
 } from "lucide-react";
-import { type Shot, type VideoVersion, getVersionsByShot } from "@/mocks/shots";
+import type { Shot, VideoVersion } from "@/mocks/types";
 import { calcVideoCost } from "@/lib/pricing";
+import { videosApi } from "@/lib/api";
+import { adaptVideoVersions } from "@/lib/adapters";
 
 const statusConfig = {
   pending: { label: "等待中", style: "bg-white/[0.06] text-[#999]" },
@@ -94,6 +96,8 @@ export function VideoShotOverlay({
   const [scrollOffset, setScrollOffset] = useState(0);
   const [activeVersionId, setActiveVersionId] = useState<string>("");
   const [appliedVersionId, setAppliedVersionId] = useState<string>("");
+  const [versions, setVersions] = useState<VideoVersion[]>([]);
+  const [versionsLoading, setVersionsLoading] = useState(false);
   const versionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   // Params
@@ -101,11 +105,23 @@ export function VideoShotOverlay({
   const [selectedRatio, setSelectedRatio] = useState("16:9");
   const [selectedSound, setSelectedSound] = useState("有声");
 
+  useEffect(() => {
+    if (!open) return;
+    const activeShot = shots.find((s) => s.id === activeShotId);
+    if (!activeShot) return;
+    setVersionsLoading(true);
+    setVersions([]);
+    videosApi
+      .fetchVideoHistory({ shotId: activeShot.id })
+      .then((data) => setVersions(adaptVideoVersions(data, activeShot.id)))
+      .catch(() => setVersions([]))
+      .finally(() => setVersionsLoading(false));
+  }, [activeShotId, open, shots]);
+
   if (!open) return null;
 
   const activeIndex = shots.findIndex((s) => s.id === activeShotId);
   const activeShot = shots[activeIndex] ?? shots[0];
-  const versions = getVersionsByShot(activeShot.id);
   const hasHistory = versions.length > 0;
   const maxVisible = 7;
   const canScrollLeft = scrollOffset > 0;
@@ -267,7 +283,11 @@ export function VideoShotOverlay({
             )}
           </div>
 
-          {!hasHistory ? (
+          {versionsLoading ? (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+            </div>
+          ) : !hasHistory ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
                 <div className="w-12 h-12 rounded-xl bg-white/[0.04] flex items-center justify-center mx-auto mb-3">

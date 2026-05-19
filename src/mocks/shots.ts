@@ -1,28 +1,6 @@
 // TODO: [mock] replace with API call
 
-export interface Shot {
-  id: string;
-  episodeId: string;
-  number: number;
-  description: string;
-  prompt: string;
-  hasImage: boolean;
-  hasVideo: boolean;
-  videoStatus: "pending" | "generating" | "completed";
-  videoVersions: number;
-  duration: string;
-  elements: { type: string; name: string }[];
-}
-
-export interface VideoVersion {
-  id: string;
-  shotId: string;
-  version: number;
-  status: "pending" | "generating" | "completed";
-  duration: string;
-  createdAt: string;
-  prompt: string;
-}
+import type { Shot, VideoVersion } from "./types";
 
 export const shots: Shot[] = [
   {

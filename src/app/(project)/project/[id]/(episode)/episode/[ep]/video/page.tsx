@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Sparkles, Play, Film, BookOpen, ChevronRight, Clock } from "lucide-react";
-import { getShotsByEpisode } from "@/mocks/shots";
-import { episodesApi, useApi } from "@/lib/api";
+import { episodesApi, shotsApi, useApi } from "@/lib/api";
+import { adaptShot } from "@/lib/adapters";
+import type { Shot } from "@/mocks/types";
 import { VideoShotOverlay } from "@/components/video-shot-overlay";
 import { useParams } from "next/navigation";
 
@@ -25,8 +26,13 @@ export default function VideoPage() {
     [episodeId],
   );
 
+  const { data: sceneScripts, isLoading: shotsLoading } = useApi(
+    () => shotsApi.fetchChapterScripts(episodeId),
+    [episodeId],
+  );
+  const shots: Shot[] = (sceneScripts ?? []).map((item) => adaptShot(item, episodeId));
+
   const hasScript = !!chapter?.chapterContent;
-  const shots = getShotsByEpisode(episodeId);
   const hasStoryboard = shots.length > 0;
 
   if (!hasScript) {
@@ -47,6 +53,16 @@ export default function VideoPage() {
           >
             前往分镜
           </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (shotsLoading) {
+    return (
+      <div className="flex flex-col h-full">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
         </div>
       </div>
     );

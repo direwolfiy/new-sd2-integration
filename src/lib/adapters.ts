@@ -1,5 +1,5 @@
-import type { ContentItem, ChapterItem, TemplateItem } from "@/lib/api/types";
-import type { Project, Episode, ElementItem, ElementType } from "@/mocks/types";
+import type { ContentItem, ChapterItem, SceneRoleItem, SceneScriptItem } from "@/lib/api/types";
+import type { Project, Episode, ElementItem, ElementType, Shot, VideoVersion } from "@/mocks/types";
 
 const PRODUCTION_STAGE_MAP: Record<number, string> = {
   1: "进行中",
@@ -55,21 +55,39 @@ export function adaptChapter(ch: ChapterItem, projectId: string): Episode {
   };
 }
 
-export function adaptElement(t: TemplateItem): ElementItem {
-  const type = TEMPLATE_TYPE_MAP[t.template_type] ?? "prop";
-  const tags: string[] = [];
-  if (t.role_type) tags.push(t.role_type);
-  if (t.template_category) tags.push(t.template_category);
+export function adaptElements(roles: SceneRoleItem[]): ElementItem[] {
+  const seen = new Set<string>();
+  const items: ElementItem[] = [];
 
-  return {
-    id: String(t.id),
-    projectId: String(t.contentId),
-    type,
-    name: t.template_name,
-    thumbnailUrl: t.cover_image ?? t.primaryImageUrl ?? "",
-    tags,
-    createdAt: t.created_time?.slice(0, 10) ?? "",
-  };
+  for (const r of roles) {
+    const type = TEMPLATE_TYPE_MAP[r.template_type ?? ""] ?? "prop";
+    const isCharacter = type === "character";
+    const charName = isCharacter ? extractBeforeDash(r.template_name ?? "") : null;
+    const key = isCharacter ? charName! : String(r.id);
+
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const meta = r.template_metadata as Record<string, unknown> | null;
+    const metaTags = meta?.tags as string[] | undefined;
+    const tags = metaTags ?? [r.role_type, r.template_category].filter(Boolean) as string[];
+
+    items.push({
+      id: String(r.id),
+      projectId: String(r.content_id ?? ""),
+      type,
+      name: isCharacter ? charName! : (r.template_name ?? ""),
+      thumbnailUrl: r.cover_image ?? "",
+      tags,
+      createdAt: "",
+    });
+  }
+  return items;
+}
+
+function extractBeforeDash(name: string): string {
+  const idx = name.indexOf("-");
+  return idx > 0 ? name.slice(0, idx) : name;
 }
 
 function formatDuration(seconds: number): string {
@@ -92,4 +110,41 @@ function formatRelativeTime(dateStr: string): string {
   const diffWeek = Math.floor(diffDay / 7);
   if (diffWeek < 4) return `${diffWeek} 周前`;
   return dateStr.slice(0, 10);
+}
+
+export function adaptShot(item: SceneScriptItem, episodeId: string): Shot {
+  const status = normalizeVideoStatus(item.videoStatus);
+  return {
+    id: String(item.id),
+    episodeId,
+    number: item.sortOrder,
+    description: item.scriptContent ?? "",
+    prompt: item.imagePrompt ?? item.videoPrompt ?? "",
+    hasImage: !!item.imageUrl,
+    hasVideo: !!item.videoUrl,
+    videoStatus: status,
+    videoVersions: 0,
+    duration: item.duration != null ? `${item.duration}s` : "—",
+    elements: [],
+  };
+}
+
+export function adaptVideoVersions(data: unknown, shotId: string): VideoVersion[] {
+  if (!Array.isArray(data)) return [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return data.map((item: any, i: number) => ({
+    id: item.id ?? `v-${shotId}-${i}`,
+    shotId,
+    version: item.version ?? i + 1,
+    status: normalizeVideoStatus(item.status),
+    duration: item.duration != null ? `${item.duration}s` : "—",
+    createdAt: item.createdAt ?? item.created_time ?? "",
+    prompt: item.prompt ?? item.videoPrompt ?? "",
+  }));
+}
+
+function normalizeVideoStatus(status: string | null | undefined): Shot["videoStatus"] {
+  if (status === "generating") return "generating";
+  if (status === "completed") return "completed";
+  return "pending";
 }
