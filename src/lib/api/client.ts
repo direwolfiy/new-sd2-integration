@@ -4,7 +4,7 @@ import type { ApiResult, RefreshTokenRequest, LoginResponse } from "./types";
 
 let accessToken: string | null = null;
 let refreshToken: string | null = null;
-let tenantId: number | null = null;
+let tenantId: string | null = null;
 let signKey: string | null = null;
 
 let onAuthFailure: (() => void) | null = null;
@@ -25,7 +25,7 @@ export function clearApiClientTokens() {
   signKey = null;
 }
 
-export function setTenantId(id: number | null) {
+export function setTenantId(id: string | null) {
   tenantId = id;
 }
 
@@ -169,7 +169,12 @@ async function refreshAccessToken(): Promise<string> {
     body: JSON.stringify({ refreshToken } satisfies RefreshTokenRequest),
   });
 
-  const result: ApiResult<LoginResponse> = await res.json();
+  const raw = await res.text();
+  const safe = raw.replace(
+    /"(defaultTenantId|lastActiveTenantId)":(\d{15,})/g,
+    '"$1":"$2"',
+  );
+  const result: ApiResult<LoginResponse> = JSON.parse(safe);
   if (result.code !== 200 || !result.data) {
     throw new ApiError(result.code, result.message, result.bizCode);
   }
@@ -228,7 +233,7 @@ export async function request<T>(
   if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
   if (tenantId != null) headers["X-Tenant-Id"] = String(tenantId);
 
-  const signHeaders = buildSignHeaders(method, path, params);
+  const signHeaders = buildSignHeaders(method, `${API_BASE_URL}${path}`, params);
   Object.assign(headers, signHeaders);
 
   const res = await fetch(url, {
@@ -263,7 +268,10 @@ export async function request<T>(
         if (retryResult.code === 200) return retryResult.data as T;
         throw new ApiError(retryResult.code, retryResult.message, retryResult.bizCode);
       } catch (e) {
-        if (e instanceof ApiError) throw e;
+        if (e instanceof ApiError) {
+          onAuthFailure?.();
+          throw e;
+        }
       }
     }
 
@@ -273,7 +281,9 @@ export async function request<T>(
     throw new ApiError(res.status, errMessage, bizCode);
   }
 
-  const result: ApiResult<T> = await res.json();
+  const raw = await res.text();
+  const safe = raw.replace(/"(id|resource_temp_id|content_id|chapter_id)":(\d{15,})/g, '"$1":"$2"');
+  const result: ApiResult<T> = JSON.parse(safe);
 
   if (result.code === 200) return result.data as T;
 
