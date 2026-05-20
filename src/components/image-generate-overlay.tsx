@@ -122,11 +122,18 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
   const [addedImages, setAddedImages] = useState<Set<string>>(new Set(currentImageUrls));
   const [applying, setApplying] = useState(false);
   const [activeRecordId, setActiveRecordId] = useState<string>("");
+
+  // Sync addedImages with currentImageUrls only when actual URLs change
+  const urlsKey = [...currentImageUrls].sort().join("|");
+  const prevUrlsKey = useRef(urlsKey);
+  useEffect(() => {
+    if (urlsKey !== prevUrlsKey.current) {
+      setAddedImages(new Set(currentImageUrls));
+      prevUrlsKey.current = urlsKey;
+    }
+  }, [urlsKey, currentImageUrls]);
   const recordRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  useEffect(() => {
-    setAddedImages(new Set(currentImageUrls));
-  }, [currentImageUrls]);
 
   const { data: modelList } = useApi(() => aiApi.fetchImageModels(), []);
   const models: AiImageModelConfigDTO[] = modelList?.items ?? [];
