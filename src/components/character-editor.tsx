@@ -91,11 +91,9 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
     setSaving(true);
     try {
       const tags = draftTags.split(/[,，、]/).map(t => t.trim()).filter(Boolean);
-      await elementsApi.updateCharacter({
-        templateId: editVariantId,
-        templateName: `${selectedGroup.name}-${draftName}`,
+      await elementsApi.updateElement(editVariantId, {
+        template_name: `${selectedGroup.name}-${draftName}`,
         description: draftDesc,
-        tags,
         appearance: {
           name: draftName,
           description: draftDesc,
@@ -359,11 +357,10 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
         currentImageUrls={generateVariant ? ((getAppearance(generateVariant)?.images as string[] | undefined) ?? []) : []}
         onImagesChange={async (imageUrls) => {
           if (!generateVariant) return;
-          const templateId = generateVariant.resource_temp_id ?? generateVariant.id;
+          const templateId = String(generateVariant.resource_temp_id ?? generateVariant.id);
           if (!templateId) throw new Error("missing variant id");
           const app = getAppearance(generateVariant) ?? {};
-          await elementsApi.updateCharacter({
-            templateId: String(templateId),
+          await elementsApi.updateElement(templateId, {
             appearance: { ...app, images: imageUrls },
           });
           onRefresh();
