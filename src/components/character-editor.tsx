@@ -350,11 +350,12 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
         variantName={generateVariant ? String(getAppearance(generateVariant)?.name ?? "") : ""}
         projectId={projectId}
         variantId={generateVariant?.resource_temp_id ?? generateVariant?.id ?? generateVariantId ?? ""}
-        currentImageUrls={(getAppearance(generateVariant!)?.images as string[] | undefined) ?? []}
+        currentImageUrls={generateVariant ? ((getAppearance(generateVariant)?.images as string[] | undefined) ?? []) : []}
         onImagesChange={async (imageUrls) => {
-          const templateId = generateVariant?.resource_temp_id ?? generateVariant?.id;
+          if (!generateVariant) return;
+          const templateId = generateVariant.resource_temp_id ?? generateVariant.id;
           if (!templateId) throw new Error("missing variant id");
-          const app = getAppearance(generateVariant!) ?? {};
+          const app = getAppearance(generateVariant) ?? {};
           await elementsApi.updateCharacter({
             templateId: String(templateId),
             appearance: { ...app, images: imageUrls },
