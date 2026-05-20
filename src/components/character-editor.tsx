@@ -266,7 +266,7 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
                             </div>
                           );
                           return displayImages.map((imgUrl, idx) => (
-                            <div key={idx} className="group relative w-[140px] shrink-0 rounded-lg overflow-hidden border border-white/[0.06] bg-[#0a0a0a] transition-all duration-200">
+                            <div key={idx} onClick={() => setGenerateVariantId(String(variant.id))} className="group relative w-[140px] shrink-0 rounded-lg overflow-hidden border border-white/[0.06] bg-[#0a0a0a] transition-all duration-200 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12)] cursor-pointer">
                               <div className="relative aspect-[3/4] bg-gradient-to-br from-[#1a1a1a] to-[#141414] flex items-center justify-center">
                                 {imgUrl ? (
                                   <img src={imgUrl} alt={`${appName} ${idx + 1}`} className="absolute inset-0 w-full h-full object-cover object-top" />
