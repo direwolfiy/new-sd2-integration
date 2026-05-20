@@ -322,7 +322,11 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
                       </div>
                       <div className="max-h-[320px] rounded-lg overflow-hidden border border-white/[0.06] bg-[#141414] flex items-center justify-center relative">
                         <div className="w-full aspect-[3/4] max-h-[320px] bg-gradient-to-br from-[#1a1a1a] to-[#141414] flex items-center justify-center">
-                          <User size={40} strokeWidth={0.5} className="text-white/[0.06]" />
+                          {img?.url ? (
+                            <img src={img.url} alt={img.name} className="w-full h-full object-contain" />
+                          ) : (
+                            <User size={40} strokeWidth={0.5} className="text-white/[0.06]" />
+                          )}
                         </div>
                         {isAdded && (
                           <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-[#00CAE0]/20 flex items-center justify-center">
@@ -370,7 +374,11 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
                       }`}
                     >
                       <div className="w-full h-full bg-gradient-to-br from-[#222] to-[#141414] flex items-center justify-center">
-                        <User size={12} strokeWidth={1} className="text-white/[0.06]" />
+                        {img?.url ? (
+                          <img src={img.url} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <User size={12} strokeWidth={1} className="text-white/[0.06]" />
+                        )}
                       </div>
                       {isAdded && (
                         <div className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 rounded-full bg-[#00CAE0]" />
