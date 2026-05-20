@@ -95,6 +95,7 @@ interface Props {
   variantName: string;
   projectId: string;
   variantId: string;
+  onApplyImage?: (imageUrl: string) => Promise<void>;
 }
 
 function adaptHistory(items: ImageGenerationHistoryItem[]): GenerationRecord[] {
@@ -112,7 +113,7 @@ function adaptHistory(items: ImageGenerationHistoryItem[]): GenerationRecord[] {
   }));
 }
 
-export function ImageGenerateOverlay({ open, onClose, variantName, projectId, variantId }: Props) {
+export function ImageGenerateOverlay({ open, onClose, variantName, projectId, variantId, onApplyImage }: Props) {
   const [prompt, setPrompt] = useState("");
   const [selectedModelId, setSelectedModelId] = useState<number>(0);
   const [selectedRatio, setSelectedRatio] = useState("");
@@ -159,13 +160,14 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
     recordRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  function toggleAdded(imageId: string) {
-    setAddedImages((prev) => {
-      const next = new Set(prev);
-      if (next.has(imageId)) next.delete(imageId);
-      else next.add(imageId);
-      return next;
-    });
+  const [applying, setApplying] = useState<string | null>(null);
+
+  function handleApplyImage(imageId: string, imageUrl: string) {
+    if (!onApplyImage) return;
+    setApplying(imageId);
+    onApplyImage(imageUrl)
+      .then(() => setAddedImages((prev) => new Set(prev).add(imageId)))
+      .finally(() => setApplying(null));
   }
 
   function toggleRefSelect(id: string) {
@@ -338,8 +340,16 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
                         <div className="px-1 flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className="text-[11px] text-[#555]">{img.name}</span>
-                            <button onClick={() => toggleAdded(img.id)} className={`h-7 px-3 rounded-full text-[11px] flex items-center gap-1 transition-colors duration-200 ${isAdded ? "bg-[#00CAE0]/10 text-[#00CAE0] hover:bg-[#00CAE0]/15" : "bg-white/[0.06] text-[#999] hover:bg-white/[0.1] hover:text-white"}`}>
-                              {isAdded ? <><Check size={10} strokeWidth={2} />已添加</> : <><Plus size={10} strokeWidth={1.5} />添加为形象图</>}
+                            <button
+                              onClick={() => img.url && handleApplyImage(img.id, img.url)}
+                              disabled={applying === img.id}
+                              className={`h-7 px-3 rounded-full text-[11px] flex items-center gap-1 transition-colors duration-200 ${
+                                isAdded ? "bg-[#00CAE0]/10 text-[#00CAE0] hover:bg-[#00CAE0]/15"
+                                : onApplyImage ? "bg-white/[0.06] text-[#999] hover:bg-white/[0.1] hover:text-white"
+                                : "bg-white/[0.04] text-[#555]"
+                              } disabled:opacity-50`}
+                            >
+                              {isAdded ? <><Check size={10} strokeWidth={2} />已添加</> : applying === img.id ? <>...</> : <><Plus size={10} strokeWidth={1.5} />添加为形象图</>}
                             </button>
                           </div>
                           <div className="flex items-center gap-1.5">

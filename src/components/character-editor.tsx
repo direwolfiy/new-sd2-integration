@@ -350,6 +350,16 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
         variantName={generateVariant ? String(getAppearance(generateVariant)?.name ?? "") : ""}
         projectId={projectId}
         variantId={generateVariant?.resource_temp_id ?? generateVariant?.id ?? generateVariantId ?? ""}
+        onApplyImage={async (imageUrl) => {
+          const templateId = generateVariant?.resource_temp_id ?? generateVariant?.id;
+          if (!templateId) throw new Error("missing variant id");
+          await elementsApi.updateCharacter({
+            templateId: String(templateId),
+            coverImage: imageUrl,
+          });
+          onRefresh();
+          sonnerToast.success("已设为形象图");
+        }}
       />
     </div>
   );
