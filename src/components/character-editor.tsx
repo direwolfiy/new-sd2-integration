@@ -84,6 +84,19 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
     return () => window.removeEventListener("keydown", onKey);
   }, [editVariantId, addVariantOpen, generateVariantId, moreMenuId]);
 
+  async function setPrimaryImage(variant: SceneRoleItem, imageIdx: number) {
+    const images = (getAppearance(variant)?.images as string[] | undefined) ?? [];
+    if (images.length <= 1 || imageIdx === 0) return;
+    const reordered = [images[imageIdx], ...images.filter((_, i) => i !== imageIdx)];
+    const templateId = String(variant.resource_temp_id ?? variant.id);
+    const app = getAppearance(variant) ?? {};
+    await elementsApi.updateElement(templateId, {
+      appearance: { ...app, images: reordered },
+    });
+    onRefresh();
+    sonnerToast.success("已设为形象");
+  }
+
   const selectedGroup = groups.find((g) => g.name === selectedName);
 
   const saveEdit = useCallback(async () => {
@@ -221,7 +234,6 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
                   const app = getAppearance(variant);
                   const appTags = app?.tags as string[] | undefined;
                   const appName = String(app?.name ?? variant.template_name?.split("-").slice(1).join("-") ?? "");
-                  const isPrimary = variant === selectedGroup.variants[0];
                   return (
                     <div key={variant.id} className="rounded-xl border border-white/[0.06] bg-[#141414] p-4">
                       <div className="flex items-center justify-between mb-3">
@@ -273,10 +285,17 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
                                 ) : (
                                   <User size={32} strokeWidth={1} className="text-white/[0.06]" />
                                 )}
-                                {isPrimary && idx === 0 && (
+                                {idx === 0 ? (
                                   <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#00CAE0]/20 flex items-center justify-center">
                                     <Star size={10} strokeWidth={1.5} className="text-[#00CAE0] fill-[#00CAE0]" />
                                   </div>
+                                ) : (
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); setPrimaryImage(variant, idx); }}
+                                    className="absolute top-2 right-2 w-5 h-5 rounded-full bg-white/[0.06] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-white/[0.12]"
+                                  >
+                                    <Star size={10} strokeWidth={1.5} className="text-[#666]" />
+                                  </button>
                                 )}
                               </div>
                               <div className="px-2 py-1.5 border-t border-white/[0.04]">
