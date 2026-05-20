@@ -14,7 +14,7 @@ export function createElement(data: Partial<TemplateItem> & { templateName: stri
 }
 
 export function updateElement(templateId: string, data: Partial<TemplateItem>) {
-  return put<TemplateItem>(`/resource/template/${templateId}`, data);
+  return put<TemplateItem>(`/resource/template/${templateId}`, { id: Number(templateId), ...data });
 }
 
 export function deleteElement(templateId: string) {
