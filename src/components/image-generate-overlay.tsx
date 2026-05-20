@@ -16,7 +16,7 @@ import {
   Search,
   Coins,
 } from "lucide-react";
-import { aiApi, imagesApi, useApi } from "@/lib/api";
+import { aiApi, imagesApi, assetsApi, useApi } from "@/lib/api";
 import type { AiImageModelConfigDTO, ImageGenerationHistoryItem } from "@/lib/api/types";
 import { toast as sonnerToast } from "sonner";
 
@@ -34,22 +34,6 @@ interface GenerationRecord {
   createdAt: string;
   images: GenerationImage[];
 }
-
-// TODO: [mock] replace with API call
-const mockLibrary = [
-  { id: "lib-1", name: "秦羽-日常-主图", source: "项目元素" },
-  { id: "lib-2", name: "秦羽-日常-三视图", source: "项目元素" },
-  { id: "lib-3", name: "秦羽-战斗-主图", source: "项目元素" },
-  { id: "lib-4", name: "姜立-日常-主图", source: "项目元素" },
-  { id: "lib-5", name: "姜立-仙装-主图", source: "项目元素" },
-  { id: "lib-6", name: "侯费-人形-主图", source: "项目元素" },
-  { id: "lib-7", name: "秦村黄昏", source: "项目元素" },
-  { id: "lib-8", name: "九剑仙府外景", source: "项目元素" },
-  { id: "lib-9", name: "古风少年参考-01", source: "平台资源" },
-  { id: "lib-10", name: "古风少年参考-02", source: "平台资源" },
-  { id: "lib-11", name: "布衣材质贴图", source: "平台资源" },
-  { id: "lib-12", name: "佩剑道具参考", source: "平台资源" },
-];
 
 const counts = ["1 张", "2 张", "4 张"];
 const countMap: Record<string, number> = { "1 张": 1, "2 张": 2, "4 张": 4 };
@@ -164,7 +148,7 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
         projectId,
         businessId: variantId,
         businessType: "CHAPTER_ASSET",
-        referenceImages: refAttached.map((r) => r.id),
+        referenceImages: refAttached.map((r) => r.coverUrl).filter(Boolean) as string[],
       });
       // Poll for completion
       pollRef.current = setInterval(async () => {
@@ -208,7 +192,18 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
   const [refModalOpen, setRefModalOpen] = useState(false);
   const [refTab, setRefTab] = useState<"library" | "upload">("library");
   const [refSelected, setRefSelected] = useState<Set<string>>(new Set());
-  const [refAttached, setRefAttached] = useState<{ id: string; name: string }[]>([]);
+  const [refAttached, setRefAttached] = useState<{ id: string; name: string; coverUrl?: string | null }[]>([]);
+
+  const { data: assetData } = useApi(
+    () => assetsApi.fetchAssets({ page_size: 50 }),
+    [],
+  );
+  const library = (assetData?.list ?? []).map((a) => ({
+    id: a.id,
+    name: a.resourceName,
+    source: a.libraryId ? "项目元素" as const : "平台资源" as const,
+    coverUrl: a.coverUrl,
+  }));
 
   function scrollToRecord(id: string) {
     setActiveRecordId(id);
@@ -245,8 +240,8 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
     const newRefs = [...refAttached];
     for (const id of refSelected) {
       if (!newRefs.find((r) => r.id === id)) {
-        const item = mockLibrary.find((l) => l.id === id);
-        if (item) newRefs.push({ id: item.id, name: item.name });
+        const item = library.find((l) => l.id === id);
+        if (item) newRefs.push({ id: item.id, name: item.name, coverUrl: item.coverUrl });
       }
     }
     setRefAttached(newRefs);
@@ -282,8 +277,12 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
               <div className="flex items-center gap-2 flex-wrap">
                 {refAttached.map((ref) => (
                   <div key={ref.id} className="relative group">
-                    <div className="w-20 h-20 rounded-lg bg-[#262626] border border-white/[0.06] flex items-center justify-center">
-                      <ImageIcon size={16} strokeWidth={1.5} className="text-[#444]" />
+                    <div className="w-20 h-20 rounded-lg bg-[#262626] border border-white/[0.06] flex items-center justify-center overflow-hidden">
+                      {ref.coverUrl ? (
+                        <img src={ref.coverUrl} alt={ref.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <ImageIcon size={16} strokeWidth={1.5} className="text-[#444]" />
+                      )}
                     </div>
                     <button
                       onClick={() => setRefAttached((prev) => prev.filter((r) => r.id !== ref.id))}
@@ -504,7 +503,7 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
                     搜索资源...
                   </div>
                   <div className="grid grid-cols-4 gap-3">
-                    {mockLibrary.map((item) => {
+                    {library.map((item) => {
                       const isSelected = refSelected.has(item.id);
                       return (
                         <button
@@ -517,7 +516,11 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
                           }`}
                         >
                           <div className="aspect-square bg-gradient-to-br from-[#222] to-[#141414] flex items-center justify-center relative">
-                            <ImageIcon size={20} strokeWidth={1} className="text-white/[0.06]" />
+                            {item.coverUrl ? (
+                              <img src={item.coverUrl} alt={item.name} className="absolute inset-0 w-full h-full object-cover" />
+                            ) : (
+                              <ImageIcon size={20} strokeWidth={1} className="text-white/[0.06]" />
+                            )}
                             {isSelected && (
                               <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[#00CAE0] flex items-center justify-center">
                                 <Check size={10} strokeWidth={2} className="text-black" />
