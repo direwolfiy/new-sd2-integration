@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { aiApi, imagesApi, useApi } from "@/lib/api";
 import type { AiImageModelConfigDTO, ImageGenerationHistoryItem } from "@/lib/api/types";
+import { toast as sonnerToast } from "sonner";
 
 interface GenerationImage {
   id: string;
@@ -142,11 +143,52 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
   const ratios = selectedModel?.supported_aspect_ratios ?? [];
   const defaultRatio = ratios[0] ?? "1:1";
 
-  const { data: historyData } = useApi(
+  const { data: historyData, refetch: refetchHistory } = useApi(
     () => imagesApi.fetchImageHistory({ businessId: variantId, pageSize: 50 }),
     [variantId],
   );
   const history: GenerationRecord[] = adaptHistory(historyData?.list ?? []);
+
+  const [generating, setGenerating] = useState(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  async function handleGenerate() {
+    if (!prompt.trim() || !selectedModel || generating) return;
+    setGenerating(true);
+    try {
+      const taskId = await imagesApi.createImageTask({
+        prompt: prompt.trim(),
+        modelBusinessType: selectedModel.id,
+        aspectRatio: selectedRatio || defaultRatio,
+        imageCount: parseCount(selectedCount),
+        projectId,
+        businessId: variantId,
+        businessType: "CHAPTER_ASSET",
+        referenceImages: refAttached.map((r) => r.id),
+      });
+      // Poll for completion
+      pollRef.current = setInterval(async () => {
+        try {
+          const status = await imagesApi.fetchImageTaskStatus(String(taskId));
+          if (status.taskStatus === "COMPLETED" || status.taskStatus === "FAILED" || status.taskStatus === "CANCELLED") {
+            if (pollRef.current) clearInterval(pollRef.current);
+            setGenerating(false);
+            refetchHistory();
+            sonnerToast.success(status.taskStatus === "COMPLETED" ? "生成完成" : "生成失败");
+          }
+        } catch {
+          // polling error, keep trying
+        }
+      }, 3000);
+    } catch {
+      setGenerating(false);
+      sonnerToast.error("提交生成失败");
+    }
+  }
+
+  useEffect(() => {
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, []);
 
   useEffect(() => {
     if (models.length > 0 && selectedModelId === 0) {
@@ -285,9 +327,13 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
                   <Coins size={12} strokeWidth={1.5} className="text-[#00CAE0]" />
                   {Math.round((selectedModel?.cost_per_image ?? 0) * parseCount(selectedCount))} 积分
                 </span>
-                <button className="h-9 px-5 rounded-full bg-white text-black text-[13px] font-medium flex items-center gap-1.5 hover:bg-white/90 active:scale-[0.97] transition-all duration-200">
+                <button
+                  onClick={handleGenerate}
+                  disabled={generating || !prompt.trim() || !selectedModel}
+                  className="h-9 px-5 rounded-full bg-white text-black text-[13px] font-medium flex items-center gap-1.5 hover:bg-white/90 active:scale-[0.97] transition-all duration-200 disabled:opacity-40 disabled:pointer-events-none"
+                >
                   <Send size={14} strokeWidth={2} />
-                  生成
+                  {generating ? "生成中..." : "生成"}
                 </button>
               </div>
             </div>
