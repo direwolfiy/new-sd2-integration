@@ -251,24 +251,40 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
                         </div>
                       </div>
 
-                      <div className="flex gap-4">
-                        <div onClick={() => setGenerateVariantId(String(variant.id))} className="group relative w-[140px] shrink-0 rounded-lg overflow-hidden border border-white/[0.06] bg-[#0a0a0a] transition-all duration-200 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12)] cursor-pointer">
-                          <div className="relative aspect-[3/4] bg-gradient-to-br from-[#1a1a1a] to-[#141414] flex items-center justify-center">
-                            {(() => { const img = getVariantImage(variant); return img ? (
-                              <img src={img} alt={appName} className="absolute inset-0 w-full h-full object-cover object-top" />
-                            ) : (
-                              <User size={32} strokeWidth={1} className="text-white/[0.06]" />
-                            ); })()}
-                            {isPrimary && (
-                              <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#00CAE0]/20 flex items-center justify-center">
-                                <Star size={10} strokeWidth={1.5} className="text-[#00CAE0] fill-[#00CAE0]" />
+                      <div className="flex gap-4 overflow-x-auto">
+                        {(() => {
+                          const images = (getAppearance(variant)?.images as string[] | undefined) ?? [];
+                          const displayImages = images.length > 0 ? images : (variant.cover_image ? [variant.cover_image] : []);
+                          if (displayImages.length === 0) return (
+                            <div className="group relative w-[140px] shrink-0 rounded-lg overflow-hidden border border-white/[0.06] bg-[#0a0a0a] transition-all duration-200">
+                              <div className="relative aspect-[3/4] bg-gradient-to-br from-[#1a1a1a] to-[#141414] flex items-center justify-center">
+                                <User size={32} strokeWidth={1} className="text-white/[0.06]" />
                               </div>
-                            )}
-                          </div>
-                          <div className="px-2 py-1.5 border-t border-white/[0.04]">
-                            <span className="text-[11px] text-[#999] truncate block">{appName}</span>
-                          </div>
-                        </div>
+                              <div className="px-2 py-1.5 border-t border-white/[0.04]">
+                                <span className="text-[11px] text-[#999] truncate block">{appName}</span>
+                              </div>
+                            </div>
+                          );
+                          return displayImages.map((imgUrl, idx) => (
+                            <div key={idx} className="group relative w-[140px] shrink-0 rounded-lg overflow-hidden border border-white/[0.06] bg-[#0a0a0a] transition-all duration-200">
+                              <div className="relative aspect-[3/4] bg-gradient-to-br from-[#1a1a1a] to-[#141414] flex items-center justify-center">
+                                {imgUrl ? (
+                                  <img src={imgUrl} alt={`${appName} ${idx + 1}`} className="absolute inset-0 w-full h-full object-cover object-top" />
+                                ) : (
+                                  <User size={32} strokeWidth={1} className="text-white/[0.06]" />
+                                )}
+                                {isPrimary && idx === 0 && (
+                                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#00CAE0]/20 flex items-center justify-center">
+                                    <Star size={10} strokeWidth={1.5} className="text-[#00CAE0] fill-[#00CAE0]" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="px-2 py-1.5 border-t border-white/[0.04]">
+                                <span className="text-[11px] text-[#999] truncate block">{idx === 0 ? appName : `${appName} ${idx + 1}`}</span>
+                              </div>
+                            </div>
+                          ));
+                        })()}
                       </div>
                     </div>
                   );
