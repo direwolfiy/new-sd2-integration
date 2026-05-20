@@ -54,13 +54,16 @@ export interface UpdateCharacterParams {
 }
 
 export function updateCharacter(data: UpdateCharacterParams) {
-  const { templateId, tags, ...rest } = data;
   const body: Record<string, unknown> = {
-    template_id: templateId,
-    ...rest,
+    template_id: data.templateId,
   };
-  if (tags) body.tags = tags;
-  return put<TemplateItem>(`/novel-show/project/role/${templateId}`, body);
+  if (data.templateName !== undefined) body.template_name = data.templateName;
+  if (data.description !== undefined) body.description = data.description;
+  if (data.coverImage !== undefined) body.cover_image = data.coverImage;
+  if (data.timbreDescription !== undefined) body.timbre_description = data.timbreDescription;
+  if (data.appearance !== undefined) body.appearance = data.appearance;
+  if (data.tags !== undefined) body.tags = data.tags;
+  return put<TemplateItem>(`/novel-show/project/role/${data.templateId}`, body);
 }
 
 export function deleteSceneRole(roleId: string) {
