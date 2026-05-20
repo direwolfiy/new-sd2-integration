@@ -136,14 +136,14 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
   const recordRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
 
-  const { data: modelList } = useApi(() => aiApi.fetchImageModels(), []);
+  const { data: modelList, isLoading: modelsLoading } = useApi(() => aiApi.fetchImageModels(), []);
   const models: AiImageModelConfigDTO[] = modelList?.items ?? [];
   const selectedModel = models.find((m) => m.id === selectedModelId);
   const modelNames = models.map((m) => m.model_name);
   const ratios = selectedModel?.supported_aspect_ratios ?? [];
   const defaultRatio = ratios[0] ?? "1:1";
 
-  const { data: historyData, refetch: refetchHistory } = useApi(
+  const { data: historyData, refetch: refetchHistory, isLoading: historyLoading } = useApi(
     () => imagesApi.fetchImageHistory({ businessId: variantId, pageSize: 50 }),
     [variantId],
   );
@@ -318,7 +318,7 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
           <div className="shrink-0 px-4 py-3 border-t border-white/[0.06]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Dropdown value={selectedModel?.model_name ?? "选择模型"} options={modelNames} onChange={(name) => { const m = models.find((x) => x.model_name === name); if (m) { setSelectedModelId(m.id); setSelectedRatio(m.supported_aspect_ratios?.[0] ?? "1:1"); } }} />
+                <Dropdown value={modelsLoading ? "加载中..." : (selectedModel?.model_name ?? "选择模型")} options={modelNames} onChange={(name) => { const m = models.find((x) => x.model_name === name); if (m) { setSelectedModelId(m.id); setSelectedRatio(m.supported_aspect_ratios?.[0] ?? "1:1"); } }} />
                 <Dropdown value={selectedRatio || defaultRatio} options={ratios.length > 0 ? ratios : [defaultRatio]} onChange={setSelectedRatio} />
                 <Dropdown value={selectedCount} options={counts} onChange={setSelectedCount} />
               </div>
@@ -356,7 +356,11 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
             </div>
           </div>
 
-          {history.length === 0 ? (
+          {historyLoading ? (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+            </div>
+          ) : history.length === 0 ? (
             <div className="flex-1 flex items-center justify-center">
               <p className="text-[13px] text-[#444]">尚无生成记录</p>
             </div>
