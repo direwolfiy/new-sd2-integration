@@ -95,7 +95,8 @@ interface Props {
   variantName: string;
   projectId: string;
   variantId: string;
-  onApplyImage?: (imageUrl: string) => Promise<void>;
+  currentImageUrls: string[];
+  onImagesChange: (imageUrls: string[]) => Promise<void>;
 }
 
 function adaptHistory(items: ImageGenerationHistoryItem[]): GenerationRecord[] {
@@ -113,14 +114,19 @@ function adaptHistory(items: ImageGenerationHistoryItem[]): GenerationRecord[] {
   }));
 }
 
-export function ImageGenerateOverlay({ open, onClose, variantName, projectId, variantId, onApplyImage }: Props) {
+export function ImageGenerateOverlay({ open, onClose, variantName, projectId, variantId, currentImageUrls, onImagesChange }: Props) {
   const [prompt, setPrompt] = useState("");
   const [selectedModelId, setSelectedModelId] = useState<number>(0);
   const [selectedRatio, setSelectedRatio] = useState("");
   const [selectedCount, setSelectedCount] = useState(counts[2]);
-  const [addedImages, setAddedImages] = useState<Set<string>>(new Set());
+  const [addedImages, setAddedImages] = useState<Set<string>>(new Set(currentImageUrls));
+  const [applying, setApplying] = useState(false);
   const [activeRecordId, setActiveRecordId] = useState<string>("");
   const recordRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  useEffect(() => {
+    setAddedImages(new Set(currentImageUrls));
+  }, [currentImageUrls]);
 
   const { data: modelList } = useApi(() => aiApi.fetchImageModels(), []);
   const models: AiImageModelConfigDTO[] = modelList?.items ?? [];
@@ -160,14 +166,21 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
     recordRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  const [applying, setApplying] = useState<string | null>(null);
-
-  function handleApplyImage(imageId: string, imageUrl: string) {
-    if (!onApplyImage) return;
-    setApplying(imageId);
-    onApplyImage(imageUrl)
-      .then(() => setAddedImages((prev) => new Set(prev).add(imageId)))
-      .finally(() => setApplying(null));
+  async function toggleImage(url: string) {
+    if (applying) return;
+    const next = new Set(addedImages);
+    if (next.has(url)) next.delete(url);
+    else next.add(url);
+    const urls = Array.from(next);
+    setApplying(true);
+    try {
+      await onImagesChange(urls);
+      setAddedImages(next);
+    } catch {
+      // revert on failure — keep previous addedImages
+    } finally {
+      setApplying(false);
+    }
   }
 
   function toggleRefSelect(id: string) {
@@ -300,7 +313,7 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
               <div className="flex-1 overflow-y-auto p-4 space-y-5">
                 {history.map((record) => {
                   const img = record.images[0];
-                  const isAdded = img ? addedImages.has(img.id) : false;
+                  const isAdded = img?.url ? addedImages.has(img.url) : false;
                   return (
                     <div
                       key={record.id}
@@ -341,15 +354,14 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
                           <div className="flex items-center gap-2">
                             <span className="text-[11px] text-[#555]">{img.name}</span>
                             <button
-                              onClick={() => img.url && handleApplyImage(img.id, img.url)}
-                              disabled={applying === img.id}
+                              onClick={() => img.url && toggleImage(img.url)}
+                              disabled={applying}
                               className={`h-7 px-3 rounded-full text-[11px] flex items-center gap-1 transition-colors duration-200 ${
                                 isAdded ? "bg-[#00CAE0]/10 text-[#00CAE0] hover:bg-[#00CAE0]/15"
-                                : onApplyImage ? "bg-white/[0.06] text-[#999] hover:bg-white/[0.1] hover:text-white"
-                                : "bg-white/[0.04] text-[#555]"
+                                : "bg-white/[0.06] text-[#999] hover:bg-white/[0.1] hover:text-white"
                               } disabled:opacity-50`}
                             >
-                              {isAdded ? <><Check size={10} strokeWidth={2} />已添加</> : applying === img.id ? <>...</> : <><Plus size={10} strokeWidth={1.5} />添加为形象图</>}
+                              {isAdded ? <><Check size={10} strokeWidth={2} />已添加</> : applying ? <>...</> : <><Plus size={10} strokeWidth={1.5} />添加为形象图</>}
                             </button>
                           </div>
                           <div className="flex items-center gap-1.5">
@@ -371,7 +383,7 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
               <div className="w-[56px] shrink-0 overflow-y-auto py-3 pl-1 pr-2 space-y-2">
                 {history.map((record) => {
                   const img = record.images[0];
-                  const isAdded = img ? addedImages.has(img.id) : false;
+                  const isAdded = img?.url ? addedImages.has(img.url) : false;
                   const isActive = activeRecordId === record.id;
                   return (
                     <button

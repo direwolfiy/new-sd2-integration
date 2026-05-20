@@ -350,15 +350,17 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
         variantName={generateVariant ? String(getAppearance(generateVariant)?.name ?? "") : ""}
         projectId={projectId}
         variantId={generateVariant?.resource_temp_id ?? generateVariant?.id ?? generateVariantId ?? ""}
-        onApplyImage={async (imageUrl) => {
+        currentImageUrls={(getAppearance(generateVariant!)?.images as string[] | undefined) ?? []}
+        onImagesChange={async (imageUrls) => {
           const templateId = generateVariant?.resource_temp_id ?? generateVariant?.id;
           if (!templateId) throw new Error("missing variant id");
+          const app = getAppearance(generateVariant!) ?? {};
           await elementsApi.updateCharacter({
             templateId: String(templateId),
-            coverImage: imageUrl,
+            appearance: { ...app, images: imageUrls },
           });
           onRefresh();
-          sonnerToast.success("已设为形象图");
+          sonnerToast.success(imageUrls.length > 0 ? "已更新形象图" : "已移除形象图");
         }}
       />
     </div>
