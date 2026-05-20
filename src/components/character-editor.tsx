@@ -41,6 +41,12 @@ function getAppearance(v: SceneRoleItem) {
   return v.appearance as Record<string, unknown> | null;
 }
 
+function getVariantImage(v: SceneRoleItem): string | null {
+  const images = getAppearance(v)?.images as string[] | undefined;
+  if (images && images.length > 0) return images[0];
+  return v.cover_image ?? null;
+}
+
 const inputCls = "w-full bg-[#262626] border border-white/[0.1] rounded-lg px-3 py-2 text-[13px] text-white placeholder:text-white/30 focus:outline-none focus:border-[#00CAE0]/50 focus:ring-1 focus:ring-[#00CAE0]/30 transition-colors duration-200";
 
 export function CharacterEditor({ open, onClose, projectId, characterId, roles, onRefresh }: Props) {
@@ -170,11 +176,11 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
             {groups.map((group) => (
               <button key={group.name} onClick={() => setSelectedName(group.name)} className={`shrink-0 rounded-lg overflow-hidden transition-all duration-200 ${group.name === selectedName ? "ring-2 ring-white/20 bg-white/[0.04]" : "opacity-50 hover:opacity-80"}`}>
                 <div className="relative aspect-[3/4] bg-gradient-to-br from-[#222] to-[#141414] flex items-center justify-center">
-                  {group.variants[0].cover_image ? (
-                    <img src={group.variants[0].cover_image} alt={group.name} className="absolute inset-0 w-full h-full object-cover object-top" />
+                  {(() => { const img = getVariantImage(group.variants[0]); return img ? (
+                    <img src={img} alt={group.name} className="absolute inset-0 w-full h-full object-cover object-top" />
                   ) : (
                     <User size={20} strokeWidth={1} className="text-white/[0.06]" />
-                  )}
+                  ); })()}
                 </div>
                 <p className="text-[11px] text-center py-1.5 truncate px-1.5">{group.name}</p>
               </button>
@@ -250,11 +256,11 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
                       <div className="flex gap-4">
                         <div onClick={() => setGenerateVariantId(String(variant.id))} className="group relative w-[140px] shrink-0 rounded-lg overflow-hidden border border-white/[0.06] bg-[#0a0a0a] transition-all duration-200 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12)] cursor-pointer">
                           <div className="relative aspect-[3/4] bg-gradient-to-br from-[#1a1a1a] to-[#141414] flex items-center justify-center">
-                            {variant.cover_image ? (
-                              <img src={variant.cover_image} alt={appName} className="absolute inset-0 w-full h-full object-cover object-top" />
+                            {(() => { const img = getVariantImage(variant); return img ? (
+                              <img src={img} alt={appName} className="absolute inset-0 w-full h-full object-cover object-top" />
                             ) : (
                               <User size={32} strokeWidth={1} className="text-white/[0.06]" />
-                            )}
+                            ); })()}
                             {isPrimary && (
                               <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-[#00CAE0]/20 flex items-center justify-center">
                                 <Star size={10} strokeWidth={1.5} className="text-[#00CAE0] fill-[#00CAE0]" />
