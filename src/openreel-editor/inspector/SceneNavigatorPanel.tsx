@@ -185,7 +185,7 @@ export const SceneNavigatorPanel: React.FC<SceneNavigatorPanelProps> = ({
                   onClick={() => handleSceneClick(index)}
                   className={`group relative flex items-center gap-1 px-2 py-1 rounded transition-all ${
                     isActive
-                      ? "bg-primary text-white"
+                      ? "bg-primary text-primary-foreground"
                       : "bg-background-tertiary hover:bg-background-secondary text-text-secondary hover:text-text-primary"
                   }`}
                   title={scene.label}
@@ -265,7 +265,7 @@ export const SceneNavigatorPanel: React.FC<SceneNavigatorPanelProps> = ({
               <div
                 className={`flex-shrink-0 w-6 h-6 rounded flex items-center justify-center text-[10px] font-medium ${
                   isActive
-                    ? "bg-primary text-white"
+                    ? "bg-primary text-primary-foreground"
                     : "bg-background-tertiary text-text-muted"
                 }`}
               >

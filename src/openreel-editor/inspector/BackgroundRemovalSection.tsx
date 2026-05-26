@@ -157,7 +157,7 @@ export const BackgroundRemovalSection: React.FC<
           disabled={isInitializing || isProcessing}
           className={`px-3 py-1 text-[10px] font-medium rounded transition-colors ${
             settings.enabled
-              ? "bg-primary text-white"
+              ? "bg-primary text-primary-foreground"
               : "bg-background-tertiary text-text-secondary hover:bg-background-secondary"
           }`}
         >

@@ -232,7 +232,7 @@ export const TourPopover: React.FC<TourPopoverProps> = ({
 
           <button
             onClick={onNext}
-            className="flex items-center gap-1 px-4 py-1.5 bg-primary text-white rounded-lg text-xs font-medium hover:bg-primary/80 transition-colors"
+            className="flex items-center gap-1 px-4 py-1.5 bg-primary text-primary-foreground rounded-lg text-xs font-medium hover:bg-primary/80 transition-colors"
           >
             {isLastStep ? "Get Started" : "Next"}
             {!isLastStep && <ChevronRight size={14} />}

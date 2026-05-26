@@ -586,7 +586,7 @@ export const AudioDuckingSection: React.FC<AudioDuckingSectionProps> = ({
                 <button
                   onClick={handleApplyDucking}
                   disabled={isApplying}
-                  className="w-full py-2.5 bg-primary hover:bg-primary-hover rounded-lg text-[11px] font-medium text-white flex items-center justify-center gap-2 transition-colors disabled:cursor-wait disabled:opacity-60"
+                  className="w-full py-2.5 bg-primary hover:bg-primary/80 rounded-lg text-[11px] font-medium text-white flex items-center justify-center gap-2 transition-colors disabled:cursor-wait disabled:opacity-60"
                 >
                   {isApplying ? (
                     <>

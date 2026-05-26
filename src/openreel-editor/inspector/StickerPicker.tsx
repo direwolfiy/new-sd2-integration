@@ -29,7 +29,7 @@ const CategoryTab: React.FC<{
  px-3 py-1.5 text-[10px] rounded-lg whitespace-nowrap transition-colors
  ${
    isActive
-     ? "bg-primary text-white font-medium"
+     ? "bg-primary text-primary-foreground font-medium"
      : "bg-background-tertiary text-text-secondary hover:text-text-primary hover:bg-background-secondary"
  }
  `}

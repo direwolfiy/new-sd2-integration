@@ -161,7 +161,7 @@ export const ProjectSwitcher: React.FC = () => {
                 />
                 <button
                   onClick={handleSaveName}
-                  className="p-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
+                  className="p-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/80 transition-colors"
                 >
                   <Check className="w-4 h-4" />
                 </button>

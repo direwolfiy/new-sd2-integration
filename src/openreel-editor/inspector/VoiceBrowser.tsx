@@ -124,7 +124,7 @@ export const VoiceBrowser: React.FC<VoiceBrowserProps> = ({
               onClick={() => onSelectVoice(voice.id)}
               className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] transition-colors ${
                 selectedVoice === voice.id
-                  ? "bg-primary text-white font-medium"
+                  ? "bg-primary text-primary-foreground font-medium"
                   : "bg-background-tertiary text-text-secondary hover:text-text-primary border border-border"
               }`}
             >
@@ -156,7 +156,7 @@ export const VoiceBrowser: React.FC<VoiceBrowserProps> = ({
                   onClick={() => onSelectVoice(fav.voiceId)}
                   className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] transition-colors ${
                     selectedVoice === fav.voiceId
-                      ? "bg-primary text-white font-medium"
+                      ? "bg-primary text-primary-foreground font-medium"
                       : "bg-background-tertiary text-text-secondary hover:text-text-primary border border-border"
                   }`}
                 >

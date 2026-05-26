@@ -450,7 +450,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
               onClick={() => setSelectedCategory(cat.id)}
               className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
                 selectedCategory === cat.id
-                  ? "bg-primary text-white"
+                  ? "bg-primary text-primary-foreground"
                   : "text-text-secondary hover:text-text-primary hover:bg-background-elevated"
               }`}
             >
@@ -488,7 +488,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
                     <div
                       className={`p-2 rounded-lg ${
                         index === selectedIndex
-                          ? "bg-primary text-white"
+                          ? "bg-primary text-primary-foreground"
                           : "bg-background-tertiary text-text-secondary"
                       }`}
                     >

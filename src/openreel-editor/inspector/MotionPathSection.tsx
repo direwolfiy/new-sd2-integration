@@ -209,7 +209,7 @@ export const MotionPathSection: React.FC<MotionPathSectionProps> = ({
                     onClick={() => handlePathTypeChange(type)}
                     className={`py-1.5 rounded text-[9px] capitalize transition-colors ${
                       pathType === type
-                        ? "bg-primary text-white"
+                        ? "bg-primary text-primary-foreground"
                         : "bg-background-elevated border border-border text-text-secondary hover:text-text-primary"
                     }`}
                   >
@@ -251,7 +251,7 @@ export const MotionPathSection: React.FC<MotionPathSectionProps> = ({
             onClick={handleEditMode}
             className={`w-full ${
               isEditing
-                ? "bg-primary text-white"
+                ? "bg-primary text-primary-foreground"
                 : "bg-background-tertiary text-text-primary border border-border hover:bg-background-elevated"
             }`}
             size="sm"

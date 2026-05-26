@@ -60,7 +60,7 @@ export const RecordingControls: React.FC<RecordingControlsProps> = ({
           {isPaused ? (
             <button
               onClick={onResume}
-              className="p-3 bg-primary hover:bg-primary-hover rounded-xl transition-colors"
+              className="p-3 bg-primary hover:bg-primary/80 rounded-xl transition-colors"
               title="Resume recording"
             >
               <Play size={20} className="text-white" />

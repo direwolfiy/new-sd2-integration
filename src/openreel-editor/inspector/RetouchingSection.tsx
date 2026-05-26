@@ -39,7 +39,7 @@ const ToolButton: React.FC<{
     <div
       className={`p-2 rounded-lg ${
         isActive
-          ? "bg-primary text-white"
+          ? "bg-primary text-primary-foreground"
           : "bg-background-secondary text-text-secondary"
       }`}
     >

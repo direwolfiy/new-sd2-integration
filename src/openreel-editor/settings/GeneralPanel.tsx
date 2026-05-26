@@ -141,7 +141,7 @@ export const GeneralPanel: React.FC = () => {
           </div>
           <button
             onClick={handleApplyCustom}
-            className="h-9 px-3 rounded-md bg-primary text-white text-xs font-medium hover:bg-primary/90 transition-colors"
+            className="h-9 px-3 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
           >
             Apply
           </button>

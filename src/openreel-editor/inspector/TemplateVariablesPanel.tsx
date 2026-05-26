@@ -425,7 +425,7 @@ export const TemplateVariablesPanel: React.FC<TemplateVariablesPanelProps> = ({
           disabled={!canApply}
           className={`w-full py-2 rounded-lg text-[11px] font-medium transition-all ${
             canApply
-              ? "bg-primary text-white hover:bg-primary/90"
+              ? "bg-primary text-primary-foreground hover:bg-primary/90"
               : "bg-background-tertiary text-text-muted cursor-not-allowed"
           }`}
         >
