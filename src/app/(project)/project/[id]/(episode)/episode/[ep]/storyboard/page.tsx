@@ -17,6 +17,7 @@ import { calcStoryboardCost } from "@/lib/pricing";
 import { episodesApi, shotsApi, useApi } from "@/lib/api";
 import { adaptShot } from "@/lib/adapters";
 import type { Shot } from "@/mocks/types";
+import type { SceneScriptItem } from "@/lib/api/types";
 import { useParams } from "next/navigation";
 
 const statusStyles = {
@@ -208,7 +209,9 @@ export default function StoryboardPage() {
     () => shotsApi.fetchChapterScripts(episodeId),
     [episodeId],
   );
-  const shots: Shot[] = (sceneScripts ?? []).map((item) => adaptShot(item, episodeId));
+  const rawScripts = sceneScripts ?? [];
+  const list: SceneScriptItem[] = Array.isArray(rawScripts) ? rawScripts : (rawScripts as { list?: SceneScriptItem[] }).list ?? [];
+  const shots: Shot[] = list.map((item) => adaptShot(item, episodeId));
 
   const hasScript = !!chapter?.chapterContent;
   const hasStoryboard = shots.length > 0;

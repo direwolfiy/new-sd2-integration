@@ -1,8 +1,8 @@
 import { get, post } from "./client";
-import type { SceneScriptItem } from "./types";
+import type { PageResult, SceneScriptItem } from "./types";
 
 export function fetchChapterScripts(chapterId: string) {
-  return get<SceneScriptItem[]>(`/novel-show/chapter/${chapterId}/scripts`);
+  return get<SceneScriptItem[] | PageResult<SceneScriptItem>>(`/novel-show/chapter/${chapterId}/scripts`);
 }
 
 export function generateImagePromptQueued(chapterId: string) {
