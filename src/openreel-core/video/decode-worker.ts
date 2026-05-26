@@ -49,14 +49,7 @@ async function loadMediaBunny(): Promise<typeof import("mediabunny") | null> {
     mediabunnyModule = await import("mediabunny");
     return mediabunnyModule;
   } catch {
-    try {
-      mediabunnyModule = (await import(
-        "https://esm.sh/mediabunny@1.25.3" as string
-      )) as typeof import("mediabunny");
-      return mediabunnyModule;
-    } catch {
-      return null;
-    }
+    return null;
   }
 }
 
@@ -236,7 +229,7 @@ async function loadMediaBunny() {
  return mediabunnyModule;
  } catch (error) {
  try {
- mediabunnyModule = await import("https://esm.sh/mediabunny@1.25.3");
+ mediabunnyModule = null;
  mediabunnyAvailable = true;
  return mediabunnyModule;
  } catch (cdnError) {

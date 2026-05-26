@@ -33,31 +33,8 @@ let loadPromise: Promise<WasmFFTExports | null> | null = null;
 let currentWasmSize = 0;
 
 async function loadWasmModule(): Promise<WasmFFTExports | null> {
-  if (typeof WebAssembly === "undefined") {
     return null;
   }
-
-  try {
-    const wasmUrl = new URL("./build/fft.wasm", import.meta.url);
-    const response = await fetch(wasmUrl);
-    if (!response.ok) {
-      return null;
-    }
-
-    const wasmBytes = await response.arrayBuffer();
-    const { instance } = await WebAssembly.instantiate(wasmBytes, {
-      env: {
-        abort: () => {
-          throw new Error("WASM abort");
-        },
-      },
-    });
-
-    return instance.exports as unknown as WasmFFTExports;
-  } catch {
-    return null;
-  }
-}
 
 export async function initWasmFFT(): Promise<boolean> {
   if (wasmModule) {

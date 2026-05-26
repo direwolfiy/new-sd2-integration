@@ -28,31 +28,8 @@ let wasmModule: WasmBeatDetectionExports | null = null;
 let loadPromise: Promise<WasmBeatDetectionExports | null> | null = null;
 
 async function loadWasmModule(): Promise<WasmBeatDetectionExports | null> {
-  if (typeof WebAssembly === "undefined") {
     return null;
   }
-
-  try {
-    const wasmUrl = new URL("./build/beat.wasm", import.meta.url);
-    const response = await fetch(wasmUrl);
-    if (!response.ok) {
-      return null;
-    }
-
-    const wasmBytes = await response.arrayBuffer();
-    const { instance } = await WebAssembly.instantiate(wasmBytes, {
-      env: {
-        abort: () => {
-          throw new Error("WASM abort");
-        },
-      },
-    });
-
-    return instance.exports as unknown as WasmBeatDetectionExports;
-  } catch {
-    return null;
-  }
-}
 
 export async function initWasmBeatDetection(): Promise<boolean> {
   if (wasmModule) {

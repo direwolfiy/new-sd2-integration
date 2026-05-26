@@ -13,7 +13,7 @@ import { HeaderUserArea } from "@/components/header-user-area";
 const stages = [
   { href: "/storyboard", label: "分镜", key: "storyboard", icon: LayoutGrid },
   { href: "/video", label: "视频", key: "video", icon: Film },
-  { href: "/export", label: "剪辑", key: "export", icon: Download },
+  { href: "/editor", label: "剪辑", key: "editor", icon: Download },
 ];
 
 export default function EpisodeLayout({

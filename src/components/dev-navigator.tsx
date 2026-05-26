@@ -135,13 +135,13 @@ const scenarios: { group: string; items: Scenario[] }[] = [
     items: [
       {
         state: "有视频 · 未导出",
-        path: "/project/proj-1/episode/ep-1-3/export",
+        path: "/project/proj-1/episode/ep-1-3/editor",
         hint: "导出配置与提交",
         project: "星辰之力",
       },
       {
         state: "已完成全流程",
-        path: "/project/proj-1/episode/ep-1-1/export",
+        path: "/project/proj-1/episode/ep-1-1/editor",
         hint: "导出完成 · 可回看",
         project: "初入秦村",
       },

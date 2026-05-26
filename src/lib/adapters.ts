@@ -48,7 +48,7 @@ export function adaptChapter(ch: ChapterItem, projectId: string): Episode {
       script: hasScript,
       storyboard: hasScript,
       video: hasVideo,
-      export: hasVideo && !!ch.subtitlesResultUrl,
+      editor: hasVideo && !!ch.subtitlesResultUrl,
     },
     duration: ch.videoDuration ? formatDuration(ch.videoDuration) : "—",
     lastEditedAt: ch.updatedTime ? formatRelativeTime(ch.updatedTime) : "",

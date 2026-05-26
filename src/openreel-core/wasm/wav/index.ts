@@ -32,31 +32,8 @@ let wasmModule: WasmWavExports | null = null;
 let loadPromise: Promise<WasmWavExports | null> | null = null;
 
 async function loadWasmModule(): Promise<WasmWavExports | null> {
-  if (typeof WebAssembly === "undefined") {
     return null;
   }
-
-  try {
-    const wasmUrl = new URL("./build/wav.wasm", import.meta.url);
-    const response = await fetch(wasmUrl);
-    if (!response.ok) {
-      return null;
-    }
-
-    const wasmBytes = await response.arrayBuffer();
-    const { instance } = await WebAssembly.instantiate(wasmBytes, {
-      env: {
-        abort: () => {
-          throw new Error("WASM abort");
-        },
-      },
-    });
-
-    return instance.exports as unknown as WasmWavExports;
-  } catch {
-    return null;
-  }
-}
 
 export async function initWasmWav(): Promise<boolean> {
   if (wasmModule) {

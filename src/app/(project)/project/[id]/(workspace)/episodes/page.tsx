@@ -21,7 +21,7 @@ const stageLabels = [
   { key: "script", label: "剧本", icon: FileText },
   { key: "storyboard", label: "分镜", icon: Image },
   { key: "video", label: "视频", icon: Film },
-  { key: "export", label: "导出", icon: Download },
+  { key: "editor", label: "剪辑", icon: Download },
 ] as const;
 
 function GridSkeleton() {

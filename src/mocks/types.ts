@@ -18,7 +18,7 @@ export interface Project {
   description: string;
 }
 
-export type EpisodeStage = "script" | "storyboard" | "video" | "export";
+export type EpisodeStage = "script" | "storyboard" | "video" | "editor";
 
 export interface Episode {
   id: string;
