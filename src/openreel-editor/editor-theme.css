@@ -1,0 +1,36 @@
+/* OpenReel dark theme — scoped to editor wrapper */
+.openreel-theme-dark {
+  /* shadcn/ui standard variables */
+  --background: 240 6% 6%;
+  --foreground: 0 0% 95%;
+  --card: 240 6% 10%;
+  --card-foreground: 0 0% 95%;
+  --popover: 240 6% 10%;
+  --popover-foreground: 0 0% 95%;
+  --primary: 142 71% 45%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 240 4% 16%;
+  --secondary-foreground: 0 0% 95%;
+  --muted: 240 4% 16%;
+  --muted-foreground: 240 5% 65%;
+  --accent: 240 4% 16%;
+  --accent-foreground: 0 0% 95%;
+  --destructive: 0 62% 50%;
+  --destructive-foreground: 0 0% 95%;
+  --border: 240 4% 20%;
+  --input: 240 4% 20%;
+  --ring: 142 71% 45%;
+  --radius: 0.5rem;
+
+  /* OpenReel custom variables */
+  --color-background: 15 15 17;
+  --color-background-secondary: 24 24 27;
+  --color-background-tertiary: 39 39 42;
+  --color-background-elevated: 63 63 70;
+  --color-text-primary: 244 244 245;
+  --color-text-secondary: 161 161 170;
+  --color-text-muted: 113 113 122;
+  --color-border: 39 39 42;
+  --color-border-hover: 63 63 70;
+  --color-border-active: 82 82 91;
+}

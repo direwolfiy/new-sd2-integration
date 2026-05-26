@@ -299,7 +299,7 @@ export const AudioTextSyncPanel: React.FC<BeatSyncPanelProps> = ({ clipId }) => 
           <Button
             onClick={handleApply}
             disabled={isProcessing || previewTimings.length === 0}
-            className="w-full bg-primary hover:bg-primary/80 text-black disabled:opacity-50"
+            className="w-full bg-primary hover:bg-primary-hover text-black disabled:opacity-50"
           >
             {isProcessing ? (
               <>

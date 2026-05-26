@@ -67,7 +67,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                 onClick={() => setElevenLabsModel(fav.modelId)}
                 className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] transition-colors ${
                   elevenLabsModel === fav.modelId
-                    ? "bg-primary text-primary-foreground font-medium"
+                    ? "bg-primary text-white font-medium"
                     : "bg-background-tertiary text-text-secondary hover:text-text-primary border border-border"
                 }`}
               >

@@ -415,7 +415,7 @@ export const MultiCameraPanel: React.FC<MultiCameraPanelProps> = () => {
               disabled={selectedClips.length < 2}
               className={`w-full flex items-center justify-center gap-2 py-2 text-[10px] rounded-lg transition-colors ${
                 selectedClips.length >= 2
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                  ? "bg-primary text-white hover:bg-primary/90"
                   : "bg-background-tertiary text-text-muted cursor-not-allowed"
               }`}
             >

@@ -368,7 +368,7 @@ export const CropModeView: React.FC<CropModeViewProps> = ({
                 disabled={isLoading}
                 className={`px-2.5 py-1 text-xs rounded transition-colors ${
                   lockedAspect === ratio.value
-                    ? "bg-primary text-primary-foreground font-medium"
+                    ? "bg-primary text-white font-medium"
                     : "bg-background-tertiary text-text-secondary hover:bg-background-secondary"
                 }`}
               >

@@ -296,7 +296,7 @@ export const AutoEditPanel: React.FC<AutoEditPanelProps> = ({ onClose }) => {
               </div>
               <button
                 onClick={handleApply}
-                className="w-full py-2 text-[10px] font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                className="w-full py-2 text-[10px] font-medium bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
               >
                 Apply Auto-Edit
               </button>

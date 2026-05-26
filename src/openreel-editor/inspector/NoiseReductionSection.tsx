@@ -798,7 +798,7 @@ export const NoiseReductionSection: React.FC<NoiseReductionSectionProps> = ({
               <button
                 onClick={handleApplyRecommendation}
                 disabled={learningState === "applying"}
-                className="w-full rounded-lg bg-primary px-3 py-2 text-[10px] font-medium text-white transition-colors hover:bg-primary/80 disabled:cursor-wait disabled:opacity-70"
+                className="w-full rounded-lg bg-primary px-3 py-2 text-[10px] font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-wait disabled:opacity-70"
               >
                 {learningState === "applying" ? "Applying..." : "Apply Recommended Cleanup"}
               </button>

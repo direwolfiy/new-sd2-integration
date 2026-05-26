@@ -318,7 +318,7 @@ export const MotionTrackingSection: React.FC<MotionTrackingSectionProps> = ({
 
           <button
             onClick={handleStartTracking}
-            className="w-full py-2.5 bg-primary hover:bg-primary/80 rounded-lg text-[11px] font-medium text-white flex items-center justify-center gap-2 transition-colors"
+            className="w-full py-2.5 bg-primary hover:bg-primary-hover rounded-lg text-[11px] font-medium text-white flex items-center justify-center gap-2 transition-colors"
           >
             <Target size={14} />
             Start Tracking

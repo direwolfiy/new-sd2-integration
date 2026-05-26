@@ -54,7 +54,7 @@ export const AudioResult: React.FC<AudioResultProps> = ({
         <button
           onClick={onSaveToMedia}
           disabled={isGenerating}
-          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground rounded-lg text-[10px] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-primary text-white rounded-lg text-[10px] font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
         >
           <FolderPlus size={12} />
           Save to Media

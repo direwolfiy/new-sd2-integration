@@ -332,7 +332,7 @@ export const RecipesTab: React.FC = () => {
                             <button
                               onClick={() => void handleApply(template)}
                               disabled={applyingTemplateId !== null}
-                              className="h-6 px-3 bg-primary text-black text-[10px] font-bold rounded transition-colors hover:bg-primary/80 disabled:opacity-50"
+                              className="h-6 px-3 bg-primary text-black text-[10px] font-bold rounded transition-colors hover:bg-primary-hover disabled:opacity-50"
                             >
                               {applyingTemplateId === template.id ? "Applying" : "Apply"}
                             </button>

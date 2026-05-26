@@ -165,7 +165,7 @@ export const SpeedSection: React.FC<SpeedSectionProps> = ({ clip }) => {
             onClick={() => handleSpeedPreset(preset.value)}
             className={`px-3 py-2 text-xs font-medium rounded-lg transition-all ${
               currentSpeed === preset.value
-                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                ? "bg-primary text-white shadow-lg shadow-primary/20"
                 : "bg-background-tertiary hover:bg-background-elevated text-text-secondary hover:text-text-primary border border-border"
             }`}
           >
@@ -219,7 +219,7 @@ export const SpeedSection: React.FC<SpeedSectionProps> = ({ clip }) => {
         onClick={handleToggleReverse}
         className={`w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${
           isReversed
-            ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+            ? "bg-primary text-white shadow-lg shadow-primary/20"
             : "bg-background-tertiary hover:bg-background-elevated text-text-secondary hover:text-text-primary border border-border"
         }`}
       >

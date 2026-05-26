@@ -167,7 +167,7 @@ export const TextToSpeechPanel: React.FC = () => {
                 }}
                 className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] transition-colors ${
                   provider === p.id
-                    ? "bg-primary text-primary-foreground font-medium"
+                    ? "bg-primary text-white font-medium"
                     : isDisabled
                       ? "bg-background-tertiary text-text-muted border border-border opacity-60 cursor-default"
                       : "bg-background-tertiary text-text-secondary hover:text-text-primary border border-border"
@@ -286,7 +286,7 @@ export const TextToSpeechPanel: React.FC = () => {
       <button
         onClick={generateSpeech}
         disabled={isGenerating || !text.trim() || (provider === "elevenlabs" && !selectedVoice) || (enhanceText && provider === "elevenlabs" && !enhancedPreview)}
-        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-[11px] font-medium transition-all hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white rounded-lg text-[11px] font-medium transition-all hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isGenerating ? (
           <><Loader2 size={14} className="animate-spin" /> Generating...</>

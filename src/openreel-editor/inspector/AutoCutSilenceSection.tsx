@@ -253,7 +253,7 @@ export const AutoCutSilenceSection: React.FC<AutoCutSilenceSectionProps> = ({
             className={`flex-1 py-2 rounded text-[11px] font-medium transition-colors flex items-center justify-center gap-2 ${
               analysisResult
                 ? "bg-background-secondary hover:bg-background-primary border border-border text-text-primary"
-                : "bg-primary hover:bg-primary/80 disabled:bg-primary/50 text-white"
+                : "bg-primary hover:bg-primary-hover disabled:bg-primary/50 text-white"
             }`}
           >
             {isAnalyzing ? (
@@ -273,7 +273,7 @@ export const AutoCutSilenceSection: React.FC<AutoCutSilenceSectionProps> = ({
             <button
               onClick={handleCutSilence}
               disabled={isCutting}
-              className="flex-1 py-2 bg-primary hover:bg-primary/80 disabled:bg-primary/50 text-white rounded text-[11px] font-medium transition-colors flex items-center justify-center gap-2"
+              className="flex-1 py-2 bg-primary hover:bg-primary-hover disabled:bg-primary/50 text-white rounded text-[11px] font-medium transition-colors flex items-center justify-center gap-2"
             >
               {isCutting ? (
                 <>

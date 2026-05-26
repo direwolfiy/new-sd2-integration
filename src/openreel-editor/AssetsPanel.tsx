@@ -1081,7 +1081,7 @@ export const AssetsPanel: React.FC = () => {
                           onClick={() => setBackgroundCategory(cat)}
                           className={`px-2.5 py-1 text-[10px] rounded-md transition-all ${
                             backgroundCategory === cat
-                              ? "bg-primary text-primary-foreground"
+                              ? "bg-primary text-white"
                               : "bg-background-tertiary text-text-muted hover:text-text-secondary"
                           }`}
                         >

@@ -356,7 +356,7 @@ export const AutoReframeSection: React.FC<AutoReframeSectionProps> = ({
         <button
           onClick={handleAnalyze}
           disabled={isInitializing || isProcessing}
-          className="w-full py-2 rounded text-[11px] font-medium transition-colors flex items-center justify-center gap-2 bg-primary hover:bg-primary/80 disabled:bg-primary/50 text-white"
+          className="w-full py-2 rounded text-[11px] font-medium transition-colors flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover disabled:bg-primary/50 text-white"
         >
           {isInitializing || isProcessing ? (
             <>

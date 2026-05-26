@@ -70,7 +70,7 @@ export const MarkersPanel: React.FC = () => {
         </div>
         <button
           onClick={handleAddMarker}
-          className="flex items-center gap-1 px-2 py-1 bg-primary hover:bg-primary/80 text-white rounded text-xs transition-colors"
+          className="flex items-center gap-1 px-2 py-1 bg-primary hover:bg-primary-hover text-white rounded text-xs transition-colors"
         >
           <Plus size={12} />
           Add

@@ -5986,7 +5986,7 @@ export const Preview: React.FC = () => {
               <button
                 className={`absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 text-[10px] rounded pointer-events-auto transition-colors ${
                   lockAspectRatio
-                    ? "bg-primary text-primary-foreground"
+                    ? "bg-primary text-white"
                     : "bg-background-tertiary text-text-secondary border border-border hover:bg-background-elevated"
                 }`}
                 onClick={() => setLockAspectRatio(!lockAspectRatio)}
@@ -6296,7 +6296,7 @@ export const Preview: React.FC = () => {
             className={`w-10 h-10 rounded-full flex items-center justify-center text-white transition-all ${
               playbackLockedReason
                 ? "bg-background-tertiary text-text-muted cursor-not-allowed shadow-none"
-                : "bg-primary hover:bg-primary/80 shadow-[0_0_15px_rgba(34,197,94,0.4)] hover:shadow-[0_0_25px_rgba(34,197,94,0.6)] transform hover:scale-105"
+                : "bg-primary hover:bg-primary-hover active:bg-primary-active shadow-[0_0_15px_rgba(34,197,94,0.4)] hover:shadow-[0_0_25px_rgba(34,197,94,0.6)] transform hover:scale-105"
             }`}
           >
             {isPlaying ? (

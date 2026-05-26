@@ -251,7 +251,7 @@ export const ColorGradingSection: React.FC<ColorGradingSectionProps> = ({
                     onClick={() => handleWhiteBalancePreset(preset)}
                     className={`py-1 rounded text-[9px] transition-colors ${
                       isActive
-                        ? "bg-primary text-primary-foreground"
+                        ? "bg-primary text-white"
                         : "bg-background-tertiary border border-border text-text-secondary hover:text-text-primary"
                     }`}
                     title={`Temp: ${preset.temperature}, Tint: ${preset.tint}`}

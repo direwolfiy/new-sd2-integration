@@ -1335,7 +1335,7 @@ export const InspectorPanel: React.FC = () => {
                             }
                             className={`py-1.5 rounded text-[9px] capitalize transition-colors ${
                               (transform.fitMode || "none") === mode
-                                ? "bg-primary text-primary-foreground"
+                                ? "bg-primary text-white"
                                 : "bg-background-tertiary border border-border text-text-secondary hover:text-text-primary"
                             }`}
                           >
@@ -1867,7 +1867,7 @@ export const InspectorPanel: React.FC = () => {
                     }
                     className={`py-1.5 rounded text-[10px] capitalize transition-colors ${
                       (selectedSubtitle.style?.position || "bottom") === pos
-                        ? "bg-primary text-primary-foreground"
+                        ? "bg-primary text-white"
                         : "bg-background-tertiary border border-border text-text-secondary hover:text-text-primary"
                     }`}
                   >
