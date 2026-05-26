@@ -25,6 +25,18 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@openreel/core": [
+        "./src/openreel-core/index.ts"
+      ],
+      "@openreel/core/*": [
+        "./src/openreel-core/*"
+      ],
+      "@openreel/ui": [
+        "./src/openreel-ui/index.ts"
+      ],
+      "@openreel/ui/*": [
+        "./src/openreel-ui/*"
       ]
     }
   },
