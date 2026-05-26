@@ -1,31 +1,23 @@
 import React, { useCallback, useState, useEffect } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import {
-  Search,
-  Command,
   ChevronDown,
   FileVideo,
   Film,
   Music,
-  Sun,
-  Moon,
-  SunMoon,
   Loader2,
   X,
   Check,
   FileCode,
   Settings,
   Zap,
-  Circle,
   History,
-  HelpCircle,
   Diamond,
-  Sparkles,
-  Play,
+  ArrowLeft,
 } from "lucide-react";
 import { useProjectStore } from "../openreel-stores/project-store";
 import { useUIStore } from "../openreel-stores/ui-store";
-import { useThemeStore } from "../openreel-stores/theme-store";
-import { useRouter } from "../openreel-hooks/use-router";
 import {
   getExportEngine,
   getDeviceProfile,
@@ -37,14 +29,10 @@ import {
   type TimeEstimate,
 } from "@openreel/core";
 import { ExportDialog } from "./ExportDialog";
-import { ScreenRecorder } from "./ScreenRecorder";
 import { HistoryPanel } from "./inspector/HistoryPanel";
-import { ProjectSwitcher } from "./ProjectSwitcher";
 import { SettingsDialog } from "./settings/SettingsDialog";
-import { toast } from "../openreel-stores/notification-store";
 import { useSettingsStore } from "../openreel-stores/settings-store";
 import { useAnalytics, AnalyticsEvents } from "../openreel-hooks/useAnalytics";
-import { startTour, ONBOARDING_KEY, startMoGraphTour, MOGRAPH_TOUR_KEY } from "./tour";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -80,40 +68,23 @@ interface ExportState {
 export const Toolbar: React.FC = () => {
   const { project } = useProjectStore();
   const {
-    openModal,
-    selectedItems,
     setExportState: setGlobalExportState,
     keyframeEditorOpen,
     toggleKeyframeEditor,
     panels,
     togglePanel,
   } = useUIStore();
-  const { mode: themeMode, toggleTheme } = useThemeStore();
-  const { navigate } = useRouter();
+  const params = useParams<{ id: string; ep: string }>();
   const { openSettings } = useSettingsStore();
+  const projectId = params.id;
+  const episodeId = params.ep;
+  const basePath = `/project/${projectId}/episode/${episodeId}`;
+
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
-  const [isRecorderOpen, setIsRecorderOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const { importMedia } = useProjectStore();
   const { track } = useAnalytics();
 
-  const handleStartTour = useCallback(() => {
-    localStorage.removeItem(ONBOARDING_KEY);
-    startTour();
-  }, []);
-
-  const handleStartMoGraphTour = useCallback(() => {
-    localStorage.removeItem(MOGRAPH_TOUR_KEY);
-    startMoGraphTour();
-  }, []);
-
-  const hasSelectedClip = selectedItems.some(
-    (item) =>
-      item.type === "clip" ||
-      item.type === "text-clip" ||
-      item.type === "shape-clip",
-  );
   const [exportState, setExportState] = useState<ExportState>({
     isExporting: false,
     progress: 0,
@@ -169,10 +140,6 @@ export const Toolbar: React.FC = () => {
 
     setExportEstimates(estimates);
   }, [deviceProfile, project.timeline?.duration, project.settings.width, project.settings.height]);
-
-  const handleSearch = useCallback(() => {
-    openModal("search");
-  }, [openModal]);
 
   const runExport = useCallback(
     async (videoSettings: Partial<VideoExportSettings>, _ext: string, writableStream: FileSystemWritableFileStream) => {
@@ -478,64 +445,6 @@ export const Toolbar: React.FC = () => {
     [project, track, runExport, showSavePicker],
   );
 
-
-  const handleRecordingComplete = useCallback(
-    async (screenBlob: Blob, webcamBlob?: Blob) => {
-      if (!screenBlob || screenBlob.size === 0) {
-        toast.error(
-          "Recording failed",
-          "No video data was captured. Please try again.",
-        );
-        return;
-      }
-
-      const timestamp = new Date()
-        .toISOString()
-        .slice(0, 19)
-        .replace(/[:-]/g, "");
-      let importCount = 0;
-      const errors: string[] = [];
-
-      const screenFile = new File([screenBlob], `Screen_${timestamp}.webm`, {
-        type: screenBlob.type || "video/webm",
-      });
-      const screenResult = await importMedia(screenFile);
-      if (screenResult.success) {
-        importCount++;
-      } else {
-        errors.push(
-          screenResult.error?.message || "Failed to import screen recording",
-        );
-      }
-
-      if (webcamBlob && webcamBlob.size > 0) {
-        const webcamFile = new File([webcamBlob], `Webcam_${timestamp}.webm`, {
-          type: webcamBlob.type || "video/webm",
-        });
-        const webcamResult = await importMedia(webcamFile);
-        if (webcamResult.success) {
-          importCount++;
-        } else {
-          errors.push(
-            webcamResult.error?.message || "Failed to import webcam recording",
-          );
-        }
-      }
-
-      if (importCount > 0) {
-        toast.success(
-          `${importCount} recording${importCount > 1 ? "s" : ""} imported!`,
-          webcamBlob && webcamBlob.size > 0
-            ? "Screen and webcam added to assets. Use the timeline to composite them."
-            : "Screen recording added to assets.",
-        );
-      } else if (errors.length > 0) {
-        toast.error("Import failed", errors.join(". "));
-      }
-    },
-    [importMedia],
-  );
-
   const projectRes = `${project.settings.width}×${project.settings.height}`;
   const aspectRatio = project.settings.width / project.settings.height;
   const isVertical = aspectRatio < 0.9;
@@ -593,205 +502,31 @@ export const Toolbar: React.FC = () => {
   ];
 
   return (
-    <div className="h-16 border-b border-border flex items-center px-6 justify-between bg-background shrink-0 z-30 relative">
-      <div className="flex items-center gap-4">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={() => navigate("welcome")}
-              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-              title="Back to Home"
-            >
-              <div className="w-8 h-8 group">
-                <svg
-                  viewBox="0 0 490 490"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-full h-full text-primary group-hover:scale-110 transition-transform duration-300"
-                >
-                  <path
-                    d="M245 24.5C123.223 24.5 24.5 123.223 24.5 245s98.723 220.5 220.5 220.5 220.5-98.723 220.5-220.5S366.777 24.5 245 24.5Z"
-                    stroke="currentColor"
-                    strokeWidth="30.625"
-                    className="opacity-100"
-                  />
-                  <g className="origin-center group-hover:rotate-90 transition-transform duration-500 ease-out">
-                    <path
-                      d="M245 98v73.5"
-                      stroke="currentColor"
-                      strokeWidth="24.5"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M392 245h-73.5"
-                      stroke="currentColor"
-                      strokeWidth="24.5"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M245 392v-73.5"
-                      stroke="currentColor"
-                      strokeWidth="24.5"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="M98 245h73.5"
-                      stroke="currentColor"
-                      strokeWidth="24.5"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="m348.941 141.059-51.965 51.965"
-                      stroke="currentColor"
-                      strokeWidth="24.5"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="m348.941 348.941-51.965-51.965"
-                      stroke="currentColor"
-                      strokeWidth="24.5"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="m141.059 348.941 51.965-51.965"
-                      stroke="currentColor"
-                      strokeWidth="24.5"
-                      strokeLinecap="round"
-                    />
-                    <path
-                      d="m141.059 141.059 51.965 51.965"
-                      stroke="currentColor"
-                      strokeWidth="24.5"
-                      strokeLinecap="round"
-                    />
-                  </g>
-                  <path
-                    d="M294 245a49 49 0 0 1-49 49 49 49 0 0 1-49-49 49 49 0 0 1 98 0"
-                    fill="currentColor"
-                    className="group-hover:fill-white transition-colors duration-300"
-                  />
-                </svg>
-              </div>
-              <span className="text-lg font-medium text-text-primary tracking-wide hidden lg:block">
-                Open Reel
-              </span>
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>Back to Home</TooltipContent>
-        </Tooltip>
-        <div className="h-6 w-px bg-border hidden md:block" />
-        <ProjectSwitcher />
-      </div>
-
-      <div className="flex-1 max-w-2xl mx-12 relative group">
-        <div
-          className={`absolute inset-0 bg-primary/20 rounded-xl blur-md transition-opacity duration-300 ${
-            hasSelectedClip
-              ? "opacity-100 animate-pulse"
-              : "opacity-0 group-hover:opacity-100"
-          }`}
-        />
-        <button
-          onClick={handleSearch}
-          className={`relative w-full bg-background-secondary border rounded-xl h-10 flex items-center px-4 gap-3 transition-all text-left shadow-inner ${
-            hasSelectedClip
-              ? "border-primary/50 ring-1 ring-primary/30"
-              : "border-border group-hover:border-primary/50"
-          }`}
+    <div className="h-12 border-b border-border flex items-center px-4 justify-between bg-background shrink-0 z-30 relative">
+      {/* Left: back to video */}
+      <div className="flex items-center gap-3">
+        <Link
+          href={`${basePath}/video`}
+          className="flex items-center gap-1.5 text-text-muted hover:text-text-primary transition-colors text-xs"
         >
-          <Search
-            size={16}
-            className={`transition-colors ${
-              hasSelectedClip
-                ? "text-primary"
-                : "text-text-muted group-hover:text-primary"
-            }`}
-          />
-          <span
-            className={`flex-1 text-sm transition-colors ${
-              hasSelectedClip
-                ? "text-text-secondary"
-                : "text-text-muted group-hover:text-text-secondary"
-            }`}
-          >
-            {hasSelectedClip
-              ? "Search effects for selected clip..."
-              : "Search tools, effects, or ask AI..."}
-          </span>
-          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded border border-border bg-background-tertiary">
-            <Command size={10} className="text-text-muted" />
-            <span className="text-[10px] text-text-muted font-mono">K</span>
-          </div>
-        </button>
+          <ArrowLeft size={14} strokeWidth={2} />
+          <span>返回视频制作</span>
+        </Link>
       </div>
 
-      <div className="flex items-center gap-4">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className="p-2 rounded-lg hover:bg-background-elevated text-text-secondary hover:text-text-primary transition-colors"
-            >
-              <HelpCircle size={16} />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem onClick={handleStartTour} className="gap-2">
-              <Play size={14} />
-              <span>Editor Tour</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleStartMoGraphTour} className="gap-2">
-              <Sparkles size={14} className="text-purple-400" />
-              <span>Animation & Effects Tour</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="gap-2 text-text-muted">
-              <Command size={14} />
-              <span>Press ? for shortcuts</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      {/* spacer */}
+      <div className="flex-1" />
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg hover:bg-background-elevated text-text-secondary hover:text-text-primary transition-colors"
-            >
-              {themeMode === "light" ? (
-                <Sun size={16} />
-              ) : themeMode === "dark" ? (
-                <Moon size={16} />
-              ) : (
-                <SunMoon size={16} />
-              )}
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Theme: {themeMode}</p>
-          </TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={() => openSettings()}
-              className="p-2 rounded-lg hover:bg-background-elevated text-text-secondary hover:text-text-primary transition-colors"
-            >
-              <Settings size={16} />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Settings & API Keys</p>
-          </TooltipContent>
-        </Tooltip>
-
+      {/* Right: editor tools + export */}
+      <div className="flex items-center gap-2">
+        {/* Project JSON */}
         <Tooltip>
           <TooltipTrigger asChild>
             <button
               onClick={() => useUIStore.getState().openModal("scriptView")}
-              className="p-2 rounded-lg hover:bg-background-elevated text-text-secondary hover:text-text-primary transition-colors"
+              className="p-1.5 rounded-lg hover:bg-background-elevated text-text-secondary hover:text-text-primary transition-colors"
             >
-              <FileCode size={16} />
+              <FileCode size={15} />
             </button>
           </TooltipTrigger>
           <TooltipContent>
@@ -799,17 +534,33 @@ export const Toolbar: React.FC = () => {
           </TooltipContent>
         </Tooltip>
 
+        {/* Settings */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() => openSettings()}
+              className="p-1.5 rounded-lg hover:bg-background-elevated text-text-secondary hover:text-text-primary transition-colors"
+            >
+              <Settings size={15} />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Settings & API Keys</p>
+          </TooltipContent>
+        </Tooltip>
+
+        {/* Keyframe editor */}
         <Tooltip>
           <TooltipTrigger asChild>
             <button
               onClick={toggleKeyframeEditor}
-              className={`p-2 rounded-lg transition-colors ${
+              className={`p-1.5 rounded-lg transition-colors ${
                 keyframeEditorOpen
                   ? "bg-primary/20 text-primary"
                   : "hover:bg-background-elevated text-text-secondary hover:text-text-primary"
               }`}
             >
-              <Diamond size={16} />
+              <Diamond size={15} />
             </button>
           </TooltipTrigger>
           <TooltipContent>
@@ -817,35 +568,37 @@ export const Toolbar: React.FC = () => {
           </TooltipContent>
         </Tooltip>
 
+        {/* Audio mixer */}
         <Tooltip>
           <TooltipTrigger asChild>
             <button
               onClick={() => togglePanel("audioMixer")}
-              className={`p-2 rounded-lg transition-colors ${
+              className={`p-1.5 rounded-lg transition-colors ${
                 panels.audioMixer?.visible
                   ? "bg-primary/20 text-primary"
                   : "hover:bg-background-elevated text-text-secondary hover:text-text-primary"
               }`}
             >
-              <Music size={16} />
+              <Music size={15} />
             </button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Audio Mixer – track volume and master level</p>
+            <p>Audio Mixer</p>
           </TooltipContent>
         </Tooltip>
 
+        {/* History */}
         <Tooltip>
           <TooltipTrigger asChild>
             <button
               onClick={() => setIsHistoryOpen(!isHistoryOpen)}
-              className={`p-2 rounded-lg transition-colors ${
+              className={`p-1.5 rounded-lg transition-colors ${
                 isHistoryOpen
                   ? "bg-primary/20 text-primary"
                   : "hover:bg-background-elevated text-text-secondary hover:text-text-primary"
               }`}
             >
-              <History size={16} />
+              <History size={15} />
             </button>
           </TooltipTrigger>
           <TooltipContent>
@@ -853,30 +606,16 @@ export const Toolbar: React.FC = () => {
           </TooltipContent>
         </Tooltip>
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={() => setIsRecorderOpen(true)}
-              className="flex items-center gap-2 px-3 py-2 bg-error/10 hover:bg-error/20 text-error rounded-lg transition-colors"
-            >
-              <Circle size={14} className="fill-current" />
-              <span className="text-sm font-medium">Record</span>
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Screen Recording</p>
-          </TooltipContent>
-        </Tooltip>
-
+        {/* Export */}
         <div className="relative">
           {exportState.isExporting ? (
-            <div className="h-10 px-4 bg-background-secondary border border-border rounded-lg flex items-center gap-3 min-w-[200px]">
-              <Loader2 size={14} className="text-primary animate-spin" />
+            <div className="h-8 px-3 bg-background-secondary border border-border rounded-lg flex items-center gap-2 min-w-[180px]">
+              <Loader2 size={12} className="text-primary animate-spin" />
               <div className="flex-1">
-                <div className="text-[10px] text-text-secondary">
+                <div className="text-[9px] text-text-secondary">
                   {exportState.phase}
                 </div>
-                <div className="h-1 bg-background-tertiary rounded-full mt-1 overflow-hidden">
+                <div className="h-1 bg-background-tertiary rounded-full mt-0.5 overflow-hidden">
                   <div
                     className="h-full bg-primary transition-all duration-200"
                     style={{ width: `${exportState.progress}%` }}
@@ -885,39 +624,39 @@ export const Toolbar: React.FC = () => {
               </div>
               <button
                 onClick={handleCancelExport}
-                className="p-1 hover:bg-background-tertiary rounded text-text-muted hover:text-error transition-colors"
+                className="p-0.5 hover:bg-background-tertiary rounded text-text-muted hover:text-error transition-colors"
               >
-                <X size={12} />
+                <X size={11} />
               </button>
             </div>
           ) : exportState.error ? (
-            <div className="h-10 px-4 bg-error/10 border border-error/30 rounded-lg flex items-center gap-2">
+            <div className="h-8 px-3 bg-error/10 border border-error/30 rounded-lg flex items-center gap-2">
               <span className="text-xs text-error">{exportState.error}</span>
               <button
                 onClick={() =>
                   setExportState((prev) => ({ ...prev, error: null }))
                 }
-                className="p-1 hover:bg-error/20 rounded text-error transition-colors"
+                className="p-0.5 hover:bg-error/20 rounded text-error transition-colors"
               >
-                <X size={12} />
+                <X size={11} />
               </button>
             </div>
           ) : exportState.complete ? (
-            <div className="h-10 px-4 bg-primary/10 border border-primary/30 rounded-lg flex items-center gap-2">
-              <Check size={14} className="text-primary" />
+            <div className="h-8 px-3 bg-primary/10 border border-primary/30 rounded-lg flex items-center gap-1.5">
+              <Check size={12} className="text-primary" />
               <span className="text-xs text-primary">Downloaded!</span>
             </div>
           ) : (
             <DropdownMenu open={isExportOpen} onOpenChange={setIsExportOpen}>
               <DropdownMenuTrigger asChild>
                 <button
-                  className={`h-10 px-4 bg-primary hover:bg-primary-hover active:bg-primary-active text-white font-bold rounded-lg flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(34,197,94,0.3)] hover:shadow-[0_0_30px_rgba(34,197,94,0.5)] transform hover:-translate-y-0.5 ${
+                  className={`h-8 px-3 bg-primary hover:bg-primary-hover active:bg-primary-active text-white font-bold rounded-lg flex items-center gap-1.5 transition-all shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:shadow-[0_0_25px_rgba(34,197,94,0.5)] transform hover:-translate-y-0.5 text-xs ${
                     isExportOpen ? "translate-y-0 shadow-none" : ""
                   }`}
                 >
-                  <span className="text-sm tracking-wider">EXPORT</span>
+                  <span className="tracking-wider">导出</span>
                   <ChevronDown
-                    size={14}
+                    size={12}
                     className={`transition-transform duration-200 ${
                       isExportOpen ? "rotate-180" : ""
                     }`}
@@ -1017,12 +756,6 @@ export const Toolbar: React.FC = () => {
         projectHeight={project.settings?.height ?? 1080}
       />
 
-      <ScreenRecorder
-        isOpen={isRecorderOpen}
-        onClose={() => setIsRecorderOpen(false)}
-        onRecordingComplete={handleRecordingComplete}
-      />
-
       <SettingsDialog />
 
       {isHistoryOpen && (
@@ -1031,7 +764,7 @@ export const Toolbar: React.FC = () => {
             className="fixed inset-0 bg-black/20 z-40"
             onClick={() => setIsHistoryOpen(false)}
           />
-          <div className="fixed top-16 right-0 bottom-0 w-80 bg-background-secondary border-l border-border z-50 shadow-2xl animate-in slide-in-from-right duration-200">
+          <div className="fixed top-12 right-0 bottom-0 w-80 bg-background-secondary border-l border-border z-50 shadow-2xl animate-in slide-in-from-right duration-200">
             <div className="flex items-center justify-between p-3 border-b border-border">
               <span className="text-sm font-medium text-text-primary">Action History</span>
               <button

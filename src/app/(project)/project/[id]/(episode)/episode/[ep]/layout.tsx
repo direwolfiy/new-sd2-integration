@@ -52,9 +52,11 @@ export default function EpisodeLayout({
   }
 
   const workshopActive = pathname === `${basePath}/workshop`;
+  const isEditorPage = pathname.startsWith(`${basePath}/editor`);
 
   return (
     <div className="flex flex-col h-full">
+      {!isEditorPage && (
       <header className="h-14 shrink-0 flex items-center px-4 border-b border-white/[0.06] bg-[#0a0a0a] relative">
         <div className="flex items-center gap-3">
           <Link
@@ -119,7 +121,8 @@ export default function EpisodeLayout({
         </div>
         <HeaderUserArea />
       </header>
-      <main className="flex-1 overflow-auto bg-[#0a0a0a]">{children}</main>
+      )}
+      <main className={`flex-1 bg-[#0a0a0a] ${isEditorPage ? "overflow-hidden" : "overflow-auto"}`}>{children}</main>
       <ScriptOverlay open={scriptOpen} onClose={() => setScriptOpen(false)} script={script} />
     </div>
   );
