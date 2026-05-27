@@ -541,29 +541,18 @@ const MediaThumbnail: React.FC<{
 const downloadingSet = new Set<string>();
 
 async function downloadShotBlob(item: MediaItem): Promise<void> {
-  if (!item.originalUrl) return;
+  if (!item.originalUrl || item.blob) return;
   if (downloadingSet.has(item.id)) return;
-
-  // Already fully processed — has blob and waveform data
-  if (item.blob && item.waveformData != null) return;
 
   downloadingSet.add(item.id);
 
   try {
-    let file: File;
-
-    if (item.blob) {
-      // Blob cached but no waveform (old data before FFmpeg fix).
-      // Re-run replaceMediaAsset to generate metadata + waveform.
-      file = new File([item.blob], `${item.name}.mp4`, { type: item.blob.type || "video/mp4" });
-    } else {
-      const proxyUrl = `/api/video-proxy?url=${encodeURIComponent(item.originalUrl)}`;
-      const response = await fetch(proxyUrl);
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const blob = await response.blob();
-      const ext = item.originalUrl.split(".").pop()?.replace(/[?#].*$/, "") ?? "mp4";
-      file = new File([blob], `${item.name}.${ext}`, { type: blob.type || `video/${ext}` });
-    }
+    const proxyUrl = `/api/video-proxy?url=${encodeURIComponent(item.originalUrl)}`;
+    const response = await fetch(proxyUrl);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const blob = await response.blob();
+    const ext = item.originalUrl.split(".").pop()?.replace(/[?#].*$/, "") ?? "mp4";
+    const file = new File([blob], `${item.name}.${ext}`, { type: blob.type || `video/${ext}` });
 
     const result = await useProjectStore.getState().replaceMediaAsset(item.id, file);
     if (!result.success) {
