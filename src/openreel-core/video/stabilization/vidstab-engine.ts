@@ -6,6 +6,7 @@ type FFmpegInstance = {
     coreURL?: string;
     wasmURL?: string;
     workerURL?: string;
+    classWorkerURL?: string;
   }): Promise<void>;
   writeFile(name: string, data: Uint8Array | string): Promise<void>;
   readFile(name: string): Promise<Uint8Array>;
@@ -69,7 +70,10 @@ export class VidstabEngine {
 
         onProgress?.({ stage: "downloading", progress: 0.9 });
 
-        await this.ffmpeg.load({ coreURL, wasmURL, workerURL });
+        await this.ffmpeg.load({
+          coreURL, wasmURL, workerURL,
+          classWorkerURL: `${globalThis.location.origin}/ffmpeg/worker.js`,
+        });
       } else {
         const [coreURL, wasmURL] = await Promise.all([
           toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
@@ -78,7 +82,10 @@ export class VidstabEngine {
 
         onProgress?.({ stage: "downloading", progress: 0.9 });
 
-        await this.ffmpeg.load({ coreURL, wasmURL });
+        await this.ffmpeg.load({
+          coreURL, wasmURL,
+          classWorkerURL: `${globalThis.location.origin}/ffmpeg/worker.js`,
+        });
       }
 
       onProgress?.({ stage: "downloading", progress: 1 });
