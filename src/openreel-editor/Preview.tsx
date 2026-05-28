@@ -5977,7 +5977,7 @@ export const Preview: React.FC = () => {
               <div
                 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-primary/80 rounded-full flex items-center justify-center cursor-move pointer-events-auto hover:bg-primary transition-colors"
                 onMouseDown={handleClipMouseDown}
-                title="Drag to move"
+                title="拖拽移动"
               >
                 <Move size={14} className="text-white" />
               </div>
@@ -5991,10 +5991,10 @@ export const Preview: React.FC = () => {
                 }`}
                 onClick={() => setLockAspectRatio(!lockAspectRatio)}
                 title={
-                  lockAspectRatio ? "Unlock aspect ratio" : "Lock aspect ratio"
+                  lockAspectRatio ? "解除宽高比锁定" : "锁定宽高比"
                 }
               >
-                {lockAspectRatio ? "🔒 Locked" : "🔓 Free"}
+                {lockAspectRatio ? "🔒 已锁定" : "🔓 自由"}
               </button>
 
               {/* Corner resize handles */}
@@ -6053,7 +6053,7 @@ export const Preview: React.FC = () => {
               <div
                 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-cyan-500/80 rounded-full flex items-center justify-center cursor-move pointer-events-auto hover:bg-cyan-500 transition-colors"
                 onMouseDown={handleTextClipMouseDown}
-                title="Drag to move text"
+                title="拖拽移动文本"
               >
                 <Move size={14} className="text-white" />
               </div>
@@ -6067,10 +6067,10 @@ export const Preview: React.FC = () => {
                 }`}
                 onClick={() => setLockAspectRatio(!lockAspectRatio)}
                 title={
-                  lockAspectRatio ? "Unlock aspect ratio" : "Lock aspect ratio"
+                  lockAspectRatio ? "解除宽高比锁定" : "锁定宽高比"
                 }
               >
-                {lockAspectRatio ? "🔒 Locked" : "🔓 Free"}
+                {lockAspectRatio ? "🔒 已锁定" : "🔓 自由"}
               </button>
 
               {/* Corner resize handles */}
@@ -6130,7 +6130,7 @@ export const Preview: React.FC = () => {
               <div
                 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-green-500/80 rounded-full flex items-center justify-center cursor-move pointer-events-auto hover:bg-green-500 transition-colors"
                 onMouseDown={handleShapeClipMouseDown}
-                title="Drag to move shape"
+                title="拖拽移动图形"
               >
                 <Move size={14} className="text-white" />
               </div>
@@ -6144,10 +6144,10 @@ export const Preview: React.FC = () => {
                 }`}
                 onClick={() => setLockAspectRatio(!lockAspectRatio)}
                 title={
-                  lockAspectRatio ? "Unlock aspect ratio" : "Lock aspect ratio"
+                  lockAspectRatio ? "解除宽高比锁定" : "锁定宽高比"
                 }
               >
-                {lockAspectRatio ? "🔒 Locked" : "🔓 Free"}
+                {lockAspectRatio ? "🔒 已锁定" : "🔓 自由"}
               </button>
 
               {/* Corner resize handles */}
@@ -6274,7 +6274,7 @@ export const Preview: React.FC = () => {
                   ? "bg-green-500/20 text-green-400"
                   : "bg-gray-500/20 text-gray-400"
               }`}
-              title={`Rendering with ${rendererType.toUpperCase()}`}
+              title={`使用 ${rendererType.toUpperCase()} 渲染`}
             >
               {rendererType.toUpperCase()}
             </span>
@@ -6285,14 +6285,14 @@ export const Preview: React.FC = () => {
           <IconButton
             icon={SkipBack}
             onClick={handleSkipBack}
-            title="Skip back 5s"
+            title="后退 5 秒"
           />
           <button
             onClick={() => {
               togglePlayback();
             }}
             disabled={Boolean(playbackLockedReason)}
-            title={playbackLockedReason ?? (isPlaying ? "Pause" : "Play")}
+            title={playbackLockedReason ?? (isPlaying ? "暂停" : "播放")}
             className={`w-10 h-10 rounded-full flex items-center justify-center text-white transition-all ${
               playbackLockedReason
                 ? "bg-background-tertiary text-text-muted cursor-not-allowed shadow-none"
@@ -6310,7 +6310,7 @@ export const Preview: React.FC = () => {
           <IconButton
             icon={SkipForward}
             onClick={handleSkipForward}
-            title="Skip forward 5s"
+            title="前进 5 秒"
           />
         </div>
 
@@ -6331,7 +6331,7 @@ export const Preview: React.FC = () => {
             <button
               onClick={() => setShowZoomMenu(!showZoomMenu)}
               className="px-2 py-1 rounded-lg text-xs font-mono text-text-secondary hover:text-text-primary hover:bg-background-elevated transition-colors"
-              title="Preview Zoom"
+              title="预览缩放"
             >
               <div className="flex items-center gap-1">
                 <ZoomIn size={14} />
@@ -6369,7 +6369,7 @@ export const Preview: React.FC = () => {
           <div className="w-px h-4 bg-border mx-2" />
           <button
             onClick={handleFullscreen}
-            title={isFullscreen ? "Exit Full Screen" : "Full Screen"}
+            title={isFullscreen ? "退出全屏" : "全屏"}
             className={`p-2 rounded-lg transition-colors ${
               isFullscreen
                 ? "text-primary bg-primary/20"
@@ -6380,7 +6380,7 @@ export const Preview: React.FC = () => {
           </button>
           <button
             onClick={handleMaximize}
-            title={isMaximized ? "Restore Size" : "Maximize Preview"}
+            title={isMaximized ? "还原" : "最大化预览"}
             className={`p-2 rounded-lg transition-colors ${
               isMaximized
                 ? "text-primary bg-primary/20"

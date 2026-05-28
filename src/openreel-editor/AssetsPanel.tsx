@@ -1001,29 +1001,58 @@ export const AssetsPanel: React.FC = () => {
 
   const handleAddToTimeline = useCallback(
     async (item: MediaItem) => {
+      let resolvedItem = item;
+
+      // For remote shot items, download blob first to get real resolution
+      if (item.originalUrl && !item.blob) {
+        try {
+          if (downloadingSet.has(item.id)) {
+            toast.info("下载中...", `正在下载 ${item.name}，请稍候`);
+            let retries = 0;
+            while (downloadingSet.has(item.id) && retries < 300) {
+              await new Promise((r) => setTimeout(r, 200));
+              retries++;
+            }
+          }
+          if (!downloadingSet.has(item.id)) {
+            const stored = useProjectStore.getState().project.mediaLibrary.items.find((i) => i.id === item.id);
+            if (stored?.blob) {
+              resolvedItem = stored;
+            } else {
+              toast.info("下载中...", `正在下载 ${item.name}`);
+              await downloadShotBlob(item);
+              const refreshed = useProjectStore.getState().project.mediaLibrary.items.find((i) => i.id === item.id);
+              if (refreshed) resolvedItem = refreshed;
+            }
+          }
+        } catch {
+          return; // download failed, toast already shown
+        }
+      }
+
       const { project: currentProject } = useProjectStore.getState();
       const tracks = currentProject.timeline.tracks;
       const hasClips = tracks.some((track) => track.clips.length > 0);
 
       if (
         !hasClips &&
-        item.type === "video" &&
-        item.metadata?.width &&
-        item.metadata?.height
+        resolvedItem.type === "video" &&
+        resolvedItem.metadata?.width &&
+        resolvedItem.metadata?.height
       ) {
-        const videoWidth = item.metadata.width;
-        const videoHeight = item.metadata.height;
+        const videoWidth = resolvedItem.metadata.width;
+        const videoHeight = resolvedItem.metadata.height;
         const projectWidth = currentProject.settings.width;
         const projectHeight = currentProject.settings.height;
 
         if (videoWidth !== projectWidth || videoHeight !== projectHeight) {
-          setAspectRatioDialogData({ videoWidth, videoHeight, itemToAdd: item });
+          setAspectRatioDialogData({ videoWidth, videoHeight, itemToAdd: resolvedItem });
           setShowAspectRatioDialog(true);
           return;
         }
       }
 
-      await addMediaToTimeline(item);
+      await addMediaToTimeline(resolvedItem);
     },
     [addMediaToTimeline],
   );

@@ -704,13 +704,13 @@ export const Timeline: React.FC = () => {
               icon={Undo2}
               onClick={undo}
               disabled={!canUndo()}
-              title="Undo (Cmd+Z)"
+              title="撤销 (Cmd+Z)"
             />
             <IconButton
               icon={Redo2}
               onClick={redo}
               disabled={!canRedo()}
-              title="Redo (Cmd+Shift+Z)"
+              title="重做 (Cmd+Shift+Z)"
             />
           </div>
 
@@ -720,7 +720,7 @@ export const Timeline: React.FC = () => {
             <button
               onClick={handleSplit}
               disabled={selectedClipIds.length !== 1}
-              title="Split clip at playhead (S)"
+              title="在播放头处分割 (S)"
               className={`flex items-center gap-1.5 px-2 py-1 rounded transition-colors ${
                 selectedClipIds.length === 1
                   ? "bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 border border-orange-500/30"
@@ -728,13 +728,13 @@ export const Timeline: React.FC = () => {
               }`}
             >
               <Scissors size={14} />
-              <span className="text-[10px] font-medium">SPLIT</span>
+              <span className="text-[10px] font-medium">分割</span>
             </button>
             <IconButton
               icon={Trash2}
               onClick={handleDelete}
               disabled={selectedClipIds.length === 0}
-              title="Delete clip (Del)"
+              title="删除片段 (Del)"
               className="hover:text-red-500"
             />
           </div>
@@ -745,34 +745,34 @@ export const Timeline: React.FC = () => {
             <DropdownMenuTrigger asChild>
               <button
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-colors"
-                title="Add new track"
+                title="添加轨道"
               >
                 <Plus size={14} />
-                <span className="text-[11px] font-semibold">Add Track</span>
+                <span className="text-[11px] font-semibold">添加轨道</span>
                 <ChevronDownIcon size={12} className="ml-0.5 opacity-60" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="top" align="start" sideOffset={8} className="w-48">
               <DropdownMenuItem onClick={() => addTrack("video")}>
                 <Film size={16} className="text-green-400" />
-                <span>Video Track</span>
+                <span>视频轨道</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => addTrack("audio")}>
                 <Music size={16} className="text-blue-400" />
-                <span>Audio Track</span>
+                <span>音频轨道</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => addTrack("image")}>
                 <Image size={16} className="text-purple-400" />
-                <span>Image Track</span>
+                <span>图片轨道</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => addTrack("text")}>
                 <Type size={16} className="text-yellow-400" />
-                <span>Text Track</span>
+                <span>文本轨道</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => addTrack("graphics")}>
                 <Shapes size={16} className="text-pink-400" />
-                <span>Graphics Track</span>
+                <span>图形轨道</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -787,7 +787,7 @@ export const Timeline: React.FC = () => {
                     ? "bg-primary/20 text-primary"
                     : "hover:bg-background-elevated text-text-secondary hover:text-text-primary"
                 }`}
-                title="Manage track layers"
+                title="轨道层级管理"
               >
                 <Layers size={14} />
                 <span className="text-[10px] font-medium tracking-wide">LAYERS</span>
@@ -801,13 +801,13 @@ export const Timeline: React.FC = () => {
             >
               <div className="flex items-center justify-between px-3 py-2.5 border-b border-border bg-background-tertiary">
                 <span className="text-xs font-semibold text-text-primary">
-                  Track Layers
+                 轨道层级
                 </span>
               </div>
               <div className="p-2 max-h-60 overflow-y-auto">
                 {tracks.length === 0 ? (
                   <p className="text-xs text-text-muted text-center py-6">
-                    No tracks yet
+                    暂无轨道
                   </p>
                 ) : (
                   <div className="space-y-0.5">
@@ -833,7 +833,7 @@ export const Timeline: React.FC = () => {
                               }
                               disabled={index === 0}
                               className="p-1.5 rounded-md hover:bg-background-elevated disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                              title="Move up"
+                              title="上移"
                             >
                               <ChevronUp size={12} />
                             </button>
@@ -844,7 +844,7 @@ export const Timeline: React.FC = () => {
                               }
                               disabled={index === tracks.length - 1}
                               className="p-1.5 rounded-md hover:bg-background-elevated disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                              title="Move down"
+                              title="下移"
                             >
                               <ChevronDown size={12} />
                             </button>
@@ -867,10 +867,10 @@ export const Timeline: React.FC = () => {
                 ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
                 : "hover:bg-background-elevated text-text-muted hover:text-text-secondary"
             }`}
-            title={snapSettings.enabled ? "Disable snapping" : "Enable snapping"}
+            title={snapSettings.enabled ? "关闭吸附" : "开启吸附"}
           >
             <Magnet size={14} />
-            <span className="text-[10px] font-medium tracking-wide">SNAP</span>
+            <span className="text-[10px] font-medium tracking-wide">吸附</span>
           </button>
         </div>
 
@@ -887,7 +887,7 @@ export const Timeline: React.FC = () => {
                   ? "text-primary bg-primary/10"
                   : "text-text-secondary hover:text-text-primary hover:bg-background-elevated"
               }`}
-              title="Large tracks"
+              title="大轨道"
             >
               <Rows3 size={14} />
             </button>
@@ -898,7 +898,7 @@ export const Timeline: React.FC = () => {
                   ? "text-primary bg-primary/10"
                   : "text-text-secondary hover:text-text-primary hover:bg-background-elevated"
               }`}
-              title="Small tracks"
+              title="小轨道"
             >
               <Rows2 size={14} />
             </button>
@@ -907,7 +907,7 @@ export const Timeline: React.FC = () => {
             <button
               onClick={zoomOut}
               className="w-8 h-8 flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-background-elevated transition-colors border-r border-border"
-              title="Zoom out"
+              title="缩小"
             >
               <span className="text-base font-medium">−</span>
             </button>
@@ -917,12 +917,12 @@ export const Timeline: React.FC = () => {
             <button
               onClick={zoomIn}
               className="w-8 h-8 flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-background-elevated transition-colors border-l border-border"
-              title="Zoom in"
+              title="放大"
             >
               <span className="text-base font-medium">+</span>
             </button>
           </div>
-          <IconButton icon={Maximize2} title="Maximize timeline" />
+          <IconButton icon={Maximize2} title="最大化时间线" />
         </div>
       </div>
 

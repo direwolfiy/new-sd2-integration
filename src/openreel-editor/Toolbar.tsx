@@ -458,9 +458,9 @@ export const Toolbar: React.FC = () => {
     separator?: boolean;
   }> = [
     {
-      label: "MP4 Standard",
+      label: "MP4 标准",
       icon: Zap,
-      desc: `${projectRes} H.264 - Web & social`,
+      desc: `${projectRes} H.264 - 网络与社交平台`,
       type: "mp4",
       recommended: true,
     },
@@ -475,28 +475,28 @@ export const Toolbar: React.FC = () => {
       ? []
       : [
           {
-            label: "4K Standard",
+            label: "4K 标准",
             icon: FileVideo,
             desc: "3840×2160 - YouTube 4K",
             type: "4k" as ExportType,
           },
         ]),
     {
-      label: "1080p High Quality",
+      label: "1080p 高质量",
       icon: FileVideo,
-      desc: "1920×1080 30fps - High bitrate",
+      desc: "1920×1080 30fps - 高码率",
       type: "1080p-high",
     },
     {
       label: "1080p 60fps",
       icon: FileVideo,
-      desc: "1920×1080 - Smooth playback",
+      desc: "1920×1080 - 流畅播放",
       type: "1080p-60",
     },
     {
-      label: "Audio Only (WAV)",
+      label: "仅音频 (WAV)",
       icon: Music,
-      desc: "Uncompressed audio",
+      desc: "无损音频",
       type: "wav",
     },
   ];
@@ -530,7 +530,7 @@ export const Toolbar: React.FC = () => {
             </button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Project JSON - Export/Import</p>
+            <p>项目 JSON - 导出/导入</p>
           </TooltipContent>
         </Tooltip>
 
@@ -545,7 +545,7 @@ export const Toolbar: React.FC = () => {
             </button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Settings & API Keys</p>
+            <p>设置与 API 密钥</p>
           </TooltipContent>
         </Tooltip>
 
@@ -564,7 +564,7 @@ export const Toolbar: React.FC = () => {
             </button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Keyframe Editor</p>
+            <p>关键帧编辑器</p>
           </TooltipContent>
         </Tooltip>
 
@@ -583,7 +583,7 @@ export const Toolbar: React.FC = () => {
             </button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Audio Mixer</p>
+            <p>混音器</p>
           </TooltipContent>
         </Tooltip>
 
@@ -602,7 +602,7 @@ export const Toolbar: React.FC = () => {
             </button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>History - Undo/Redo</p>
+            <p>历史记录 - 撤销/重做</p>
           </TooltipContent>
         </Tooltip>
 
@@ -644,7 +644,7 @@ export const Toolbar: React.FC = () => {
           ) : exportState.complete ? (
             <div className="h-8 px-3 bg-primary/10 border border-primary/30 rounded-lg flex items-center gap-1.5">
               <Check size={12} className="text-primary" />
-              <span className="text-xs text-primary">Downloaded!</span>
+              <span className="text-xs text-primary">已下载！</span>
             </div>
           ) : (
             <DropdownMenu open={isExportOpen} onOpenChange={setIsExportOpen}>
@@ -698,7 +698,7 @@ export const Toolbar: React.FC = () => {
                             {option.label}
                             {option.recommended && (
                               <span className="ml-2 text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded">
-                                Best Match
+                                推荐
                               </span>
                             )}
                           </div>
@@ -728,7 +728,7 @@ export const Toolbar: React.FC = () => {
                         Custom Export...
                       </div>
                       <div className="text-xs text-text-muted mt-0.5">
-                        Full settings with AI upscaling
+                        完整设置与 AI 超分
                       </div>
                     </div>
                     <Settings
@@ -766,7 +766,7 @@ export const Toolbar: React.FC = () => {
           />
           <div className="fixed top-12 right-0 bottom-0 w-80 bg-background-secondary border-l border-border z-50 shadow-2xl animate-in slide-in-from-right duration-200">
             <div className="flex items-center justify-between p-3 border-b border-border">
-              <span className="text-sm font-medium text-text-primary">Action History</span>
+              <span className="text-sm font-medium text-text-primary">操作历史</span>
               <button
                 onClick={() => setIsHistoryOpen(false)}
                 className="p-1.5 rounded hover:bg-background-tertiary text-text-muted hover:text-text-primary transition-colors"

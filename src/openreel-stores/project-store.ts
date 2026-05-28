@@ -2261,75 +2261,87 @@ export const useProjectStore = create<ProjectState>()(
         return result;
       },
 
-      addClipToNewTrack: async (mediaId: string, startTime?: number) => {
-        const { project, addTrack, getMediaItem } = get();
+	      addClipToNewTrack: async (mediaId: string, startTime?: number) => {
+	        const { project, addTrack, getMediaItem } = get();
 
-        const mediaItem = getMediaItem(mediaId);
-        if (!mediaItem) {
-          return {
-            success: false,
-            error: {
-              code: "MEDIA_NOT_FOUND" as const,
-              message: "Media item not found",
-            },
-          };
-        }
+	        const mediaItem = getMediaItem(mediaId);
+	        if (!mediaItem) {
+	          return {
+	            success: false,
+	            error: {
+	              code: "MEDIA_NOT_FOUND" as const,
+	              message: "Media item not found",
+	            },
+	          };
+	        }
 
-        let trackType: "video" | "audio" | "image" | "text" | "graphics";
-        if (mediaItem.type === "video") {
-          trackType = "video";
-        } else if (mediaItem.type === "audio") {
-          trackType = "audio";
-        } else if (mediaItem.type === "image") {
-          trackType = "image";
-        } else {
-          trackType = "video";
-        }
+	        let trackType: "video" | "audio" | "image" | "text" | "graphics";
+	        if (mediaItem.type === "video") {
+	          trackType = "video";
+	        } else if (mediaItem.type === "audio") {
+	          trackType = "audio";
+	        } else if (mediaItem.type === "image") {
+	          trackType = "image";
+	        } else {
+	          trackType = "video";
+	        }
 
-        const clipStartTime =
-          startTime !== undefined
-            ? startTime
-            : calculateTimelineDuration(project);
+	        // Find the first (main) track of matching type
+	        let targetTrack = project.timeline.tracks.find(
+	          (t) => t.type === trackType,
+	        );
 
-        const trackResult = await addTrack(trackType);
-        if (!trackResult.success) {
-          return trackResult;
-        }
+	        // No track of this type exists — create one
+	        if (!targetTrack) {
+	          const trackResult = await addTrack(trackType);
+	          if (!trackResult.success) return trackResult;
+	          const updated = get().project;
+	          targetTrack = updated.timeline.tracks.find(
+	            (t) => t.type === trackType,
+	          );
+	          if (!targetTrack) {
+	            return {
+	              success: false,
+	              error: {
+	                code: "TRACK_NOT_FOUND" as const,
+	                message: "Could not find newly created track",
+	              },
+	            };
+	          }
+	        }
 
-        const { project: updatedProject, actionExecutor: exec } = get();
-        const newTrack = updatedProject.timeline.tracks.find(
-          (t) => t.clips.length === 0 && t.type === trackType,
-        );
+	        // Calculate start time: use provided time, or append after last clip on target track
+	        let clipStartTime: number;
+	        if (startTime !== undefined) {
+	          clipStartTime = startTime;
+	        } else {
+	          const lastClipEnd = targetTrack.clips.reduce(
+	            (max, c) => Math.max(max, c.startTime + c.duration),
+	            0,
+	          );
+	          clipStartTime = lastClipEnd > 0 ? lastClipEnd : 0;
+	        }
 
-        if (!newTrack) {
-          return {
-            success: false,
-            error: {
-              code: "TRACK_NOT_FOUND" as const,
-              message: "Could not find newly created track",
-            },
-          };
-        }
+	        const { actionExecutor: exec } = get();
+	        const projectCopy = structuredClone(get().project);
+	        const action: Action = {
+	          type: "clip/add",
+	          id: uuidv4(),
+	          timestamp: Date.now(),
+	          params: { trackId: targetTrack.id, mediaId, startTime: clipStartTime },
+	        };
 
-        const projectCopy = structuredClone(updatedProject);
-        const action: Action = {
-          type: "clip/add",
-          id: uuidv4(),
-          timestamp: Date.now(),
-          params: { trackId: newTrack.id, mediaId, startTime: clipStartTime },
-        };
+	        const result = await exec.execute(action, projectCopy);
 
-        const result = await exec.execute(action, projectCopy);
-
-        if (result.success) {
-          const finalProject: Project = {
-            ...projectCopy,
-            modifiedAt: Date.now(),
-          };
-          set({ project: finalProject });
-        }
-        return result;
-      },
+	        if (result.success) {
+	          const finalProject: Project = {
+	            ...projectCopy,
+	            modifiedAt: Date.now(),
+	          };
+	          set({ project: finalProject });
+	        }
+	        return result;
+	      },
 
       separateAudio: async (clipId: string) => {
         const { project, actionExecutor } = get();

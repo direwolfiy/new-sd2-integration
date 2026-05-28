@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
+import { useParams } from "next/navigation";
 
 import { Toolbar } from "./Toolbar";
 import { AssetsPanel } from "./AssetsPanel";
@@ -14,6 +15,10 @@ import { useProjectStore } from "../openreel-stores/project-store";
 import { useUIStore } from "../openreel-stores/ui-store";
 import { useEngineStore } from "../openreel-stores/engine-store";
 import { useKeyboardShortcuts } from "../openreel-hooks/useKeyboardShortcuts";
+import { loadShotMediaItems } from "../openreel-services/shot-bridge";
+import { saveEpisodeProject, loadEpisodeProject } from "../openreel-services/episode-project-store";
+import { loadProjectMedia } from "../openreel-services/media-storage";
+import { restoreMediaItem } from "../openreel-utils/media-recovery";
 import {
   initializePlaybackBridge,
   disposePlaybackBridge,
@@ -63,6 +68,173 @@ const useAutoSave = () => {
   useEffect(() => {
     initializeAutoSave().catch(console.error);
   }, [initializeAutoSave]);
+};
+
+/**
+ * Shot material loader hook
+ * Fetches episode shot data and injects shot video versions as media items
+ */
+const useEpisodeProject = (episodeId: string) => {
+  const loadProject = useProjectStore((s) => s.loadProject);
+  const createNewProject = useProjectStore((s) => s.createNewProject);
+  const [projectReady, setProjectReady] = useState(false);
+  const prevEpisodeRef = useRef<string | null>(null);
+  const episodeRef = useRef(episodeId);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Keep episodeRef in sync
+  useEffect(() => {
+    episodeRef.current = episodeId;
+  }, [episodeId]);
+
+  // Switch episode: save old, load/create new
+  useEffect(() => {
+    const prevEp = prevEpisodeRef.current;
+
+    if (prevEp && prevEp !== episodeId) {
+      // Flush any pending debounced save before switching
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = null;
+      }
+      const state = useProjectStore.getState();
+      const titleEngine = useEngineStore.getState().getTitleEngine();
+      const graphicsEngine = useEngineStore.getState().getGraphicsEngine();
+      saveEpisodeProject(prevEp, {
+        ...state.project,
+        textClips: titleEngine?.getAllTextClips() || [],
+        shapeClips: graphicsEngine?.getAllShapeClips() || [],
+        svgClips: graphicsEngine?.getAllSVGClips() || [],
+        stickerClips: graphicsEngine?.getAllStickerClips() || [],
+      });
+    }
+
+    prevEpisodeRef.current = episodeId;
+    setProjectReady(false);
+
+    createNewProject(`分集 ${episodeId}`);
+
+    let cancelled = false;
+    loadEpisodeProject(episodeId).then(async (saved) => {
+      if (cancelled) return;
+      let project = saved;
+      if (project) {
+        try {
+          const storedMedia = await loadProjectMedia(project.id);
+          const blobMap = new Map(storedMedia.map((m) => [m.id, m.blob]));
+          const restoredItems = await Promise.all(
+            project.mediaLibrary.items.map((item) =>
+              restoreMediaItem(item, blobMap.get(item.id)),
+            ),
+          );
+          project = {
+            ...project,
+            mediaLibrary: { ...project.mediaLibrary, items: restoredItems },
+          };
+        } catch (err) {
+          console.warn("[EpisodeProject] Failed to restore media blobs:", err);
+        }
+        loadProject(project);
+      }
+      setProjectReady(true);
+    });
+
+    return () => { cancelled = true; };
+  }, [episodeId]);
+
+  // Persist project to episode store on every change (debounced 2s)
+  useEffect(() => {
+    if (!projectReady) return;
+
+    const unsub = useProjectStore.subscribe(
+      (s) => s.project,
+      () => {
+        if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = setTimeout(() => {
+          const ep = episodeRef.current;
+          if (!ep) return;
+          const state = useProjectStore.getState();
+          const titleEngine = useEngineStore.getState().getTitleEngine();
+          const graphicsEngine = useEngineStore.getState().getGraphicsEngine();
+          saveEpisodeProject(ep, {
+            ...state.project,
+            textClips: titleEngine?.getAllTextClips() || [],
+            shapeClips: graphicsEngine?.getAllShapeClips() || [],
+            svgClips: graphicsEngine?.getAllSVGClips() || [],
+            stickerClips: graphicsEngine?.getAllStickerClips() || [],
+          });
+        }, 2000);
+      },
+    );
+
+    return () => {
+      unsub();
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [projectReady]);
+
+  // Immediate save on page hide (refresh / close / navigate away)
+  useEffect(() => {
+    if (!projectReady) return;
+
+    const handleHide = () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = null;
+      }
+      const ep = episodeRef.current;
+      if (!ep) return;
+      const state = useProjectStore.getState();
+      const titleEngine = useEngineStore.getState().getTitleEngine();
+      const graphicsEngine = useEngineStore.getState().getGraphicsEngine();
+      saveEpisodeProject(ep, {
+        ...state.project,
+        textClips: titleEngine?.getAllTextClips() || [],
+        shapeClips: graphicsEngine?.getAllShapeClips() || [],
+        svgClips: graphicsEngine?.getAllSVGClips() || [],
+        stickerClips: graphicsEngine?.getAllStickerClips() || [],
+      });
+    };
+
+    document.addEventListener("visibilitychange", handleHide);
+    return () => document.removeEventListener("visibilitychange", handleHide);
+  }, [projectReady]);
+
+  return projectReady;
+};
+
+const useShotMaterialLoader = (episodeId: string, projectReady: boolean) => {
+  const addPlaceholderMedia = useProjectStore((s) => s.addPlaceholderMedia);
+  const mediaItems = useProjectStore((s) => s.project.mediaLibrary.items);
+  const [loaded, setLoaded] = useState(false);
+
+  // Reset loaded state when episode changes
+  useEffect(() => {
+    setLoaded(false);
+  }, [episodeId]);
+
+  useEffect(() => {
+    if (!projectReady || !episodeId || loaded) return;
+
+    let cancelled = false;
+    console.log("[ShotBridge] Loading shot materials for episode:", episodeId);
+    loadShotMediaItems(episodeId).then(({ allItems, groups }) => {
+      if (cancelled) return;
+      console.log("[ShotBridge] Loaded groups:", groups.length, "items:", allItems.length);
+      const existingIds = new Set(mediaItems.map((i) => i.id));
+      for (const item of allItems) {
+        if (!existingIds.has(item.id)) {
+          console.log("[ShotBridge] Adding item:", item.id, item.name);
+          addPlaceholderMedia(item);
+        }
+      }
+      setLoaded(true);
+    }).catch((err) => {
+      console.error("[ShotBridge] Failed to load shot materials:", err);
+    });
+
+    return () => { cancelled = true; };
+  }, [projectReady, episodeId, loaded]);
 };
 
 /**
@@ -184,6 +356,11 @@ export const EditorInterface: React.FC = () => {
   const { showShortcutsOverlay, setShowShortcutsOverlay } =
     useKeyboardShortcuts();
   useAutoSave();
+
+  const params = useParams<{ ep: string }>();
+  const projectReady = useEpisodeProject(params.ep);
+
+  useShotMaterialLoader(params.ep, projectReady && initialized);
 
   const {
     keyframeEditorOpen,

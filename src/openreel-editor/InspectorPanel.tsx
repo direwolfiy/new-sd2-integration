@@ -1079,7 +1079,7 @@ export const InspectorPanel: React.FC = () => {
             )}
 
             {clipType === "video" && (
-              <Section title="AI Auto-Captions" sectionId="auto-captions" defaultOpen={false}>
+              <Section title="AI 自动字幕" sectionId="auto-captions" defaultOpen={false}>
                 <div className="space-y-3">
                   <input
                     ref={srtInputRef}
@@ -1090,7 +1090,7 @@ export const InspectorPanel: React.FC = () => {
                   />
                   <div>
                     <label className="text-[10px] text-text-secondary block mb-1">
-                      Animation Style
+                      动画风格
                     </label>
                     <Select
                       value={defaultAnimationStyle}
@@ -1112,7 +1112,7 @@ export const InspectorPanel: React.FC = () => {
 
                   <div>
                     <label className="text-[10px] text-text-secondary block mb-1">
-                      Target Language
+                      目标语言
                     </label>
                     <Select
                       value={targetLanguage}
@@ -1120,28 +1120,28 @@ export const InspectorPanel: React.FC = () => {
                       disabled={isTranscribing}
                     >
                       <SelectTrigger className="w-full bg-background-secondary border-border text-text-primary text-[11px]">
-                        <SelectValue placeholder="Original (no translation)" />
+                        <SelectValue placeholder="原始语言 (不翻译)" />
                       </SelectTrigger>
                       <SelectContent className="bg-background-secondary border-border">
-                        <SelectItem value="none">Original (no translation)</SelectItem>
+                        <SelectItem value="none">原始语言 (不翻译)</SelectItem>
                         <SelectGroup>
-                          <SelectLabel className="text-[10px]">Translate to</SelectLabel>
-                          <SelectItem value="en">English</SelectItem>
-                          <SelectItem value="es">Spanish</SelectItem>
-                          <SelectItem value="fr">French</SelectItem>
-                          <SelectItem value="de">German</SelectItem>
-                          <SelectItem value="pt">Portuguese</SelectItem>
-                          <SelectItem value="it">Italian</SelectItem>
-                          <SelectItem value="nl">Dutch</SelectItem>
-                          <SelectItem value="ru">Russian</SelectItem>
-                          <SelectItem value="zh">Chinese</SelectItem>
-                          <SelectItem value="ja">Japanese</SelectItem>
-                          <SelectItem value="ko">Korean</SelectItem>
-                          <SelectItem value="ar">Arabic</SelectItem>
-                          <SelectItem value="hi">Hindi</SelectItem>
-                          <SelectItem value="tr">Turkish</SelectItem>
-                          <SelectItem value="pl">Polish</SelectItem>
-                          <SelectItem value="sv">Swedish</SelectItem>
+                          <SelectLabel className="text-[10px]">翻译为</SelectLabel>
+                          <SelectItem value="en">英语</SelectItem>
+                          <SelectItem value="es">西班牙语</SelectItem>
+                          <SelectItem value="fr">法语</SelectItem>
+                          <SelectItem value="de">德语</SelectItem>
+                          <SelectItem value="pt">葡萄牙语</SelectItem>
+                          <SelectItem value="it">意大利语</SelectItem>
+                          <SelectItem value="nl">荷兰语</SelectItem>
+                          <SelectItem value="ru">俄语</SelectItem>
+                          <SelectItem value="zh">中文</SelectItem>
+                          <SelectItem value="ja">日语</SelectItem>
+                          <SelectItem value="ko">韩语</SelectItem>
+                          <SelectItem value="ar">阿拉伯语</SelectItem>
+                          <SelectItem value="hi">印地语</SelectItem>
+                          <SelectItem value="tr">土耳其语</SelectItem>
+                          <SelectItem value="pl">波兰语</SelectItem>
+                          <SelectItem value="sv">瑞典语</SelectItem>
                         </SelectGroup>
                       </SelectContent>
                     </Select>
@@ -1178,7 +1178,7 @@ export const InspectorPanel: React.FC = () => {
                       className="w-full py-2 bg-primary hover:bg-primary/80 text-black rounded-lg text-[11px] font-medium transition-all flex items-center justify-center gap-2"
                     >
                       <Captions size={14} />
-                      Generate Captions
+                      生成字幕
                     </button>
                   )}
                   <button
@@ -1187,57 +1187,57 @@ export const InspectorPanel: React.FC = () => {
                     className="w-full py-2 bg-background-tertiary hover:bg-background-tertiary/80 border border-border text-text-primary rounded-lg text-[11px] font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     <Upload size={13} />
-                    Import SRT File
+                    导入 SRT 文件
                   </button>
                 </div>
               </Section>
             )}
 
             {clipType === "video" && (
-              <Section title="Background Removal" sectionId="background-removal" defaultOpen={false}>
+              <Section title="背景移除" sectionId="background-removal" defaultOpen={false}>
                 <BackgroundRemovalSection clipId={clipId} />
               </Section>
             )}
 
             {clipType === "video" && (
-              <Section title="Auto Reframe" sectionId="auto-reframe" defaultOpen={false}>
+              <Section title="自动重构" sectionId="auto-reframe" defaultOpen={false}>
                 <AutoReframeSection clipId={clipId} />
               </Section>
             )}
 
             {showAudioEffects && (
-              <Section title="Auto Cut Silence" sectionId="auto-cut-silence" defaultOpen={false}>
+              <Section title="自动剪切静音" sectionId="auto-cut-silence" defaultOpen={false}>
                 <AutoCutSilenceSection clipId={clipId} />
               </Section>
             )}
 
             {/* Beat Sync - Sync other clips to this audio's beats */}
             {clipType === "audio" && (
-              <Section title="Beat Sync" sectionId="beat-sync" defaultOpen={false}>
+              <Section title="节拍同步" sectionId="beat-sync" defaultOpen={false}>
                 <AudioTextSyncPanel clipId={clipId} />
               </Section>
             )}
 
             {/* Auto-Edit - Cut video clips to audio beats */}
             {showAudioEffects && (
-              <Section title="Beat-Synced Auto-Edit" sectionId="auto-edit" defaultOpen={false}>
+              <Section title="节拍同步自动剪辑" sectionId="auto-edit" defaultOpen={false}>
                 <AutoEditPanel onClose={() => {}} />
               </Section>
             )}
 
             {/* AI Highlight Extractor */}
             {showAudioEffects && (
-              <Section title="AI Highlights" sectionId="ai-highlights" defaultOpen={false}>
+              <Section title="AI 高光提取" sectionId="ai-highlights" defaultOpen={false}>
                 <HighlightExtractorPanel clipId={clipId} />
               </Section>
             )}
 
             {/* Transform */}
             {showTransformControls && (
-              <Section title="Transform" sectionId="transform">
+              <Section title="变换" sectionId="transform">
                 <div className="space-y-3">
                   <LabeledSlider
-                    label="Position X"
+                    label="位置 X"
                     value={transform.position.x}
                     onChange={(x) =>
                       handleTransformChange({
@@ -1250,7 +1250,7 @@ export const InspectorPanel: React.FC = () => {
                     unit="px"
                   />
                   <LabeledSlider
-                    label="Position Y"
+                    label="位置 Y"
                     value={transform.position.y}
                     onChange={(y) =>
                       handleTransformChange({
@@ -1263,7 +1263,7 @@ export const InspectorPanel: React.FC = () => {
                     unit="px"
                   />
                   <LabeledSlider
-                    label="Scale X"
+                    label="缩放 X"
                     value={transform.scale.x * 100}
                     onChange={(x) =>
                       handleTransformChange({
@@ -1276,7 +1276,7 @@ export const InspectorPanel: React.FC = () => {
                     unit="%"
                   />
                   <LabeledSlider
-                    label="Scale Y"
+                    label="缩放 Y"
                     value={transform.scale.y * 100}
                     onChange={(y) =>
                       handleTransformChange({
@@ -1289,7 +1289,7 @@ export const InspectorPanel: React.FC = () => {
                     unit="%"
                   />
                   <LabeledSlider
-                    label="Rotation"
+                    label="旋转"
                     value={transform.rotation}
                     onChange={(rotation) => handleTransformChange({ rotation })}
                     min={-180}
@@ -1298,7 +1298,7 @@ export const InspectorPanel: React.FC = () => {
                     unit="°"
                   />
                   <LabeledSlider
-                    label="Opacity"
+                    label="不透明度"
                     value={transform.opacity * 100}
                     onChange={(opacity) =>
                       handleTransformChange({ opacity: opacity / 100 })
@@ -1309,7 +1309,7 @@ export const InspectorPanel: React.FC = () => {
                     unit="%"
                   />
                   <LabeledSlider
-                    label="Border Radius"
+                    label="圆角"
                     value={transform.borderRadius || 0}
                     onChange={(borderRadius) =>
                       handleTransformChange({ borderRadius })
@@ -1362,7 +1362,7 @@ export const InspectorPanel: React.FC = () => {
               !selectedClip.mediaId.startsWith("shape-") &&
               !selectedClip.mediaId.startsWith("svg-") &&
               !selectedClip.mediaId.startsWith("sticker-") && (
-                <Section title="Crop" sectionId="crop" defaultOpen={false}>
+                <Section title="裁剪" sectionId="crop" defaultOpen={false}>
                   <CropSection clip={selectedClip as Clip} />
                 </Section>
               )}
@@ -1375,7 +1375,7 @@ export const InspectorPanel: React.FC = () => {
               !selectedClip.mediaId.startsWith("svg-") &&
               !selectedClip.mediaId.startsWith("sticker-") && (
                 <Section
-                  title="Speed & Direction"
+                  title="速度与方向"
                   sectionId="speed"
                   defaultOpen={true}
                 >
@@ -1391,7 +1391,7 @@ export const InspectorPanel: React.FC = () => {
               !selectedClip.mediaId.startsWith("svg-") &&
               !selectedClip.mediaId.startsWith("sticker-") && (
                 <Section
-                  title="Stabilization"
+                  title="稳定"
                   sectionId="stabilization"
                   defaultOpen={false}
                 >
@@ -1407,7 +1407,7 @@ export const InspectorPanel: React.FC = () => {
               !selectedClip.mediaId.startsWith("svg-") &&
               !selectedClip.mediaId.startsWith("sticker-") && (
                 <Section
-                  title="Speed Curves"
+                  title="速度曲线"
                   sectionId="speed-curves"
                   defaultOpen={false}
                 >
@@ -1423,7 +1423,7 @@ export const InspectorPanel: React.FC = () => {
               clipType === "svg" ||
               clipType === "sticker") && (
               <Section
-                title="Alignment"
+                title="对齐"
                 sectionId="alignment"
                 defaultOpen={false}
               >
@@ -1439,7 +1439,7 @@ export const InspectorPanel: React.FC = () => {
               clipType === "svg" ||
               clipType === "sticker") && (
               <Section
-                title="Blending"
+                title="混合"
                 sectionId="blending"
                 defaultOpen={false}
               >
@@ -1455,7 +1455,7 @@ export const InspectorPanel: React.FC = () => {
               clipType === "svg" ||
               clipType === "sticker") && (
               <Section
-                title="3D Transforms"
+                title="3D 变换"
                 sectionId="transform-3d"
                 defaultOpen={false}
               >
@@ -1464,7 +1464,7 @@ export const InspectorPanel: React.FC = () => {
             )}
 
             {/* Keyframes - Using KeyframeEngine */}
-            <Section title="Keyframes" sectionId="keyframes">
+            <Section title="关键帧" sectionId="keyframes">
               <KeyframesSection clipId={clipId} />
             </Section>
 
@@ -1476,7 +1476,7 @@ export const InspectorPanel: React.FC = () => {
               clipType === "svg" ||
               clipType === "sticker") && (
               <Section
-                title="Transitions"
+                title="转场"
                 sectionId="transitions"
                 defaultOpen={false}
               >
@@ -1491,7 +1491,7 @@ export const InspectorPanel: React.FC = () => {
               clipType === "svg" ||
               clipType === "sticker") && (
               <Section
-                title="Motion Presets"
+                title="运动预设"
                 sectionId="motion-presets"
                 defaultOpen={false}
               >
@@ -1507,7 +1507,7 @@ export const InspectorPanel: React.FC = () => {
               clipType === "svg" ||
               clipType === "sticker") && (
               <Section
-                title="Motion Path"
+                title="运动路径"
                 sectionId="motion-path"
                 defaultOpen={false}
               >
@@ -1524,7 +1524,7 @@ export const InspectorPanel: React.FC = () => {
               clipType === "sticker") &&
               selectedClip && (
                 <Section
-                  title="Particle Effects"
+                  title="粒子效果"
                   sectionId="particle-effects"
                   defaultOpen={false}
                 >
@@ -1544,7 +1544,7 @@ export const InspectorPanel: React.FC = () => {
               clipType === "svg" ||
               clipType === "sticker") && (
               <Section
-                title="Emphasis Animation"
+                title="强调动画"
                 sectionId="emphasis-animation"
                 defaultOpen={false}
               >
@@ -1554,7 +1554,7 @@ export const InspectorPanel: React.FC = () => {
 
             {/* Chroma Key - Using ChromaKeyEngine - Only for video/image */}
             {showVideoControls && (
-              <Section title="Chroma Key (Green Screen)">
+              <Section title="色度抠图 (绿幕)">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] text-text-secondary">
@@ -1579,7 +1579,7 @@ export const InspectorPanel: React.FC = () => {
                         />
                       </div>
                       <LabeledSlider
-                        label="Tolerance"
+                        label="容差"
                         value={tolerance}
                         onChange={handleToleranceChange}
                         unit="%"
@@ -1592,20 +1592,20 @@ export const InspectorPanel: React.FC = () => {
 
             {/* Motion Tracking - Using MotionTrackingEngine - Only for video/image */}
             {showVideoControls && (
-              <Section title="Motion Tracking" sectionId="motion-tracking">
+              <Section title="运动跟踪" sectionId="motion-tracking">
                 <MotionTrackingSection clipId={clipId} />
               </Section>
             )}
 
             {showVideoEffects && (
-              <Section title="Video Effects" sectionId="video-effects">
+              <Section title="视频效果" sectionId="video-effects">
                 <VideoEffectsSection clipId={clipId} />
               </Section>
             )}
 
             {showVideoEffects && (
               <Section
-                title="Green Screen"
+                title="绿幕"
                 sectionId="green-screen"
                 defaultOpen={false}
               >
@@ -1616,7 +1616,7 @@ export const InspectorPanel: React.FC = () => {
             {/* Picture-in-Picture Section */}
             {showVideoControls && (
               <Section
-                title="Picture-in-Picture"
+                title="画中画"
                 sectionId="pip"
                 defaultOpen={false}
               >
@@ -1625,26 +1625,26 @@ export const InspectorPanel: React.FC = () => {
             )}
 
             {showVideoControls && (
-              <Section title="Masking" sectionId="masking" defaultOpen={false}>
+              <Section title="遮罩" sectionId="masking" defaultOpen={false}>
                 <MaskSection clipId={clipId} />
               </Section>
             )}
 
             {showVideoControls && (
-              <Section title="Nested Sequences" defaultOpen={false}>
+              <Section title="嵌套序列" defaultOpen={false}>
                 <NestedSequenceSection clipId={clipId} />
               </Section>
             )}
 
             {showVideoControls && (
-              <Section title="Adjustment Layers" defaultOpen={false}>
+              <Section title="调整图层" defaultOpen={false}>
                 <AdjustmentLayerSection clipId={clipId} />
               </Section>
             )}
 
             {showColorGrading && (
               <Section
-                title="Color Grading"
+                title="调色"
                 sectionId="color-grading"
                 defaultOpen={false}
               >
@@ -1664,7 +1664,7 @@ export const InspectorPanel: React.FC = () => {
 
             {showAudioEffects && (
               <Section
-                title="Audio Effects"
+                title="音频效果"
                 sectionId="audio-effects"
                 defaultOpen={false}
               >
@@ -1674,7 +1674,7 @@ export const InspectorPanel: React.FC = () => {
 
             {showAudioEffects && (
               <Section
-                title="Audio Ducking"
+                title="音频闪避"
                 sectionId="audio-ducking"
                 defaultOpen={false}
               >
@@ -1683,14 +1683,14 @@ export const InspectorPanel: React.FC = () => {
             )}
 
             {showTextSection && (
-              <Section title="Text Properties" sectionId="text-properties">
+              <Section title="文本属性" sectionId="text-properties">
                 <TextSection clipId={clipId} />
               </Section>
             )}
 
             {showTextSection && (
               <Section
-                title="Text Animation"
+                title="文本动画"
                 sectionId="text-animation"
                 defaultOpen={false}
               >
@@ -1700,7 +1700,7 @@ export const InspectorPanel: React.FC = () => {
 
             {showTextSection && (
               <Section
-                title="Text Behind Subject"
+                title="文本置后"
                 sectionId="text-behind-subject"
                 defaultOpen={false}
               >
@@ -1709,14 +1709,14 @@ export const InspectorPanel: React.FC = () => {
             )}
 
             {showShapeSection && (
-              <Section title="Shape Properties" sectionId="shape-properties">
+              <Section title="图形属性" sectionId="shape-properties">
                 <ShapeSection clipId={clipId} />
               </Section>
             )}
 
             {/* SVG Section */}
             {showSVGSection && (
-              <Section title="SVG Properties">
+              <Section title="SVG 属性">
                 <SVGSection clipId={clipId} />
               </Section>
             )}
@@ -1762,7 +1762,7 @@ export const InspectorPanel: React.FC = () => {
                       ) : audioEnhanced ? (
                         "✓ Noise Reduced"
                       ) : (
-                        "Quick Dialogue Cleanup"
+                        "快速对话清理"
                       )}
                     </button>
                   )}
@@ -1776,7 +1776,7 @@ export const InspectorPanel: React.FC = () => {
                           : "bg-background-tertiary hover:bg-primary hover:text-white border-border hover:border-primary"
                       }`}
                     >
-                      {isApplyingSelectedClipEffect ? "Applying..." : "Auto-Color"}
+                      {isApplyingSelectedClipEffect ? "应用..." : "自动调色"}
                     </button>
                   )}
                 </div>
@@ -1798,7 +1798,7 @@ export const InspectorPanel: React.FC = () => {
             </div>
 
             {/* Subtitle Text Editor */}
-            <Section title="Text Content">
+            <Section title="文本内容">
               <div className="space-y-3">
                 <textarea
                   value={selectedSubtitle.text}
@@ -1808,13 +1808,13 @@ export const InspectorPanel: React.FC = () => {
                     })
                   }
                   className="w-full h-24 px-3 py-2 bg-background-tertiary border border-border rounded-lg text-xs text-text-primary resize-none focus:outline-none focus:border-primary"
-                  placeholder="Enter subtitle text..."
+                  placeholder="输入字幕文本..."
                 />
               </div>
             </Section>
 
             {/* Subtitle Timing */}
-            <Section title="Timing">
+            <Section title="时间">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-text-secondary">
@@ -1852,7 +1852,7 @@ export const InspectorPanel: React.FC = () => {
             </Section>
 
             {/* Subtitle Position */}
-            <Section title="Position">
+            <Section title="位置">
               <div className="grid grid-cols-3 gap-2">
                 {(["top", "center", "bottom"] as const).map((pos) => (
                   <button
@@ -1877,8 +1877,8 @@ export const InspectorPanel: React.FC = () => {
               </div>
             </Section>
 
-            {/* Subtitle Animation Style */}
-            <Section title="Animation">
+            {/* Subtitle 动画风格 */}
+            <Section title="动画">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-text-secondary">Style</span>
@@ -1992,7 +1992,7 @@ export const InspectorPanel: React.FC = () => {
             </Section>
 
             {/* Subtitle Font Settings */}
-            <Section title="Font">
+            <Section title="字体">
               <div className="space-y-3">
                 <input
                   ref={subtitleFontInputRef}
@@ -2078,7 +2078,7 @@ export const InspectorPanel: React.FC = () => {
             </Section>
 
             {/* Subtitle Colors */}
-            <Section title="Colors">
+            <Section title="颜色">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-text-secondary">
@@ -2158,7 +2158,7 @@ export const InspectorPanel: React.FC = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-background-secondary border-border">
-                        <SelectItem value="0">None</SelectItem>
+                        <SelectItem value="0">无</SelectItem>
                         <SelectItem value="0.5">50%</SelectItem>
                         <SelectItem value="0.7">70%</SelectItem>
                         <SelectItem value="1">100%</SelectItem>

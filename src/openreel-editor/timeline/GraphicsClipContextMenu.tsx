@@ -70,17 +70,17 @@ export const GraphicsClipContextMenu: React.FC<GraphicsClipContextMenuProps> = (
   const getClipTypeLabel = () => {
     switch (clipType) {
       case "shape":
-        return "Shape";
+        return "图形";
       case "svg":
         return "SVG";
       case "sticker":
-        return "Sticker";
+        return "贴纸";
       case "emoji":
-        return "Emoji";
+        return "表情";
       case "text":
-        return "Text";
+        return "文本";
       default:
-        return "Graphics";
+        return "图形";
     }
   };
 

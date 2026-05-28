@@ -125,10 +125,10 @@ export const ClipContextMenu: React.FC<ClipContextMenuProps> = ({
   };
 
   const getClipTypeLabel = () => {
-    if (isVideo) return "Video Clip";
-    if (isAudio) return "Audio Clip";
-    if (isImage) return "Image Clip";
-    return "Clip";
+    if (isVideo) return "视频片段";
+    if (isAudio) return "音频片段";
+    if (isImage) return "图片片段";
+    return "片段";
   };
 
   const getClipTypeIcon = () => {
