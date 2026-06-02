@@ -21,8 +21,9 @@ export async function GET(request: NextRequest) {
       signal: AbortSignal.timeout(60000),
     });
 
+    const status = response.status;
     if (!response.ok || !response.body) {
-      return new Response("Upstream fetch failed", { status: 502 });
+      return new Response(`Upstream returned ${status}`, { status });
     }
 
     const headers = new Headers();

@@ -50,6 +50,18 @@ export interface ShotMediaGroup {
 }
 
 /**
+ * Stable hash for a URL — same URL always produces the same short string.
+ * Used as part of MediaItem ID so the ID doesn't change when version numbers shift.
+ */
+function urlHash(url: string): string {
+  let h = 0;
+  for (let i = 0; i < url.length; i++) {
+    h = ((h << 5) - h + url.charCodeAt(i)) | 0;
+  }
+  return Math.abs(h).toString(36);
+}
+
+/**
  * Probe a video URL for its native resolution using a hidden <video> element.
  * Only downloads enough bytes to parse the container header (~tens of KB).
  */
@@ -122,15 +134,17 @@ export async function loadShotMediaItems(
       const rawList = Array.isArray(historyData)
         ? historyData
         : (historyData as { list?: unknown[] })?.list ?? [];
-      const completedVersions = (rawList as Record<string, unknown>[])
+      // API returns newest-first; reverse so earliest generation is v1
+      const completedRaw = (rawList as Record<string, unknown>[])
         .filter((v: Record<string, unknown>) => v.status === "COMPLETED" && v.videoUrl)
-        .map((v: Record<string, unknown>, i: number) => ({
-          url: v.videoUrl as string,
-          version: i + 1,
-          status: "completed" as const,
-          duration: v.duration as number ?? null,
-          thumbnailUrl: (v.lastFrameUrl ?? v.thumbnailUrl ?? shot.imageUrl) as string | null,
-        }));
+        .reverse();
+      const completedVersions = completedRaw.map((v: Record<string, unknown>, i: number) => ({
+        url: v.videoUrl as string,
+        version: i + 1,
+        status: "completed" as const,
+        duration: v.duration as number ?? null,
+        thumbnailUrl: (v.lastFrameUrl ?? v.thumbnailUrl ?? shot.imageUrl) as string | null,
+      }));
       if (completedVersions.length > 0) {
         versions = completedVersions;
       }
@@ -164,7 +178,7 @@ export async function loadShotMediaItems(
     const items: MediaItem[] = versions
       .filter((v) => v.url && v.status !== "generating")
       .map((v) => {
-        const mediaId = `shot-${shot.id}-v${v.version}`;
+        const mediaId = `shot-${shot.id}-${urlHash(v.url!)}`;
         const durationSec = v.duration ?? 0;
         const thumb = v.thumbnailUrl ?? shot.imageUrl ?? null;
         const resolution = resolutionMap.get(v.url!) ?? null;

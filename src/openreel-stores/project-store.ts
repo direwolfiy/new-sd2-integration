@@ -1979,12 +1979,17 @@ export const useProjectStore = create<ProjectState>()(
 
       addPlaceholderMedia: (item: MediaItem) => {
         const { project } = get();
+        const items = project.mediaLibrary.items;
+        // Idempotent: skip if item with same ID already exists
+        if (items.some((i) => i.id === item.id)) return;
+        // Also skip if same URL already exists (catches legacy ID format changes)
+        if (item.originalUrl && items.some((i) => i.originalUrl === item.originalUrl)) return;
         set({
           project: {
             ...project,
             mediaLibrary: {
               ...project.mediaLibrary,
-              items: [...project.mediaLibrary.items, item],
+              items: [...items, item],
             },
             modifiedAt: Date.now(),
           },

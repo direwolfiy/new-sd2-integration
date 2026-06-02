@@ -540,7 +540,7 @@ const MediaThumbnail: React.FC<{
 
 const downloadingSet = new Set<string>();
 
-async function downloadShotBlob(item: MediaItem): Promise<void> {
+async function downloadShotBlob(item: MediaItem, retries = 2): Promise<void> {
   if (!item.originalUrl || item.blob) return;
   if (downloadingSet.has(item.id)) return;
 
@@ -549,7 +549,16 @@ async function downloadShotBlob(item: MediaItem): Promise<void> {
   try {
     const proxyUrl = `/api/video-proxy?url=${encodeURIComponent(item.originalUrl)}`;
     const response = await fetch(proxyUrl);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    if (!response.ok) {
+      const body = await response.text().catch(() => "");
+      if (retries > 0 && response.status !== 403) {
+        console.warn(`downloadShotBlob: ${response.status} for ${item.name}, retrying (${retries} left)`);
+        await new Promise((r) => setTimeout(r, 1000));
+        downloadingSet.delete(item.id);
+        return downloadShotBlob(item, retries - 1);
+      }
+      throw new Error(`HTTP ${response.status}${body ? `: ${body}` : ""}`);
+    }
     const blob = await response.blob();
     const ext = item.originalUrl.split(".").pop()?.replace(/[?#].*$/, "") ?? "mp4";
     const file = new File([blob], `${item.name}.${ext}`, { type: blob.type || `video/${ext}` });
@@ -661,7 +670,7 @@ const LoadingIndicator: React.FC<{ message: string }> = ({ message }) => (
   </div>
 );
 
-export const AssetsPanel: React.FC = () => {
+export const AssetsPanel: React.FC<{ onRefreshShots?: () => void }> = ({ onRefreshShots }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTabRaw] = useState<AssetsTab>("media");
@@ -692,6 +701,7 @@ export const AssetsPanel: React.FC = () => {
   const [backgroundCategory, setBackgroundCategory] = useState<
     "all" | "solid" | "gradient" | "pattern" | "mesh"
   >("all");
+  const [refreshingShots, setRefreshingShots] = useState(false);
 
   // KieAI image generation dialog
   const [kieaiDialog, setKieaiDialog] = useState<{ file: File; previewUrl: string | null } | null>(null);
@@ -1170,6 +1180,21 @@ export const AssetsPanel: React.FC = () => {
                   {label}
                 </button>
               ))}
+              {onRefreshShots && (
+                <button
+                  onClick={() => {
+                    if (refreshingShots) return;
+                    setRefreshingShots(true);
+                    onRefreshShots();
+                    setTimeout(() => setRefreshingShots(false), 2000);
+                  }}
+                  disabled={refreshingShots}
+                  title="刷新分镜素材"
+                  className="ml-auto p-1 rounded-md text-text-muted hover:text-text-secondary hover:bg-background-elevated transition-colors disabled:opacity-50"
+                >
+                  <RefreshCw size={14} className={refreshingShots ? "animate-spin" : ""} />
+                </button>
+              )}
             </div>
 
             {missingAssetsCount > 0 && (

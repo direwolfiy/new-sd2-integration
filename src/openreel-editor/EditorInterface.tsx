@@ -205,25 +205,95 @@ const useEpisodeProject = (episodeId: string) => {
 
 const useShotMaterialLoader = (episodeId: string, projectReady: boolean) => {
   const addPlaceholderMedia = useProjectStore((s) => s.addPlaceholderMedia);
-  const mediaItems = useProjectStore((s) => s.project.mediaLibrary.items);
   const [loaded, setLoaded] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Reset loaded state when episode changes
   useEffect(() => {
     setLoaded(false);
   }, [episodeId]);
 
+  const refreshShots = useCallback(() => {
+    setLoaded(false);
+    setRefreshKey((k) => k + 1);
+  }, []);
+
   useEffect(() => {
     if (!projectReady || !episodeId || loaded) return;
 
     let cancelled = false;
     console.log("[ShotBridge] Loading shot materials for episode:", episodeId);
-    loadShotMediaItems(episodeId).then(({ allItems, groups }) => {
+    loadShotMediaItems(episodeId).then(({ allItems }) => {
       if (cancelled) return;
-      console.log("[ShotBridge] Loaded groups:", groups.length, "items:", allItems.length);
-      const existingIds = new Set(mediaItems.map((i) => i.id));
+      console.log("[ShotBridge] Loaded items:", allItems.length);
+
+      // Read current store state (not closure snapshot) for dedup
+      const state = useProjectStore.getState();
+      const existingIds = new Set(state.project.mediaLibrary.items.map((i) => i.id));
+      const existingUrls = new Set(
+        state.project.mediaLibrary.items.map((i) => i.originalUrl).filter(Boolean),
+      );
+
+      // Clean up legacy duplicates: keep only the first item per URL.
+      // Skip items referenced by timeline clips. Merge better metadata into kept item.
+      const timelineItemIds = new Set(
+        state.project.timeline.tracks.flatMap((t) => t.clips.map((c) => c.mediaId)),
+      );
+      const seenUrls = new Map<string, { id: string; idx: number; width: number; height: number }>();
+      const cleanupIds = new Set<string>();
+      const metadataMerges: { targetId: string; width: number; height: number }[] = [];
+
+      for (let idx = 0; idx < state.project.mediaLibrary.items.length; idx++) {
+        const item = state.project.mediaLibrary.items[idx];
+        if (item.originalUrl && !timelineItemIds.has(item.id)) {
+          const existing = seenUrls.get(item.originalUrl);
+          if (existing) {
+            cleanupIds.add(item.id);
+            // If duplicate has better metadata (non-default resolution), merge it
+            const itemW = item.metadata?.width ?? 0;
+            const itemH = item.metadata?.height ?? 0;
+            const hasRealRes = itemW > 0 && itemH > 0 && (itemW !== 1920 || itemH !== 1080);
+            const existingHasDefault = existing.width === 1920 && existing.height === 1080;
+            if (hasRealRes && existingHasDefault) {
+              metadataMerges.push({ targetId: existing.id, width: itemW, height: itemH });
+            }
+          } else {
+            seenUrls.set(item.originalUrl, {
+              id: item.id, idx,
+              width: item.metadata?.width ?? 1920,
+              height: item.metadata?.height ?? 1080,
+            });
+          }
+        }
+      }
+
+      if (cleanupIds.size > 0 || metadataMerges.length > 0) {
+        let items = state.project.mediaLibrary.items.filter((i) => !cleanupIds.has(i.id));
+        for (const { targetId, width, height } of metadataMerges) {
+          items = items.map((i) =>
+            i.id === targetId ? { ...i, metadata: { ...i.metadata, width, height } } : i,
+          );
+        }
+        console.log("[ShotBridge] Cleaned up %d duplicates, merged %d metadatas", cleanupIds.size, metadataMerges.length);
+        useProjectStore.setState({
+          project: {
+            ...state.project,
+            mediaLibrary: { ...state.project.mediaLibrary, items },
+          },
+        });
+        // Refresh dedup sets after cleanup
+        existingIds.clear();
+        existingUrls.clear();
+        const cleanedState = useProjectStore.getState();
+        for (const item of cleanedState.project.mediaLibrary.items) {
+          existingIds.add(item.id);
+          if (item.originalUrl) existingUrls.add(item.originalUrl);
+        }
+      }
+
       for (const item of allItems) {
-        if (!existingIds.has(item.id)) {
+        const urlExists = item.originalUrl && existingUrls.has(item.originalUrl);
+        if (!existingIds.has(item.id) && !urlExists) {
           console.log("[ShotBridge] Adding item:", item.id, item.name);
           addPlaceholderMedia(item);
         }
@@ -234,7 +304,9 @@ const useShotMaterialLoader = (episodeId: string, projectReady: boolean) => {
     });
 
     return () => { cancelled = true; };
-  }, [projectReady, episodeId, loaded]);
+  }, [projectReady, episodeId, loaded, refreshKey]);
+
+  return refreshShots;
 };
 
 /**
@@ -360,7 +432,7 @@ export const EditorInterface: React.FC = () => {
   const params = useParams<{ ep: string }>();
   const projectReady = useEpisodeProject(params.ep);
 
-  useShotMaterialLoader(params.ep, projectReady && initialized);
+  const refreshShots = useShotMaterialLoader(params.ep, projectReady && initialized);
 
   const {
     keyframeEditorOpen,
@@ -675,7 +747,7 @@ export const EditorInterface: React.FC = () => {
             style={{ width: assetsWidth }}
           >
             <PanelErrorBoundary name="Assets Panel">
-              <AssetsPanel />
+              <AssetsPanel onRefreshShots={refreshShots} />
             </PanelErrorBoundary>
           </div>
 
