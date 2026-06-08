@@ -96,6 +96,7 @@ export interface ChapterItem {
   chapterTitle?: string | null;
   chapterOrder: number;
   chapterContent?: string | null;
+  chapter_content?: string | null;
   status?: number | null;
   creator?: string | null;
   createdTime?: string | null;

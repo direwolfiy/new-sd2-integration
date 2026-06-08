@@ -13,7 +13,7 @@ function ProjectCard({ project }: { project: Project }) {
       href={`/project/${project.id}`}
       className="group relative block h-[188px] w-full rounded-lg overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-[0_8px_24px_rgba(0,0,0,0.4)]"
     >
-      <div className="absolute inset-0 bg-[#262626]">
+      <div className="absolute inset-0 bg-[#2b2b2b]">
         <div className="absolute inset-0 flex items-center justify-center">
           <FolderMinus size={32} strokeWidth={1.5} className="text-white/10" />
         </div>
@@ -45,7 +45,7 @@ function ProjectGridSkeleton() {
   return (
     <div className="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="h-[188px] rounded-lg bg-[#1a1a1a] animate-pulse" />
+        <div key={i} className="h-[188px] rounded-lg bg-[#202020] animate-pulse" />
       ))}
     </div>
   );
@@ -68,25 +68,25 @@ export default function ProjectListPage() {
             我的项目
           </h1>
           <div className="flex items-center gap-3">
-            <div className="h-8 px-3 rounded-full bg-[#262626] flex items-center gap-2 text-[13px] text-[#666]">
+            <div className="h-8 px-3 rounded-full bg-[#2b2b2b] flex items-center gap-2 text-[13px] text-[#a3a3a3]">
               <Search size={14} strokeWidth={1.5} />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="搜索项目..."
-                className="bg-transparent text-[13px] text-white placeholder:text-[#666] outline-none w-24"
+                className="bg-transparent text-[13px] text-white placeholder:text-[#a3a3a3] outline-none w-24"
               />
             </div>
-            <button className="h-8 px-3 rounded-full bg-white/[0.06] flex items-center gap-1.5 text-[13px] text-[#999] hover:bg-white/[0.1] hover:text-white transition-colors duration-200">
+            <button className="h-8 px-3 rounded-full bg-white/[0.10] flex items-center gap-1.5 text-[13px] text-[#b8b8b8] hover:bg-white/[0.1] hover:text-white transition-colors duration-200">
               <Filter size={14} strokeWidth={1.5} />
               筛选
             </button>
-            <div className="flex gap-1 bg-white/[0.04] rounded-md p-0.5">
+            <div className="flex gap-1 bg-white/[0.08] rounded-md p-0.5">
               <button className="p-1.5 rounded bg-white/[0.08] text-white">
                 <LayoutGrid size={14} strokeWidth={1.5} />
               </button>
-              <button className="p-1.5 rounded text-[#666] hover:text-[#999] transition-colors duration-200">
+              <button className="p-1.5 rounded text-[#a3a3a3] hover:text-[#b8b8b8] transition-colors duration-200">
                 <List size={14} strokeWidth={1.5} />
               </button>
             </div>
@@ -106,9 +106,9 @@ export default function ProjectListPage() {
           <div className="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
             <Link
               href="/project/new"
-              className="group relative flex h-[188px] items-center justify-center rounded-lg border border-dashed border-white/[0.12] bg-transparent hover:border-white/[0.2] hover:bg-white/[0.02] transition-all duration-200"
+              className="group relative flex h-[188px] items-center justify-center rounded-lg border border-dashed border-white/[0.12] bg-transparent hover:border-white/[0.2] hover:bg-white/[0.05] transition-all duration-200"
             >
-              <div className="flex flex-col items-center gap-2 text-[#666] group-hover:text-white transition-colors duration-200">
+              <div className="flex flex-col items-center gap-2 text-[#a3a3a3] group-hover:text-white transition-colors duration-200">
                 <Plus size={24} strokeWidth={1.5} />
                 <span className="text-[13px]">新建项目</span>
               </div>

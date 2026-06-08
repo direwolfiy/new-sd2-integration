@@ -70,14 +70,14 @@ function Dropdown({ value, options, onChange }: { value: string; options: string
 
   return (
     <div ref={ref} className="relative">
-      <button onClick={() => setOpen(!open)} className="h-7 px-2.5 rounded-full bg-white/[0.06] text-[12px] text-[#999] flex items-center gap-1.5 hover:bg-white/[0.1] hover:text-white transition-colors duration-200">
+      <button onClick={() => setOpen(!open)} className="h-7 px-2.5 rounded-full bg-white/[0.10] text-[12px] text-[#b8b8b8] flex items-center gap-1.5 hover:bg-white/[0.1] hover:text-white transition-colors duration-200">
         {value}
         <ChevronDown size={12} strokeWidth={1.5} />
       </button>
       {open && (
-        <div className="absolute bottom-full left-0 mb-1 py-1 rounded-lg border border-white/[0.08] bg-[#1c1c1c] shadow-[0_8px_24px_rgba(0,0,0,0.5)] z-10 min-w-[100px]">
+        <div className="absolute bottom-full left-0 mb-1 py-1 rounded-lg border border-white/[0.14] bg-[#1c1c1c] shadow-[0_8px_24px_rgba(0,0,0,0.5)] z-10 min-w-[100px]">
           {options.map((opt) => (
-            <button key={opt} onClick={() => { onChange(opt); setOpen(false); }} className={`w-full text-left px-3 py-1.5 text-[12px] transition-colors duration-200 ${opt === value ? "text-white bg-white/[0.06]" : "text-[#999] hover:text-white hover:bg-white/[0.04]"}`}>
+            <button key={opt} onClick={() => { onChange(opt); setOpen(false); }} className={`w-full text-left px-3 py-1.5 text-[12px] transition-colors duration-200 ${opt === value ? "text-white bg-white/[0.10]" : "text-[#b8b8b8] hover:text-white hover:bg-white/[0.08]"}`}>
               {opt}
             </button>
           ))}
@@ -193,35 +193,35 @@ export function SceneImageGenerateOverlay({ open, onClose, stateName, projectId,
   return (
     <div className="fixed inset-0 z-[70] bg-[#0a0a0a] flex flex-col animate-in fade-in duration-150 ease-out">
       {/* Header */}
-      <div className="shrink-0 flex items-center gap-4 px-5 h-[56px] border-b border-white/[0.06]">
-        <button onClick={onClose} className="flex items-center gap-2 text-[13px] text-[#999] hover:text-white transition-colors duration-200 shrink-0">
+      <div className="shrink-0 flex items-center gap-4 px-5 h-[56px] border-b border-white/[0.12]">
+        <button onClick={onClose} className="flex items-center gap-2 text-[13px] text-[#b8b8b8] hover:text-white transition-colors duration-200 shrink-0">
           <ArrowLeft size={16} strokeWidth={1.5} />
           返回
         </button>
-        <div className="w-px h-5 bg-white/[0.06] shrink-0" />
+        <div className="w-px h-5 bg-white/[0.10] shrink-0" />
         <span className="text-[14px] font-medium">生成场景图 — {stateName}</span>
       </div>
 
       {/* Main */}
       <div className="flex flex-1 min-h-0 p-4 gap-4">
         {/* Left — generation panel */}
-        <div className="w-[40%] shrink-0 rounded-xl border border-white/[0.06] bg-[#141414] flex flex-col">
+        <div className="w-[40%] shrink-0 rounded-xl border border-white/[0.12] bg-[#181818] flex flex-col">
           <div className="px-5 pt-5 pb-2 shrink-0">
             <h3 className="text-[15px] font-medium">生成设置</h3>
           </div>
           <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
             {/* Reference images */}
-            <div className="px-4 pt-4 pb-3 border-b border-white/[0.06] shrink-0">
-              <p className="text-[12px] text-[#666] mb-2">参考图</p>
+            <div className="px-4 pt-4 pb-3 border-b border-white/[0.12] shrink-0">
+              <p className="text-[12px] text-[#a3a3a3] mb-2">参考图</p>
               <div className="flex items-center gap-2 flex-wrap">
                 {refAttached.map((ref) => (
                   <div key={ref.id} className="relative group">
-                    <div className="w-20 h-12 rounded-lg bg-[#262626] border border-white/[0.06] flex items-center justify-center">
-                      <ImageIcon size={14} strokeWidth={1.5} className="text-[#444]" />
+                    <div className="w-20 h-12 rounded-lg bg-[#2b2b2b] border border-white/[0.12] flex items-center justify-center">
+                      <ImageIcon size={14} strokeWidth={1.5} className="text-[#888]" />
                     </div>
                     <button
                       onClick={() => setRefAttached((prev) => prev.filter((r) => r.id !== ref.id))}
-                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#1c1c1c] border border-white/[0.08] flex items-center justify-center text-[#666] opacity-0 group-hover:opacity-100 hover:text-white transition-all duration-200"
+                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-[#1c1c1c] border border-white/[0.14] flex items-center justify-center text-[#a3a3a3] opacity-0 group-hover:opacity-100 hover:text-white transition-all duration-200"
                     >
                       <X size={10} strokeWidth={1.5} />
                     </button>
@@ -229,7 +229,7 @@ export function SceneImageGenerateOverlay({ open, onClose, stateName, projectId,
                 ))}
                 <button
                   onClick={() => setRefModalOpen(true)}
-                  className="w-20 h-12 rounded-lg border border-dashed border-white/[0.1] flex items-center justify-center text-[#666] hover:border-white/[0.2] hover:text-[#999] transition-colors duration-200"
+                  className="w-20 h-12 rounded-lg border border-dashed border-white/[0.1] flex items-center justify-center text-[#a3a3a3] hover:border-white/[0.2] hover:text-[#b8b8b8] transition-colors duration-200"
                 >
                   <Plus size={16} strokeWidth={1.5} />
                 </button>
@@ -238,18 +238,18 @@ export function SceneImageGenerateOverlay({ open, onClose, stateName, projectId,
 
             {/* Prompt */}
             <div className="flex-1 flex flex-col p-4 min-h-0">
-              <p className="text-[12px] text-[#666] mb-2 shrink-0">提示词</p>
+              <p className="text-[12px] text-[#a3a3a3] mb-2 shrink-0">提示词</p>
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder="描述你想要生成的场景图..."
-                className="flex-1 w-full bg-[#262626] border border-white/[0.08] rounded-lg px-3 py-2.5 text-[13px] text-[#ccc] leading-[1.7] placeholder:text-white/25 resize-none outline-none focus:border-[#00CAE0] focus:ring-1 focus:ring-[#00CAE0] transition-colors duration-200"
+                className="flex-1 w-full bg-[#2b2b2b] border border-white/[0.14] rounded-lg px-3 py-2.5 text-[13px] text-[#ccc] leading-[1.7] placeholder:text-white/25 resize-none outline-none focus:border-[#00CAE0] focus:ring-1 focus:ring-[#00CAE0] transition-colors duration-200"
               />
             </div>
           </div>
 
           {/* Bottom bar */}
-          <div className="shrink-0 px-4 py-3 border-t border-white/[0.06]">
+          <div className="shrink-0 px-4 py-3 border-t border-white/[0.12]">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Dropdown value={selectedModel?.model_name ?? "选择模型"} options={modelNames} onChange={(name) => { const m = models.find((x) => x.model_name === name); if (m) { setSelectedModelId(m.id); setSelectedRatio(m.supported_aspect_ratios?.[0] ?? "1:1"); } }} />
@@ -257,7 +257,7 @@ export function SceneImageGenerateOverlay({ open, onClose, stateName, projectId,
                 <Dropdown value={selectedCount} options={counts} onChange={setSelectedCount} />
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-[12px] text-[#666] flex items-center gap-1">
+                <span className="text-[12px] text-[#a3a3a3] flex items-center gap-1">
                   <Coins size={12} strokeWidth={1.5} className="text-[#00CAE0]" />
                   {Math.round((selectedModel?.cost_per_image ?? 0) * parseCount(selectedCount))} 积分
                 </span>
@@ -271,15 +271,15 @@ export function SceneImageGenerateOverlay({ open, onClose, stateName, projectId,
         </div>
 
         {/* Right — history */}
-        <div className="flex-1 rounded-xl border border-white/[0.06] bg-[#141414] flex flex-col min-w-0 overflow-hidden">
+        <div className="flex-1 rounded-xl border border-white/[0.12] bg-[#181818] flex flex-col min-w-0 overflow-hidden">
           <div className="flex items-center justify-between px-5 pt-5 pb-2 shrink-0 mr-[56px]">
             <h3 className="text-[15px] font-medium">生成历史</h3>
             <div className="flex items-center gap-1.5">
-              <button className="h-7 px-2.5 rounded-full bg-white/[0.06] text-[12px] text-[#999] flex items-center gap-1.5 hover:bg-white/[0.1] hover:text-white transition-colors duration-200">
+              <button className="h-7 px-2.5 rounded-full bg-white/[0.10] text-[12px] text-[#b8b8b8] flex items-center gap-1.5 hover:bg-white/[0.1] hover:text-white transition-colors duration-200">
                 <Upload size={12} strokeWidth={1.5} />
                 上传图片
               </button>
-              <button className="h-7 px-2.5 rounded-full bg-white/[0.06] text-[12px] text-[#999] flex items-center gap-1.5 hover:bg-white/[0.1] hover:text-white transition-colors duration-200">
+              <button className="h-7 px-2.5 rounded-full bg-white/[0.10] text-[12px] text-[#b8b8b8] flex items-center gap-1.5 hover:bg-white/[0.1] hover:text-white transition-colors duration-200">
                 <Library size={12} strokeWidth={1.5} />
                 资源库导入
               </button>
@@ -288,7 +288,7 @@ export function SceneImageGenerateOverlay({ open, onClose, stateName, projectId,
 
           {history.length === 0 ? (
             <div className="flex-1 flex items-center justify-center">
-              <p className="text-[13px] text-[#444]">尚无生成记录</p>
+              <p className="text-[13px] text-[#888]">尚无生成记录</p>
             </div>
           ) : (
             <div className="flex-1 flex min-h-0">
@@ -304,21 +304,21 @@ export function SceneImageGenerateOverlay({ open, onClose, stateName, projectId,
                       className="space-y-2"
                     >
                       <div className="flex items-center justify-between px-1">
-                        <p className="text-[12px] text-[#999] leading-[1.6] truncate flex-1 min-w-0 mr-3">
+                        <p className="text-[12px] text-[#b8b8b8] leading-[1.6] truncate flex-1 min-w-0 mr-3">
                           {record.prompt}
                         </p>
                         <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="text-[11px] text-[#555]">{record.model}</span>
-                          <span className="text-[11px] text-[#444]">·</span>
-                          <span className="text-[11px] text-[#555]">{record.ratio}</span>
-                          <span className="text-[11px] text-[#444]">·</span>
-                          <span className="text-[11px] text-[#444]">
+                          <span className="text-[11px] text-[#b8b8b8]">{record.model}</span>
+                          <span className="text-[11px] text-[#888]">·</span>
+                          <span className="text-[11px] text-[#b8b8b8]">{record.ratio}</span>
+                          <span className="text-[11px] text-[#888]">·</span>
+                          <span className="text-[11px] text-[#888]">
                             <Clock size={9} strokeWidth={1.5} className="inline mr-0.5 -mt-px" />
                             {record.createdAt}
                           </span>
                         </div>
                       </div>
-                      <div className="max-h-[400px] rounded-lg overflow-hidden border border-white/[0.06] bg-[#141414] flex items-center justify-center relative">
+                      <div className="max-h-[400px] rounded-lg overflow-hidden border border-white/[0.12] bg-[#181818] flex items-center justify-center relative">
                         <div className="w-full aspect-video max-h-[400px] bg-gradient-to-br from-[#1a1a1a] to-[#141414] flex items-center justify-center">
                           {img?.url ? (
                             <img src={img.url} alt={img.name} className="w-full h-full object-contain" />
@@ -335,13 +335,13 @@ export function SceneImageGenerateOverlay({ open, onClose, stateName, projectId,
                       {img && (
                         <div className="px-1 flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="text-[11px] text-[#555]">{img.name}</span>
-                            <button onClick={() => toggleAdded(img.id)} className={`h-7 px-3 rounded-full text-[11px] flex items-center gap-1 transition-colors duration-200 ${isAdded ? "bg-[#00CAE0]/10 text-[#00CAE0] hover:bg-[#00CAE0]/15" : "bg-white/[0.06] text-[#999] hover:bg-white/[0.1] hover:text-white"}`}>
+                            <span className="text-[11px] text-[#b8b8b8]">{img.name}</span>
+                            <button onClick={() => toggleAdded(img.id)} className={`h-7 px-3 rounded-full text-[11px] flex items-center gap-1 transition-colors duration-200 ${isAdded ? "bg-[#00CAE0]/10 text-[#00CAE0] hover:bg-[#00CAE0]/15" : "bg-white/[0.10] text-[#b8b8b8] hover:bg-white/[0.1] hover:text-white"}`}>
                               {isAdded ? <><Check size={10} strokeWidth={2} />已添加</> : <><Plus size={10} strokeWidth={1.5} />添加为场景图</>}
                             </button>
                           </div>
                           <div className="flex items-center gap-1.5">
-                            <button className="h-7 px-2.5 rounded-full bg-white/[0.06] text-[11px] text-[#999] flex items-center gap-1 hover:bg-white/[0.1] hover:text-white transition-colors duration-200">
+                            <button className="h-7 px-2.5 rounded-full bg-white/[0.10] text-[11px] text-[#b8b8b8] flex items-center gap-1 hover:bg-white/[0.1] hover:text-white transition-colors duration-200">
                               超清放大
                             </button>
                           </div>
@@ -364,8 +364,8 @@ export function SceneImageGenerateOverlay({ open, onClose, stateName, projectId,
                       onClick={() => scrollToRecord(record.id)}
                       className={`w-full aspect-video rounded-md overflow-hidden relative transition-all duration-200 ${
                         isActive
-                          ? "ring-2 ring-white/30 bg-[#1a1a1a]"
-                          : "opacity-50 hover:opacity-80 bg-[#1a1a1a]"
+                          ? "ring-2 ring-white/30 bg-[#202020]"
+                          : "opacity-50 hover:opacity-80 bg-[#202020]"
                       }`}
                     >
                       <div className="w-full h-full bg-gradient-to-br from-[#222] to-[#141414] flex items-center justify-center">
@@ -390,22 +390,22 @@ export function SceneImageGenerateOverlay({ open, onClose, stateName, projectId,
       {/* Reference image picker modal */}
       {refModalOpen && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="w-[640px] max-h-[80vh] rounded-xl border border-white/[0.08] bg-[#1c1c1c] shadow-[0_16px_48px_rgba(0,0,0,0.5)] flex flex-col">
+          <div className="w-[640px] max-h-[80vh] rounded-xl border border-white/[0.14] bg-[#1c1c1c] shadow-[0_16px_48px_rgba(0,0,0,0.5)] flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.12] shrink-0">
               <h3 className="text-[15px] font-medium">选择参考图</h3>
-              <button onClick={() => { setRefModalOpen(false); setRefSelected(new Set()); }} className="w-7 h-7 rounded-full flex items-center justify-center text-[#666] hover:text-white hover:bg-white/[0.06] transition-colors duration-200">
+              <button onClick={() => { setRefModalOpen(false); setRefSelected(new Set()); }} className="w-7 h-7 rounded-full flex items-center justify-center text-[#a3a3a3] hover:text-white hover:bg-white/[0.10] transition-colors duration-200">
                 <X size={14} strokeWidth={1.5} />
               </button>
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-1 p-1 mx-5 mt-4 rounded-full bg-white/[0.06] shrink-0">
-              <button onClick={() => setRefTab("library")} className={`flex-1 h-8 rounded-full text-[13px] flex items-center justify-center gap-1.5 transition-all duration-200 ${refTab === "library" ? "bg-white/10 text-white" : "text-[#999] hover:text-white"}`}>
+            <div className="flex gap-1 p-1 mx-5 mt-4 rounded-full bg-white/[0.10] shrink-0">
+              <button onClick={() => setRefTab("library")} className={`flex-1 h-8 rounded-full text-[13px] flex items-center justify-center gap-1.5 transition-all duration-200 ${refTab === "library" ? "bg-white/10 text-white" : "text-[#b8b8b8] hover:text-white"}`}>
                 <Library size={14} strokeWidth={1.5} />
                 资源库
               </button>
-              <button onClick={() => setRefTab("upload")} className={`flex-1 h-8 rounded-full text-[13px] flex items-center justify-center gap-1.5 transition-all duration-200 ${refTab === "upload" ? "bg-white/10 text-white" : "text-[#999] hover:text-white"}`}>
+              <button onClick={() => setRefTab("upload")} className={`flex-1 h-8 rounded-full text-[13px] flex items-center justify-center gap-1.5 transition-all duration-200 ${refTab === "upload" ? "bg-white/10 text-white" : "text-[#b8b8b8] hover:text-white"}`}>
                 <Upload size={14} strokeWidth={1.5} />
                 本地上传
               </button>
@@ -415,7 +415,7 @@ export function SceneImageGenerateOverlay({ open, onClose, stateName, projectId,
             <div className="flex-1 min-h-0 overflow-y-auto p-5">
               {refTab === "library" ? (
                 <>
-                  <div className="h-8 px-3 rounded-full bg-[#262626] flex items-center gap-2 text-[12px] text-[#666] mb-4">
+                  <div className="h-8 px-3 rounded-full bg-[#2b2b2b] flex items-center gap-2 text-[12px] text-[#a3a3a3] mb-4">
                     <Search size={14} strokeWidth={1.5} />
                     搜索资源...
                   </div>
@@ -429,7 +429,7 @@ export function SceneImageGenerateOverlay({ open, onClose, stateName, projectId,
                           className={`rounded-lg overflow-hidden border transition-all duration-200 ${
                             isSelected
                               ? "border-[#00CAE0]/40 ring-1 ring-[#00CAE0]/30"
-                              : "border-white/[0.06] hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12)]"
+                              : "border-white/[0.12] hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12)]"
                           }`}
                         >
                           <div className="aspect-video bg-gradient-to-br from-[#222] to-[#141414] flex items-center justify-center relative">
@@ -440,9 +440,9 @@ export function SceneImageGenerateOverlay({ open, onClose, stateName, projectId,
                               </div>
                             )}
                           </div>
-                          <div className="p-2 bg-[#141414]">
+                          <div className="p-2 bg-[#181818]">
                             <p className="text-[11px] text-[#ccc] truncate">{item.name}</p>
-                            <p className="text-[10px] text-[#555] mt-0.5">{item.source}</p>
+                            <p className="text-[10px] text-[#b8b8b8] mt-0.5">{item.source}</p>
                           </div>
                         </button>
                       );
@@ -451,22 +451,22 @@ export function SceneImageGenerateOverlay({ open, onClose, stateName, projectId,
                 </>
               ) : (
                 <div className="flex flex-col items-center justify-center py-16 border-2 border-dashed border-white/[0.1] rounded-xl hover:border-white/[0.2] transition-colors duration-200 cursor-pointer">
-                  <div className="w-12 h-12 rounded-xl bg-white/[0.04] flex items-center justify-center mb-4">
-                    <Upload size={24} strokeWidth={1.5} className="text-[#666]" />
+                  <div className="w-12 h-12 rounded-xl bg-white/[0.08] flex items-center justify-center mb-4">
+                    <Upload size={24} strokeWidth={1.5} className="text-[#a3a3a3]" />
                   </div>
-                  <p className="text-[14px] text-[#999] mb-1">点击或拖拽图片到此区域</p>
-                  <p className="text-[12px] text-[#555]">支持 PNG、JPG、WebP，单张最大 10MB</p>
+                  <p className="text-[14px] text-[#b8b8b8] mb-1">点击或拖拽图片到此区域</p>
+                  <p className="text-[12px] text-[#b8b8b8]">支持 PNG、JPG、WebP，单张最大 10MB</p>
                 </div>
               )}
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between px-5 py-3 border-t border-white/[0.06] shrink-0">
-              <span className="text-[12px] text-[#666]">
+            <div className="flex items-center justify-between px-5 py-3 border-t border-white/[0.12] shrink-0">
+              <span className="text-[12px] text-[#a3a3a3]">
                 {refSelected.size > 0 ? `已选择 ${refSelected.size} 张` : "点击图片选择"}
               </span>
               <div className="flex items-center gap-2">
-                <button onClick={() => { setRefModalOpen(false); setRefSelected(new Set()); }} className="h-9 px-4 rounded-full bg-white/[0.06] text-[13px] text-[#999] hover:bg-white/[0.1] hover:text-white transition-colors duration-200">
+                <button onClick={() => { setRefModalOpen(false); setRefSelected(new Set()); }} className="h-9 px-4 rounded-full bg-white/[0.10] text-[13px] text-[#b8b8b8] hover:bg-white/[0.1] hover:text-white transition-colors duration-200">
                   取消
                 </button>
                 <button

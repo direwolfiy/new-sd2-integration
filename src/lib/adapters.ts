@@ -1,5 +1,19 @@
-import type { ContentItem, ChapterItem, SceneRoleItem, SceneScriptItem } from "@/lib/api/types";
-import type { Project, Episode, ElementItem, ElementType, Shot, VideoVersion, ScriptMetadata, ScriptEpisode } from "@/mocks/types";
+import type {
+  ContentItem,
+  ChapterItem,
+  SceneRoleItem,
+  SceneScriptItem,
+} from "@/lib/api/types";
+import type {
+  Project,
+  Episode,
+  ElementItem,
+  ElementType,
+  Shot,
+  VideoVersion,
+  ScriptMetadata,
+  ScriptEpisode,
+} from "@/mocks/types";
 
 const PRODUCTION_STAGE_MAP: Record<number, string> = {
   1: "进行中",
@@ -14,10 +28,19 @@ const TEMPLATE_TYPE_MAP: Record<string, ElementType> = {
   AUDIO: "audio",
 };
 
+export function getChapterContent(ch: ChapterItem | null | undefined): string {
+  return ch?.chapterContent ?? ch?.chapter_content ?? "";
+}
+
 export function adaptProject(c: ContentItem): Project {
   const stage = c.productionStage ?? 1;
   const status = PRODUCTION_STAGE_MAP[stage] ?? "进行中";
-  const progress = stage === 3 ? 100 : stage === 2 ? 90 : Math.min(100, (c.chapterCount ?? 0) * 10);
+  const progress =
+    stage === 3
+      ? 100
+      : stage === 2
+        ? 90
+        : Math.min(100, (c.chapterCount ?? 0) * 10);
 
   return {
     id: String(c.id),
@@ -37,11 +60,11 @@ export function adaptProject(c: ContentItem): Project {
 }
 
 export function adaptChapter(ch: ChapterItem, projectId: string): Episode {
-  const hasScript = !!ch.chapterContent;
+  const hasScript = !!getChapterContent(ch).trim();
   const hasVideo = !!ch.videoUrl;
   return {
     id: String(ch.id),
-    projectId: String(ch.contentId),
+    projectId: String(ch.contentId ?? projectId),
     episodeNumber: ch.chapterOrder,
     title: ch.chapterTitle ?? `第 ${ch.chapterOrder} 集`,
     stages: {
@@ -62,7 +85,9 @@ export function adaptElements(roles: SceneRoleItem[]): ElementItem[] {
   for (const r of roles) {
     const type = TEMPLATE_TYPE_MAP[r.template_type ?? ""] ?? "prop";
     const isCharacter = type === "character";
-    const charName = isCharacter ? extractBeforeDash(r.template_name ?? "") : null;
+    const charName = isCharacter
+      ? extractBeforeDash(r.template_name ?? "")
+      : null;
     const key = isCharacter ? charName! : String(r.id);
 
     if (seen.has(key)) continue;
@@ -70,7 +95,9 @@ export function adaptElements(roles: SceneRoleItem[]): ElementItem[] {
 
     const meta = r.template_metadata as Record<string, unknown> | null;
     const metaTags = meta?.tags as string[] | undefined;
-    const tags = metaTags ?? [r.role_type, r.template_category].filter(Boolean) as string[];
+    const tags =
+      metaTags ??
+      ([r.role_type, r.template_category].filter(Boolean) as string[]);
 
     items.push({
       id: String(r.id),
@@ -129,7 +156,10 @@ export function adaptShot(item: SceneScriptItem, episodeId: string): Shot {
   };
 }
 
-export function adaptVideoVersions(data: unknown, shotId: string): VideoVersion[] {
+export function adaptVideoVersions(
+  data: unknown,
+  shotId: string,
+): VideoVersion[] {
   if (!Array.isArray(data)) return [];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return data.map((item: any, i: number) => ({
@@ -143,13 +173,18 @@ export function adaptVideoVersions(data: unknown, shotId: string): VideoVersion[
   }));
 }
 
-function normalizeVideoStatus(status: string | null | undefined): Shot["videoStatus"] {
+function normalizeVideoStatus(
+  status: string | null | undefined,
+): Shot["videoStatus"] {
   if (status === "generating") return "generating";
   if (status === "completed") return "completed";
   return "pending";
 }
 
-export function adaptScriptMetadata(content: ContentItem, chapters: ChapterItem[]): ScriptMetadata {
+export function adaptScriptMetadata(
+  content: ContentItem,
+  chapters: ChapterItem[],
+): ScriptMetadata {
   const rawScript = content.script ?? "";
   return {
     genre: content.style ?? "",
@@ -161,8 +196,9 @@ export function adaptScriptMetadata(content: ContentItem, chapters: ChapterItem[
 }
 
 export function adaptScriptEpisode(ch: ChapterItem): ScriptEpisode {
-  const content = ch.chapterContent ?? "";
+  const content = getChapterContent(ch);
   return {
+    id: String(ch.id),
     episodeNumber: ch.chapterOrder,
     title: ch.chapterTitle ?? `第 ${ch.chapterOrder} 集`,
     summary: content.slice(0, 100),

@@ -15,14 +15,14 @@
     --primary-foreground: 0 0% 4%;
     --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 60%;
+    --muted: 0 0% 13%;
+    --muted-foreground: 0 0% 72%;
     --accent: 186 100% 44%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 0 0% 10%;
-    --input: 0 0% 12%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
     --ring: 186 100% 44%;
     --radius: 0.625rem;
 
@@ -45,15 +45,15 @@
 
     /* OpenReel custom variables (RGB) — for editor component compatibility */
     --color-background: 10 10 10;
-    --color-background-secondary: 20 20 20;
-    --color-background-tertiary: 28 28 28;
-    --color-background-elevated: 38 38 38;
+    --color-background-secondary: 24 24 24;
+    --color-background-tertiary: 43 43 43;
+    --color-background-elevated: 56 56 56;
     --color-text-primary: 255 255 255;
-    --color-text-secondary: 153 153 153;
-    --color-text-muted: 102 102 102;
-    --color-border: 25 25 25;
-    --color-border-hover: 39 39 39;
-    --color-border-active: 54 54 54;
+    --color-text-secondary: 184 184 184;
+    --color-text-muted: 138 138 138;
+    --color-border: 46 46 46;
+    --color-border-hover: 64 64 64;
+    --color-border-active: 82 82 82;
   }
 
   * {

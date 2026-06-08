@@ -38,29 +38,29 @@ export default function LoginPage() {
       <div className="mb-8 text-center">
         <div className="w-10 h-10 rounded-xl bg-[#00CAE0] mx-auto mb-4" />
         <h1 className="text-xl font-medium tracking-[-0.01em]">登录 SD2</h1>
-        <p className="text-[14px] text-[#666] mt-2">漫剧生产平台</p>
+        <p className="text-[14px] text-[#a3a3a3] mt-2">漫剧生产平台</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-[13px] text-[#666] mb-1.5">用户名</label>
+          <label className="block text-[13px] text-[#a3a3a3] mb-1.5">用户名</label>
           <input
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder="输入用户名"
             autoFocus
-            className="w-full h-10 px-4 rounded-lg bg-[#262626] border border-white/[0.08] text-white text-[15px] placeholder:text-white/30 focus:border-[#00CAE0] focus:ring-1 focus:ring-[#00CAE0] outline-none transition-colors duration-200"
+            className="w-full h-10 px-4 rounded-lg bg-[#2b2b2b] border border-white/[0.14] text-white text-[15px] placeholder:text-white/30 focus:border-[#00CAE0] focus:ring-1 focus:ring-[#00CAE0] outline-none transition-colors duration-200"
           />
         </div>
         <div>
-          <label className="block text-[13px] text-[#666] mb-1.5">密码</label>
+          <label className="block text-[13px] text-[#a3a3a3] mb-1.5">密码</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="输入密码"
-            className="w-full h-10 px-4 rounded-lg bg-[#262626] border border-white/[0.08] text-white text-[15px] placeholder:text-white/30 focus:border-[#00CAE0] focus:ring-1 focus:ring-[#00CAE0] outline-none transition-colors duration-200"
+            className="w-full h-10 px-4 rounded-lg bg-[#2b2b2b] border border-white/[0.14] text-white text-[15px] placeholder:text-white/30 focus:border-[#00CAE0] focus:ring-1 focus:ring-[#00CAE0] outline-none transition-colors duration-200"
           />
         </div>
 

@@ -116,17 +116,17 @@ export default function ElementsPage() {
   return (
     <div className="flex flex-col h-full">
       {!isEmpty && (
-        <div className="flex items-center justify-between px-6 py-3 border-b border-white/[0.06]">
+        <div className="flex items-center justify-between px-6 py-3 border-b border-white/[0.12]">
           <div className="flex items-center gap-1">
-            <div className="flex gap-1 p-0.5 rounded-full bg-white/5">
+            <div className="flex gap-1 p-0.5 rounded-full bg-white/[0.08]">
               {typeTabs.map((tab) => (
-                <button key={tab.key} onClick={() => setActiveTab(tab.key)} className={`px-4 h-7 rounded-full text-[13px] transition-all duration-200 flex items-center ${activeTab === tab.key ? "bg-white/10 text-white" : "text-[#999999] hover:text-white"}`}>{tab.label}</button>
+                <button key={tab.key} onClick={() => setActiveTab(tab.key)} className={`px-4 h-7 rounded-full text-[13px] transition-all duration-200 flex items-center ${activeTab === tab.key ? "bg-white/10 text-white" : "text-[#b8b8b8] hover:text-white"}`}>{tab.label}</button>
               ))}
             </div>
             {hasScript && (
               <>
-                <div className="w-px h-5 bg-white/[0.06] mx-1" />
-                <button onClick={() => setScriptOpen(true)} className="h-8 px-3 rounded-full bg-white/[0.06] text-[12px] text-[#999] flex items-center gap-1.5 hover:bg-white/[0.1] hover:text-white transition-colors duration-200">
+                <div className="w-px h-5 bg-white/[0.10] mx-1" />
+                <button onClick={() => setScriptOpen(true)} className="h-8 px-3 rounded-full bg-white/[0.10] text-[12px] text-[#b8b8b8] flex items-center gap-1.5 hover:bg-white/[0.1] hover:text-white transition-colors duration-200">
                   <BookOpen size={14} strokeWidth={1.5} />查看剧本
                 </button>
               </>
@@ -134,20 +134,20 @@ export default function ElementsPage() {
           </div>
           <div className="flex items-center gap-3">
             {searchOpen ? (
-              <div className="h-8 px-3 rounded-full bg-[#262626] border border-white/[0.08] flex items-center gap-2">
-                <Search size={14} strokeWidth={1.5} className="text-[#666] shrink-0" />
+              <div className="h-8 px-3 rounded-full bg-[#2b2b2b] border border-white/[0.14] flex items-center gap-2">
+                <Search size={14} strokeWidth={1.5} className="text-[#a3a3a3] shrink-0" />
                 <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="搜索元素..." autoFocus
-                  className="bg-transparent text-[12px] text-white placeholder:text-[#666] outline-none w-32"
+                  className="bg-transparent text-[12px] text-white placeholder:text-[#a3a3a3] outline-none w-32"
                   onBlur={() => { if (!searchQuery) setSearchOpen(false); }}
                   onKeyDown={(e) => { if (e.key === "Escape") { setSearchQuery(""); setSearchOpen(false); } }}
                 />
               </div>
             ) : (
-              <button onClick={() => setSearchOpen(true)} className="h-8 px-3 rounded-full bg-[#262626] flex items-center gap-2 text-[12px] text-[#666] hover:text-[#999] transition-colors duration-200">
+              <button onClick={() => setSearchOpen(true)} className="h-8 px-3 rounded-full bg-[#2b2b2b] flex items-center gap-2 text-[12px] text-[#a3a3a3] hover:text-[#b8b8b8] transition-colors duration-200">
                 <Search size={14} strokeWidth={1.5} />搜索元素...
               </button>
             )}
-            <button onClick={() => setReExtractOpen(true)} className="h-8 px-3 rounded-full bg-white/[0.06] text-[12px] text-[#999] flex items-center gap-1.5 hover:bg-white/[0.1] hover:text-white transition-colors duration-200">
+            <button onClick={() => setReExtractOpen(true)} className="h-8 px-3 rounded-full bg-white/[0.10] text-[12px] text-[#b8b8b8] flex items-center gap-1.5 hover:bg-white/[0.1] hover:text-white transition-colors duration-200">
               <Sparkles size={14} strokeWidth={1.5} />重新提取
             </button>
             <button onClick={() => setCreateOpen(true)} className="h-8 px-4 rounded-full bg-white text-black text-[12px] font-medium flex items-center gap-1.5 hover:bg-white/90 active:scale-[0.97] transition-all duration-200">
@@ -161,7 +161,7 @@ export default function ElementsPage() {
         {isLoading || scriptLoading ? (
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
             {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="rounded-xl bg-[#1a1a1a] animate-pulse aspect-[9/16]" />
+              <div key={i} className="rounded-xl bg-[#202020] animate-pulse aspect-[9/16]" />
             ))}
           </div>
         ) : isEmpty && !hasScript ? (
@@ -204,20 +204,20 @@ function EmptyStateWithScript({ onImportScript, onCreateElement }: { onImportScr
     <div className="flex items-center justify-center h-full">
       <div className="max-w-md w-full space-y-8 text-center">
         <div>
-          <div className="w-14 h-14 mx-auto rounded-xl bg-white/[0.04] flex items-center justify-center mb-5"><Sparkles size={28} strokeWidth={1.5} className="text-[#666]" /></div>
+          <div className="w-14 h-14 mx-auto rounded-xl bg-white/[0.08] flex items-center justify-center mb-5"><Sparkles size={28} strokeWidth={1.5} className="text-[#a3a3a3]" /></div>
           <h2 className="text-lg font-medium mb-2">开始构建元素库</h2>
-          <p className="text-[14px] text-[#666] leading-[1.7]">从剧本自动提取角色、场景、道具等元素，或手动逐个添加。</p>
+          <p className="text-[14px] text-[#a3a3a3] leading-[1.7]">从剧本自动提取角色、场景、道具等元素，或手动逐个添加。</p>
         </div>
         <div className="space-y-3">
           <button onClick={onImportScript} className="w-full flex items-center gap-4 p-4 rounded-xl border border-[#00CAE0]/20 bg-[#00CAE0]/[0.04] text-left hover:shadow-[0_0_0_1px_rgba(0,202,224,0.3)] transition-shadow duration-200 group">
             <div className="w-10 h-10 rounded-lg bg-[#00CAE0]/15 flex items-center justify-center shrink-0"><Sparkles size={18} strokeWidth={1.5} className="text-[#00CAE0]" /></div>
-            <div className="flex-1 min-w-0"><p className="text-[14px] font-medium">从剧本提取元素</p><p className="text-[12px] text-[#666] mt-0.5">粘贴或上传剧本，AI 自动分析提取</p></div>
+            <div className="flex-1 min-w-0"><p className="text-[14px] font-medium">从剧本提取元素</p><p className="text-[12px] text-[#a3a3a3] mt-0.5">粘贴或上传剧本，AI 自动分析提取</p></div>
             <ChevronRight size={16} strokeWidth={1.5} className="text-[#00CAE0]/40 group-hover:text-[#00CAE0] transition-colors duration-200" />
           </button>
-          <button onClick={onCreateElement} className="w-full flex items-center gap-4 p-4 rounded-xl border border-white/[0.06] bg-[#141414] text-left hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12)] transition-shadow duration-200 group">
-            <div className="w-10 h-10 rounded-lg bg-white/[0.06] flex items-center justify-center shrink-0"><Plus size={18} strokeWidth={1.5} className="text-[#999]" /></div>
-            <div className="flex-1 min-w-0"><p className="text-[14px] font-medium">手动添加</p><p className="text-[12px] text-[#666] mt-0.5">逐个添加角色、场景等元素</p></div>
-            <ChevronRight size={16} strokeWidth={1.5} className="text-[#444] group-hover:text-[#999] transition-colors duration-200" />
+          <button onClick={onCreateElement} className="w-full flex items-center gap-4 p-4 rounded-xl border border-white/[0.12] bg-[#181818] text-left hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12)] transition-shadow duration-200 group">
+            <div className="w-10 h-10 rounded-lg bg-white/[0.10] flex items-center justify-center shrink-0"><Plus size={18} strokeWidth={1.5} className="text-[#b8b8b8]" /></div>
+            <div className="flex-1 min-w-0"><p className="text-[14px] font-medium">手动添加</p><p className="text-[12px] text-[#a3a3a3] mt-0.5">逐个添加角色、场景等元素</p></div>
+            <ChevronRight size={16} strokeWidth={1.5} className="text-[#888] group-hover:text-[#b8b8b8] transition-colors duration-200" />
           </button>
         </div>
       </div>
@@ -233,16 +233,16 @@ function ScriptAnalysisView({ script, onViewScript, onEditScript, onExtract, onC
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-medium">剧本分析</h2>
             <div className="flex items-center gap-2">
-              <button onClick={onViewScript} className="h-7 px-3 rounded-full bg-white/[0.06] text-[12px] text-[#999] flex items-center gap-1.5 hover:bg-white/[0.1] hover:text-white transition-colors duration-200"><BookOpen size={12} strokeWidth={1.5} />查看完整剧本</button>
-              <button onClick={onEditScript} className="h-7 px-3 rounded-full text-[12px] text-[#666] hover:text-[#999] transition-colors duration-200">修改剧本</button>
+              <button onClick={onViewScript} className="h-7 px-3 rounded-full bg-white/[0.10] text-[12px] text-[#b8b8b8] flex items-center gap-1.5 hover:bg-white/[0.1] hover:text-white transition-colors duration-200"><BookOpen size={12} strokeWidth={1.5} />查看完整剧本</button>
+              <button onClick={onEditScript} className="h-7 px-3 rounded-full text-[12px] text-[#a3a3a3] hover:text-[#b8b8b8] transition-colors duration-200">修改剧本</button>
             </div>
           </div>
           {script.metadata && script.episodes && (<ScriptSummary metadata={script.metadata} episodes={script.episodes} />)}
         </div>
       </div>
-      <div className="shrink-0 border-t border-white/[0.06] bg-[#0a0a0a] px-6 py-4">
+      <div className="shrink-0 border-t border-white/[0.12] bg-[#0a0a0a] px-6 py-4">
         <div className="max-w-lg mx-auto flex items-center justify-end gap-2">
-          <button onClick={onCreateElement} className="h-9 px-4 rounded-full bg-white/[0.06] text-[13px] text-[#999] hover:bg-white/[0.1] hover:text-white transition-colors duration-200">跳过提取，手动添加</button>
+          <button onClick={onCreateElement} className="h-9 px-4 rounded-full bg-white/[0.10] text-[13px] text-[#b8b8b8] hover:bg-white/[0.1] hover:text-white transition-colors duration-200">跳过提取，手动添加</button>
           <button onClick={onExtract} className="h-9 px-5 rounded-full bg-white text-black text-[13px] font-medium flex items-center gap-1.5 hover:bg-white/90 active:scale-[0.97] transition-all duration-200"><Sparkles size={14} strokeWidth={1.5} />提取元素</button>
         </div>
       </div>
@@ -253,9 +253,9 @@ function ScriptAnalysisView({ script, onViewScript, onEditScript, onExtract, onC
 function SearchEmptyState({ searchQuery, typeLabel }: { searchQuery: string; typeLabel: string }) {
   return (
     <div className="flex flex-col items-center justify-center h-full text-center">
-      <div className="w-12 h-12 rounded-xl bg-white/[0.04] flex items-center justify-center mb-4"><Search size={24} strokeWidth={1.5} className="text-[#444]" /></div>
-      <p className="text-[15px] text-[#999] mb-1">未找到匹配的元素</p>
-      <p className="text-[13px] text-[#666]">没有包含「{searchQuery}」的{typeLabel}</p>
+      <div className="w-12 h-12 rounded-xl bg-white/[0.08] flex items-center justify-center mb-4"><Search size={24} strokeWidth={1.5} className="text-[#888]" /></div>
+      <p className="text-[15px] text-[#b8b8b8] mb-1">未找到匹配的元素</p>
+      <p className="text-[13px] text-[#a3a3a3]">没有包含「{searchQuery}」的{typeLabel}</p>
     </div>
   );
 }
@@ -265,9 +265,9 @@ function TabEmptyState({ activeTab, typeLabel, onCreate }: { activeTab: ElementT
   const Icon = icon;
   return (
     <div className="flex flex-col items-center justify-center h-full text-center">
-      <div className="w-12 h-12 rounded-xl bg-white/[0.04] flex items-center justify-center mb-4"><Icon size={24} strokeWidth={1.5} className="text-[#444]" /></div>
-      <p className="text-[15px] text-[#999] mb-1">暂无{typeLabel}</p>
-      <p className="text-[13px] text-[#666] mb-5">添加{typeLabel}素材丰富项目内容</p>
+      <div className="w-12 h-12 rounded-xl bg-white/[0.08] flex items-center justify-center mb-4"><Icon size={24} strokeWidth={1.5} className="text-[#888]" /></div>
+      <p className="text-[15px] text-[#b8b8b8] mb-1">暂无{typeLabel}</p>
+      <p className="text-[13px] text-[#a3a3a3] mb-5">添加{typeLabel}素材丰富项目内容</p>
       <button onClick={onCreate} className="h-8 px-4 rounded-full bg-white text-black text-[12px] font-medium flex items-center gap-1.5 hover:bg-white/90 active:scale-[0.97] transition-all duration-200"><Plus size={14} strokeWidth={1.5} />添加{typeLabel}</button>
     </div>
   );

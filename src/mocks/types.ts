@@ -104,6 +104,7 @@ export interface ScriptMetadata {
 }
 
 export interface ScriptEpisode {
+  id?: string;
   episodeNumber: number;
   title: string;
   summary: string;

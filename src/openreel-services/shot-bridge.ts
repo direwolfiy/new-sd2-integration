@@ -138,7 +138,15 @@ export async function loadShotMediaItems(
       const completedRaw = (rawList as Record<string, unknown>[])
         .filter((v: Record<string, unknown>) => v.status === "COMPLETED" && v.videoUrl)
         .reverse();
-      const completedVersions = completedRaw.map((v: Record<string, unknown>, i: number) => ({
+      // Deduplicate by videoUrl — keep only the first occurrence per URL
+      const seenVideoUrls = new Set<string>();
+      const dedupedRaw = completedRaw.filter((v: Record<string, unknown>) => {
+        const url = v.videoUrl as string;
+        if (seenVideoUrls.has(url)) return false;
+        seenVideoUrls.add(url);
+        return true;
+      });
+      const completedVersions = dedupedRaw.map((v: Record<string, unknown>, i: number) => ({
         url: v.videoUrl as string,
         version: i + 1,
         status: "completed" as const,

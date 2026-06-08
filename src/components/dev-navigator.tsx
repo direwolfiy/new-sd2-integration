@@ -196,7 +196,7 @@ export function DevNavigator() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-5 right-5 z-[90] w-10 h-10 rounded-full bg-[#1c1c1c] border border-white/[0.08] shadow-[0_4px_16px_rgba(0,0,0,0.5)] flex items-center justify-center text-[#666] hover:text-white hover:border-white/[0.15] transition-all duration-200"
+        className="fixed bottom-5 right-5 z-[90] w-10 h-10 rounded-full bg-[#1c1c1c] border border-white/[0.14] shadow-[0_4px_16px_rgba(0,0,0,0.5)] flex items-center justify-center text-[#a3a3a3] hover:text-white hover:border-white/[0.15] transition-all duration-200"
         title="演示导航 (Ctrl+Shift+D)"
       >
         <Zap size={16} strokeWidth={1.5} />
@@ -208,22 +208,22 @@ export function DevNavigator() {
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setOpen(false)}
           />
-          <div className="relative w-[360px] h-full bg-[#0f0f0f] border-l border-white/[0.06] flex flex-col shadow-[-8px_0_32px_rgba(0,0,0,0.5)]">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+          <div className="relative w-[360px] h-full bg-[#0f0f0f] border-l border-white/[0.12] flex flex-col shadow-[-8px_0_32px_rgba(0,0,0,0.5)]">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.12]">
               <div>
                 <h2 className="text-[15px] font-medium">演示导航</h2>
-                <p className="text-[12px] text-[#666] mt-0.5">Ctrl+Shift+D</p>
+                <p className="text-[12px] text-[#a3a3a3] mt-0.5">Ctrl+Shift+D</p>
               </div>
               <button
                 onClick={() => setOpen(false)}
-                className="w-7 h-7 rounded-full flex items-center justify-center text-[#666] hover:text-white hover:bg-white/[0.06] transition-colors duration-200"
+                className="w-7 h-7 rounded-full flex items-center justify-center text-[#a3a3a3] hover:text-white hover:bg-white/[0.10] transition-colors duration-200"
               >
                 <X size={14} strokeWidth={1.5} />
               </button>
             </div>
 
-            <div className="px-5 py-3 border-b border-white/[0.06] bg-white/[0.02]">
-              <p className="text-[11px] text-[#666] mb-1">当前位置</p>
+            <div className="px-5 py-3 border-b border-white/[0.12] bg-white/[0.05]">
+              <p className="text-[11px] text-[#a3a3a3] mb-1">当前位置</p>
               <p className="text-[13px] text-white font-mono truncate">
                 {pathname}
               </p>
@@ -233,7 +233,7 @@ export function DevNavigator() {
               {scenarios.map((group) => (
                 <div key={group.group}>
                   <div className="px-5 pt-4 pb-2">
-                    <p className="text-[11px] font-medium text-[#666] uppercase tracking-wider">
+                    <p className="text-[11px] font-medium text-[#a3a3a3] uppercase tracking-wider">
                       {group.group}
                     </p>
                   </div>
@@ -270,8 +270,8 @@ export function DevNavigator() {
                           onClick={() => navigate(s.path)}
                           className={`w-full flex items-start gap-3 px-3 py-2.5 rounded-lg text-left transition-colors duration-200 group relative overflow-hidden ${
                             isActive
-                              ? "bg-white/[0.06] text-white"
-                              : "text-[#999] hover:bg-white/[0.04] hover:text-white"
+                              ? "bg-white/[0.10] text-white"
+                              : "text-[#b8b8b8] hover:bg-white/[0.08] hover:text-white"
                           }`}
                         >
                           {isActive && (
@@ -283,19 +283,19 @@ export function DevNavigator() {
                                 {s.state}
                               </span>
                               {s.project && (
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isActive ? "bg-[#00CAE0]/10 text-[#00CAE0]/70" : "bg-white/[0.06] text-[#666]"}`}>
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isActive ? "bg-[#00CAE0]/10 text-[#00CAE0]/70" : "bg-white/[0.10] text-[#a3a3a3]"}`}>
                                   {s.project}
                                 </span>
                               )}
                             </div>
-                            <p className="text-[11px] text-[#555] mt-0.5">
+                            <p className="text-[11px] text-[#b8b8b8] mt-0.5">
                               {s.hint}
                             </p>
                           </div>
                           <ChevronRight
                             size={14}
                             strokeWidth={1.5}
-                            className="shrink-0 mt-0.5 text-[#333] group-hover:text-[#666] transition-colors duration-200"
+                            className="shrink-0 mt-0.5 text-[#777] group-hover:text-[#a3a3a3] transition-colors duration-200"
                           />
                         </button>
                       );

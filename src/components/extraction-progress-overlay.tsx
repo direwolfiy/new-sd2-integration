@@ -140,9 +140,9 @@ export function ExtractionProgressOverlay({ open, onCancel, onComplete }: Props)
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="w-[480px] rounded-xl border border-white/[0.08] bg-[#1c1c1c] shadow-[0_16px_48px_rgba(0,0,0,0.5)]">
+      <div className="w-[480px] rounded-xl border border-white/[0.14] bg-[#1c1c1c] shadow-[0_16px_48px_rgba(0,0,0,0.5)]">
         {/* Header */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-white/[0.06]">
+        <div className="flex items-center gap-3 px-5 py-4 border-b border-white/[0.12]">
           <div className="w-8 h-8 rounded-lg bg-[#00CAE0]/10 flex items-center justify-center">
             {progress >= 100 ? (
               <Check size={16} strokeWidth={2} className="text-[#00CAE0]" />
@@ -154,11 +154,11 @@ export function ExtractionProgressOverlay({ open, onCancel, onComplete }: Props)
             <h3 className="text-[15px] font-medium">
               {progress >= 100 ? "提取完成" : "正在提取元素"}
             </h3>
-            <p className="text-[12px] text-[#666] mt-0.5 truncate">
+            <p className="text-[12px] text-[#a3a3a3] mt-0.5 truncate">
               {message || "准备中..."}
             </p>
           </div>
-          <span className="text-[12px] text-[#666] shrink-0">
+          <span className="text-[12px] text-[#a3a3a3] shrink-0">
             {progress >= 100 ? "已完成" : `预计剩余 ${estimatedTimeLeft}s`}
           </span>
         </div>
@@ -173,7 +173,7 @@ export function ExtractionProgressOverlay({ open, onCancel, onComplete }: Props)
                 ) : step.status === "active" ? (
                   <Circle size={10} strokeWidth={0} className="shrink-0 fill-[#00CAE0] text-[#00CAE0]" />
                 ) : (
-                  <Circle size={10} strokeWidth={0} className="shrink-0 fill-[#333] text-[#333]" />
+                  <Circle size={10} strokeWidth={0} className="shrink-0 fill-[#333] text-[#777]" />
                 )}
                 <span
                   className={`text-[13px] ${
@@ -181,13 +181,13 @@ export function ExtractionProgressOverlay({ open, onCancel, onComplete }: Props)
                       ? "text-white"
                       : step.status === "active"
                       ? "text-white"
-                      : "text-[#555]"
+                      : "text-[#b8b8b8]"
                   }`}
                 >
                   {step.label}
                 </span>
               </div>
-              <span className="text-[12px] text-[#555]">
+              <span className="text-[12px] text-[#b8b8b8]">
                 {step.status === "done" && step.detail ? step.detail : ""}
               </span>
             </div>
@@ -196,26 +196,26 @@ export function ExtractionProgressOverlay({ open, onCancel, onComplete }: Props)
 
         {/* Progress bar */}
         <div className="px-5 pb-2">
-          <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+          <div className="h-1.5 bg-white/[0.10] rounded-full overflow-hidden">
             <div
               className="h-full bg-[#00CAE0] rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
           <div className="flex justify-between mt-1.5">
-            <span className="text-[11px] text-[#555]">{progress}%</span>
-            <span className="text-[11px] text-[#555]">11 个元素</span>{/* TODO: [mock] */}
+            <span className="text-[11px] text-[#b8b8b8]">{progress}%</span>
+            <span className="text-[11px] text-[#b8b8b8]">11 个元素</span>{/* TODO: [mock] */}
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end px-5 py-3 border-t border-white/[0.06]">
+        <div className="flex items-center justify-end px-5 py-3 border-t border-white/[0.12]">
           {progress >= 100 ? (
-            <span className="text-[12px] text-[#666]">正在跳转...</span>
+            <span className="text-[12px] text-[#a3a3a3]">正在跳转...</span>
           ) : (
             <button
               onClick={onCancel}
-              className="h-9 px-4 rounded-full bg-white/[0.06] text-[13px] text-[#999] hover:bg-white/[0.1] hover:text-white transition-colors duration-200"
+              className="h-9 px-4 rounded-full bg-white/[0.10] text-[13px] text-[#b8b8b8] hover:bg-white/[0.1] hover:text-white transition-colors duration-200"
             >
               取消
             </button>

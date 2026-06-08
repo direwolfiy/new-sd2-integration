@@ -9,19 +9,19 @@ export default function DesignSystemHome() {
         <h1 className="font-heading max-w-4xl mx-auto text-4xl sm:text-5xl md:text-7xl lg:text-[85px] font-medium leading-[1.1] tracking-[-0.02em]">
           基础样式
           <br />
-          <span className="text-[#999999]">展示与参考</span>
+          <span className="text-[#b8b8b8]">展示与参考</span>
         </h1>
-        <p className="max-w-xl mx-auto mt-8 text-lg text-[#999999] leading-[1.8]">
+        <p className="max-w-xl mx-auto mt-8 text-lg text-[#b8b8b8] leading-[1.8]">
           颜色、字体、间距、圆角、阴影 —— 设计系统的所有基础样式定义。
         </p>
       </div>
 
         {/* Product Screenshot Placeholder */}
         <section className="px-6 pb-20 md:pb-32">
-          <div className="max-w-5xl mx-auto rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#141414] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
-            <div className="w-full aspect-video rounded-lg bg-[#141414]/80 flex items-center justify-center border border-white/5">
+          <div className="max-w-5xl mx-auto rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#181818] p-4 shadow-[0_10px_30px_rgba(0,0,0,0.25)]">
+            <div className="w-full aspect-video rounded-lg bg-[#181818]/80 flex items-center justify-center border border-white/[0.10]">
               <div className="text-center">
-                <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-white/5 flex items-center justify-center">
+                <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-white/[0.08] flex items-center justify-center">
                   <svg
                     width="24"
                     height="24"
@@ -37,7 +37,7 @@ export default function DesignSystemHome() {
                     <line x1="12" y1="17" x2="12" y2="21" />
                   </svg>
                 </div>
-                <p className="text-sm text-[#999999] leading-[1.6]">
+                <p className="text-sm text-[#b8b8b8] leading-[1.6]">
                   产品截图预览区域
                 </p>
               </div>
@@ -51,7 +51,7 @@ export default function DesignSystemHome() {
             <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-medium tracking-[-0.02em] text-center mb-4">
               字体<span className="text-[#00CAE0]">排版预览</span>
             </h2>
-            <p className="text-center text-[#999999] text-lg leading-[1.8] mb-16 max-w-2xl mx-auto">
+            <p className="text-center text-[#b8b8b8] text-lg leading-[1.8] mb-16 max-w-2xl mx-auto">
               以下展示不同层级的中文字体效果，使用 Noto Sans SC 配合 Inter 实现中英混排。
             </p>
 
@@ -91,7 +91,7 @@ export default function DesignSystemHome() {
               {/* Body Large */}
               <div className="space-y-3">
                 <p className="text-[13px] text-[#00CAE0] font-medium">Body Large — 18px</p>
-                <p className="text-[18px] text-[#999999] leading-[1.8]">
+                <p className="text-[18px] text-[#b8b8b8] leading-[1.8]">
                   大号正文文字，用于重要的段落说明和描述性内容。这里展示的是中文排版在深色背景上的阅读体验。较大的行高让方块字之间保持足够的呼吸空间。
                 </p>
               </div>
@@ -99,7 +99,7 @@ export default function DesignSystemHome() {
               {/* Body */}
               <div className="space-y-3">
                 <p className="text-[13px] text-[#00CAE0] font-medium">Body — 15px</p>
-                <p className="text-[15px] text-[#999999] leading-[1.8]">
+                <p className="text-[15px] text-[#b8b8b8] leading-[1.8]">
                   常规正文文字，适用于大部分内容场景。好的排版应该让读者忘记文字本身的存在，而专注于内容所传达的信息。深色背景下的中文排版需要特别注意行高和字间距的平衡，推荐行高为字号的 1.6 至 2.0 倍。
                 </p>
               </div>
@@ -107,7 +107,7 @@ export default function DesignSystemHome() {
               {/* Caption */}
               <div className="space-y-3">
                 <p className="text-[13px] text-[#00CAE0] font-medium">Caption — 14px</p>
-                <p className="text-[14px] text-[#999999] leading-[1.7]">
+                <p className="text-[14px] text-[#b8b8b8] leading-[1.7]">
                   辅助说明文字，常用于图片说明、脚注、提示信息等场景。字号较小但依然保持良好的可读性。中文笔画密集，适当增加行距避免视觉拥挤。
                 </p>
               </div>
@@ -115,7 +115,7 @@ export default function DesignSystemHome() {
               {/* Label */}
               <div className="space-y-3">
                 <p className="text-[13px] text-[#00CAE0] font-medium">Label — 13px</p>
-                <p className="text-[13px] text-[#999999] leading-[1.7] font-medium">
+                <p className="text-[13px] text-[#b8b8b8] leading-[1.7] font-medium">
                   标签文字 · 用于按钮、导航、表单标签等 UI 元素 · 字重 500 增强辨识度
                 </p>
               </div>
@@ -123,23 +123,23 @@ export default function DesignSystemHome() {
               {/* Mixed Chinese & English */}
               <div className="space-y-3">
                 <p className="text-[13px] text-[#00CAE0] font-medium">中英混排 — 15px</p>
-                <p className="text-[15px] text-[#999999] leading-[1.8]">
+                <p className="text-[15px] text-[#b8b8b8] leading-[1.8]">
                   Next.js 14 搭配 shadcn/ui 组件库，使用 TailwindCSS v4 构建。支持 TypeScript 类型检查，开发效率提升 200%。API 响应时间 &lt; 50ms，Lighthouse 评分 98 分。Noto Sans SC 与 Inter 风格接近，混排时视觉和谐统一。
                 </p>
               </div>
 
               {/* Comparison: Before vs After */}
-              <div className="space-y-3 pt-8 border-t border-white/5">
+              <div className="space-y-3 pt-8 border-t border-white/[0.10]">
                 <p className="text-[13px] text-[#00CAE0] font-medium">对比：英文极端负字距 vs 中文适度字距</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-2">
-                    <p className="text-[11px] text-[#999999] uppercase tracking-wider">英文 — tracking: -0.05em</p>
+                    <p className="text-[11px] text-[#b8b8b8] uppercase tracking-wider">英文 — tracking: -0.05em</p>
                     <p className="font-sans text-[48px] font-medium leading-[0.95] tracking-[-0.05em]">
                       Build Fast
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <p className="text-[11px] text-[#999999] uppercase tracking-wider">中文 — tracking: -0.02em</p>
+                    <p className="text-[11px] text-[#b8b8b8] uppercase tracking-wider">中文 — tracking: -0.02em</p>
                     <p className="font-heading text-[48px] font-medium leading-[1.1] tracking-[-0.02em]">
                       极速构建
                     </p>
@@ -156,7 +156,7 @@ export default function DesignSystemHome() {
             <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl font-medium tracking-[-0.02em] text-center mb-4">
               为<span className="text-[#00CAE0]">开发者</span>而设计
             </h2>
-            <p className="text-center text-[#999999] text-lg leading-[1.8] mb-16 max-w-2xl mx-auto">
+            <p className="text-center text-[#b8b8b8] text-lg leading-[1.8] mb-16 max-w-2xl mx-auto">
               每一个组件、每一个像素、每一次交互 —— 都以开发体验为核心精心打造。
             </p>
 
@@ -180,15 +180,15 @@ export default function DesignSystemHome() {
               ].map((feature) => (
                 <div
                   key={feature.title}
-                  className="group rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#141414] p-8 transition-shadow hover:shadow-[rgba(255,255,255,0.12)_0px_0px_0px_1px]"
+                  className="group rounded-xl border border-[rgba(255,255,255,0.06)] bg-[#181818] p-8 transition-shadow hover:shadow-[rgba(255,255,255,0.12)_0px_0px_0px_1px]"
                 >
-                  <div className="w-10 h-10 mb-5 rounded-lg bg-white/5 flex items-center justify-center">
+                  <div className="w-10 h-10 mb-5 rounded-lg bg-white/[0.08] flex items-center justify-center">
                     <div className="w-2 h-2 rounded-full bg-[#00CAE0]" />
                   </div>
                   <h3 className="font-heading text-xl font-medium tracking-[-0.01em] mb-3">
                     {feature.title}
                   </h3>
-                  <p className="text-[15px] text-[#999999] leading-[1.8]">
+                  <p className="text-[15px] text-[#b8b8b8] leading-[1.8]">
                     {feature.description}
                   </p>
                 </div>

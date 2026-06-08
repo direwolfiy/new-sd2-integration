@@ -22,7 +22,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-52 shrink-0 border-r border-white/[0.06] bg-[#0a0a0a] flex flex-col py-3 px-2">
+    <aside className="w-52 shrink-0 border-r border-white/[0.12] bg-[#0a0a0a] flex flex-col py-3 px-2">
       <nav className="flex flex-col gap-0.5">
         {navItems.map((item) => {
           const active = item.match(pathname);
@@ -33,7 +33,7 @@ export function Sidebar() {
               className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] transition-colors duration-200 ${
                 active
                   ? "bg-white/[0.08] text-white"
-                  : "text-[#999] hover:text-white hover:bg-white/[0.03]"
+                  : "text-[#b8b8b8] hover:text-white hover:bg-white/[0.07]"
               }`}
             >
               <item.icon size={16} strokeWidth={1.5} />
@@ -42,10 +42,10 @@ export function Sidebar() {
           );
         })}
       </nav>
-      <div className="border-t border-white/[0.06] my-2" />
+      <div className="border-t border-white/[0.12] my-2" />
       <Link
         href="/settings"
-        className="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] text-[#999] hover:text-white hover:bg-white/[0.03] transition-colors duration-200"
+        className="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] text-[#b8b8b8] hover:text-white hover:bg-white/[0.07] transition-colors duration-200"
       >
         <Settings size={16} strokeWidth={1.5} />
         个人设置
@@ -53,7 +53,7 @@ export function Sidebar() {
       <div className="flex-1" />
       <Link
         href="/design-system"
-        className="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] text-[#666] hover:text-[#999] hover:bg-white/[0.03] transition-colors duration-200"
+        className="flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] text-[#a3a3a3] hover:text-[#b8b8b8] hover:bg-white/[0.07] transition-colors duration-200"
       >
         <Sparkles size={16} strokeWidth={1.5} />
         设计系统

@@ -140,7 +140,7 @@ export default function IconsShowcase() {
       <div>
         <p className="text-[13px] text-[#00CAE0] font-medium mb-2">Icon System</p>
         <h1 className="font-heading text-4xl font-medium tracking-[-0.02em] mb-3">图标系统</h1>
-        <p className="text-[15px] text-[#999999] leading-[1.8] max-w-2xl">
+        <p className="text-[15px] text-[#b8b8b8] leading-[1.8] max-w-2xl">
           使用 Lucide React 图标库，stroke-based 线性风格。图标不承载色彩，通过 currentColor 继承父元素颜色。
         </p>
       </div>
@@ -148,31 +148,31 @@ export default function IconsShowcase() {
       {/* Usage Rules */}
       <section className="space-y-4">
         <h2 className="font-heading text-xl font-medium tracking-[-0.01em]">使用规范</h2>
-        <div className="rounded-xl border border-white/5 bg-[#141414] p-5">
+        <div className="rounded-xl border border-white/[0.10] bg-[#181818] p-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-[13px]">
             <div>
               <p className="text-white font-medium mb-1">尺寸</p>
-              <p className="text-[#999]">14px（按钮内）、16px（导航/标签，默认）、20px（独立按钮）、24px（空状态）</p>
+              <p className="text-[#b8b8b8]">14px（按钮内）、16px（导航/标签，默认）、20px（独立按钮）、24px（空状态）</p>
             </div>
             <div>
               <p className="text-white font-medium mb-1">线宽</p>
-              <p className="text-[#999]">strokeWidth=1.5（默认）或 2（需更强存在感时）。不使用 filled 变体</p>
+              <p className="text-[#b8b8b8]">strokeWidth=1.5（默认）或 2（需更强存在感时）。不使用 filled 变体</p>
             </div>
             <div>
               <p className="text-white font-medium mb-1">颜色</p>
-              <p className="text-[#999]">永远用 currentColor，不单独设色。跟随父元素文字颜色自动切换</p>
+              <p className="text-[#b8b8b8]">永远用 currentColor，不单独设色。跟随父元素文字颜色自动切换</p>
             </div>
             <div>
               <p className="text-white font-medium mb-1">对齐</p>
-              <p className="text-[#999]">配合 flex items-center gap-2 与文字对齐，不单独使用 margin/padding 微调</p>
+              <p className="text-[#b8b8b8]">配合 flex items-center gap-2 与文字对齐，不单独使用 margin/padding 微调</p>
             </div>
             <div>
               <p className="text-white font-medium mb-1">引入</p>
-              <p className="text-[#999] text-[12px] font-mono">{"import { IconName } from 'lucide-react'"}</p>
+              <p className="text-[#b8b8b8] text-[12px] font-mono">{"import { IconName } from 'lucide-react'"}</p>
             </div>
             <div>
               <p className="text-white font-medium mb-1">调用</p>
-              <p className="text-[#999] text-[12px] font-mono">{"<IconName size={16} strokeWidth={1.5} />"}</p>
+              <p className="text-[#b8b8b8] text-[12px] font-mono">{"<IconName size={16} strokeWidth={1.5} />"}</p>
             </div>
           </div>
         </div>
@@ -181,14 +181,14 @@ export default function IconsShowcase() {
       {/* Size Demo */}
       <section className="space-y-4">
         <h2 className="font-heading text-xl font-medium tracking-[-0.01em]">尺寸对比</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 rounded-xl border border-white/5 bg-[#141414] p-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 rounded-xl border border-white/[0.10] bg-[#181818] p-6">
           {sizeDemo.map((s) => (
             <div key={s.size} className="flex flex-col items-center gap-3">
               <div className="h-7 flex items-center justify-center">
                 <Search size={s.size} strokeWidth={1.5} className="text-white" />
               </div>
               <span className="text-[12px] text-white font-mono">{s.label}</span>
-              <span className="text-[11px] text-[#666] text-center leading-[1.4]">{s.use}</span>
+              <span className="text-[11px] text-[#a3a3a3] text-center leading-[1.4]">{s.use}</span>
             </div>
           ))}
         </div>
@@ -197,17 +197,17 @@ export default function IconsShowcase() {
       {/* Color Inheritance */}
       <section className="space-y-4">
         <h2 className="font-heading text-xl font-medium tracking-[-0.01em]">颜色继承</h2>
-        <p className="text-[14px] text-[#666]">图标不单独设色，通过 currentColor 跟随上下文自动适配。</p>
-        <div className="flex items-center gap-6 rounded-xl border border-white/5 bg-[#141414] p-6">
+        <p className="text-[14px] text-[#a3a3a3]">图标不单独设色，通过 currentColor 跟随上下文自动适配。</p>
+        <div className="flex items-center gap-6 rounded-xl border border-white/[0.10] bg-[#181818] p-6">
           <div className="flex items-center gap-2 text-white">
             <Search size={16} strokeWidth={1.5} />
             <span className="text-[13px]">白色文字</span>
           </div>
-          <div className="flex items-center gap-2 text-[#999]">
+          <div className="flex items-center gap-2 text-[#b8b8b8]">
             <Search size={16} strokeWidth={1.5} />
             <span className="text-[13px]">灰色文字</span>
           </div>
-          <div className="flex items-center gap-2 text-[#666]">
+          <div className="flex items-center gap-2 text-[#a3a3a3]">
             <Search size={16} strokeWidth={1.5} />
             <span className="text-[13px]">弱灰文字</span>
           </div>
@@ -226,11 +226,11 @@ export default function IconsShowcase() {
             {group.icons.map(({ Icon, name, use }) => (
               <div
                 key={name}
-                className="flex flex-col items-center gap-2 rounded-lg border border-white/5 bg-[#141414] p-4 hover:border-white/10 transition-colors"
+                className="flex flex-col items-center gap-2 rounded-lg border border-white/[0.10] bg-[#181818] p-4 hover:border-white/10 transition-colors"
               >
                 <Icon size={20} strokeWidth={1.5} className="text-white" />
                 <p className="text-[12px] text-white font-mono">{name}</p>
-                <p className="text-[11px] text-[#666] text-center leading-[1.3]">{use}</p>
+                <p className="text-[11px] text-[#a3a3a3] text-center leading-[1.3]">{use}</p>
               </div>
             ))}
           </div>

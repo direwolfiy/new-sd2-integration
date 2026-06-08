@@ -61,23 +61,23 @@ export function RecognitionOverlay({ open, onClose, onConfirm, results }: Props)
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="w-[540px] rounded-xl border border-white/[0.08] bg-[#1c1c1c] shadow-[0_16px_48px_rgba(0,0,0,0.5)]">
+      <div className="w-[540px] rounded-xl border border-white/[0.14] bg-[#1c1c1c] shadow-[0_16px_48px_rgba(0,0,0,0.5)]">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.12]">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-[#00CAE0]/10 flex items-center justify-center">
               <Sparkles size={16} strokeWidth={1.5} className="text-[#00CAE0]" />
             </div>
             <div>
               <h3 className="text-[15px] font-medium">提取结果</h3>
-              <p className="text-[12px] text-[#666] mt-0.5">
+              <p className="text-[12px] text-[#a3a3a3] mt-0.5">
                 共提取 {results.length} 个元素，已选 {selectedCount} 项
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-7 h-7 rounded-full flex items-center justify-center text-[#666] hover:text-white hover:bg-white/[0.06] transition-colors duration-200"
+            className="w-7 h-7 rounded-full flex items-center justify-center text-[#a3a3a3] hover:text-white hover:bg-white/[0.10] transition-colors duration-200"
           >
             <X size={14} strokeWidth={1.5} />
           </button>
@@ -92,12 +92,12 @@ export function RecognitionOverlay({ open, onClose, onConfirm, results }: Props)
               return (
                 <div key={type} className="mb-4 last:mb-0">
                   <div className="flex items-center justify-between mb-1.5">
-                    <p className="text-[11px] text-[#666] font-medium">
+                    <p className="text-[11px] text-[#a3a3a3] font-medium">
                       {typeLabels[type]}（{items.length}）
                     </p>
                     <button
                       onClick={() => toggleAll(type)}
-                      className="text-[11px] text-[#666] hover:text-[#999] transition-colors duration-200"
+                      className="text-[11px] text-[#a3a3a3] hover:text-[#b8b8b8] transition-colors duration-200"
                     >
                       {allSelected ? "取消全选" : "全选"}
                     </button>
@@ -109,7 +109,7 @@ export function RecognitionOverlay({ open, onClose, onConfirm, results }: Props)
                         <button
                           key={item.name}
                           onClick={() => toggle(item.name)}
-                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] transition-colors duration-200 text-left"
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.07] hover:bg-white/[0.10] transition-colors duration-200 text-left"
                         >
                           <div
                             className={`w-4 h-4 rounded-[3px] border flex items-center justify-center shrink-0 transition-colors duration-200 ${
@@ -120,7 +120,7 @@ export function RecognitionOverlay({ open, onClose, onConfirm, results }: Props)
                           >
                             {isChecked && <Check size={10} strokeWidth={2.5} className="text-black" />}
                           </div>
-                          <span className={`text-[13px] transition-colors duration-200 ${isChecked ? "text-[#ccc]" : "text-[#666]"}`}>
+                          <span className={`text-[13px] transition-colors duration-200 ${isChecked ? "text-[#ccc]" : "text-[#a3a3a3]"}`}>
                             {item.name}
                           </span>
                         </button>
@@ -133,10 +133,10 @@ export function RecognitionOverlay({ open, onClose, onConfirm, results }: Props)
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-5 py-3 border-t border-white/[0.06]">
+        <div className="flex items-center justify-between px-5 py-3 border-t border-white/[0.12]">
           <button
             onClick={onClose}
-            className="h-9 px-4 rounded-full bg-white/[0.06] text-[13px] text-[#999] hover:bg-white/[0.1] hover:text-white transition-colors duration-200"
+            className="h-9 px-4 rounded-full bg-white/[0.10] text-[13px] text-[#b8b8b8] hover:bg-white/[0.1] hover:text-white transition-colors duration-200"
           >
             跳过
           </button>

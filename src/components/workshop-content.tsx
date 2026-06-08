@@ -24,8 +24,8 @@ export function WorkshopContent() {
         <div className="max-w-3xl mx-auto px-4 pt-6 pb-72">
           {mockTasks.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <p className="text-[15px] text-[#666]">暂无生成记录</p>
-              <p className="text-[13px] text-[#444] mt-1">在底部输入框中输入提示词开始创作</p>
+              <p className="text-[15px] text-[#a3a3a3]">暂无生成记录</p>
+              <p className="text-[13px] text-[#888] mt-1">在底部输入框中输入提示词开始创作</p>
             </div>
           ) : (
             mockTasks.map((task) => <TaskCard key={task.id} task={task} />)

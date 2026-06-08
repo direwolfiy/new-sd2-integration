@@ -35,8 +35,8 @@ export function ElementGrid({ elements, activeTab, moreMenuId, onSetMoreMenuId, 
 function MoreMenu({ moreMenuId, elementId, onDelete }: { moreMenuId: string | null; elementId: string; onDelete: () => void }) {
   if (moreMenuId !== elementId) return null;
   return (
-    <div className="absolute right-0 top-full mt-1 w-28 py-1 rounded-lg border border-white/[0.08] bg-[#1c1c1c] shadow-[0_8px_24px_rgba(0,0,0,0.5)] z-10">
-      <button onClick={onDelete} className="w-full flex items-center gap-2 px-3 py-1.5 text-[13px] text-[#ef4444] hover:bg-white/[0.06] transition-colors duration-200">
+    <div className="absolute right-0 top-full mt-1 w-28 py-1 rounded-lg border border-white/[0.14] bg-[#1c1c1c] shadow-[0_8px_24px_rgba(0,0,0,0.5)] z-10">
+      <button onClick={onDelete} className="w-full flex items-center gap-2 px-3 py-1.5 text-[13px] text-[#ef4444] hover:bg-white/[0.10] transition-colors duration-200">
         <Trash2 size={14} strokeWidth={1.5} />删除
       </button>
     </div>
@@ -116,14 +116,14 @@ function PropCard({ element, moreMenuId, onSetMoreMenuId, onDeleteRequest }: { e
 
 function AudioRow({ element, moreMenuId, onSetMoreMenuId, onDeleteRequest }: { element: ElementItem; moreMenuId: string | null; onSetMoreMenuId: (id: string | null) => void; onDeleteRequest: (id: string) => void }) {
   return (
-    <div className="group flex items-center gap-3 px-4 py-3 rounded-lg border border-white/[0.06] bg-[#141414] cursor-pointer hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12)] transition-shadow duration-200">
-      <div className="w-10 h-10 rounded-lg bg-[#262626] flex items-center justify-center shrink-0"><Sparkles size={16} strokeWidth={1.5} className="text-[#666]" /></div>
+    <div className="group flex items-center gap-3 px-4 py-3 rounded-lg border border-white/[0.12] bg-[#181818] cursor-pointer hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12)] transition-shadow duration-200">
+      <div className="w-10 h-10 rounded-lg bg-[#2b2b2b] flex items-center justify-center shrink-0"><Sparkles size={16} strokeWidth={1.5} className="text-[#a3a3a3]" /></div>
       <div className="flex-1 min-w-0">
         <p className="text-[13px] font-medium truncate">{element.name}</p>
-        <p className="text-[12px] text-[#666] mt-0.5">{element.tags.join(" · ")}</p>
+        <p className="text-[12px] text-[#a3a3a3] mt-0.5">{element.tags.join(" · ")}</p>
       </div>
       <div className="relative shrink-0">
-        <button onClick={() => onSetMoreMenuId(moreMenuId === element.id ? null : element.id)} className="w-7 h-7 rounded-full flex items-center justify-center text-[#666] opacity-0 group-hover:opacity-100 hover:text-white hover:bg-white/[0.06] transition-all duration-200">
+        <button onClick={() => onSetMoreMenuId(moreMenuId === element.id ? null : element.id)} className="w-7 h-7 rounded-full flex items-center justify-center text-[#a3a3a3] opacity-0 group-hover:opacity-100 hover:text-white hover:bg-white/[0.10] transition-all duration-200">
           <MoreHorizontal size={16} strokeWidth={1.5} />
         </button>
         <MoreMenu moreMenuId={moreMenuId} elementId={element.id} onDelete={() => onDeleteRequest(element.id)} />
