@@ -1,5 +1,5 @@
 import { get, post, put, del } from "./client";
-import type { PageResult, SceneRoleItem, TemplateItem, TemplateQuery } from "./types";
+import type { SceneRoleItem, TemplateItem } from "./types";
 
 export function fetchElements(contentId: string) {
   return get<SceneRoleItem[]>(`/resource/scene-role/content/${contentId}`);
@@ -9,7 +9,16 @@ export function fetchElement(templateId: string) {
   return get<TemplateItem>(`/resource/template/${templateId}`);
 }
 
-export function createElement(data: Partial<TemplateItem> & { templateName: string; templateType: number }) {
+export function createElement(
+  data: Partial<TemplateItem> & {
+    templateName?: string;
+    template_name?: string;
+    templateType?: number | string;
+    template_type?: number | string;
+    contentId?: string | number;
+    content_id?: string | number;
+  },
+) {
   return post<TemplateItem>("/resource/template", data);
 }
 

@@ -8,6 +8,7 @@ export type VideoShot = {
   videoCount: number;
   posterUrl: string | null;
   videoUrl: string | null;
+  finalVideoUrl: string | null;
 };
 
 export type VideoHistoryItem = {
@@ -17,6 +18,11 @@ export type VideoHistoryItem = {
   videoUrl: string | null;
   posterUrl: string | null;
   isFinal: boolean;
+  prompt: string | null;
+  modelId: string | null;
+  duration: number | null;
+  createdTime: string | null;
+  updateTime: string | null;
 };
 
 export type ShotPreviewMap = Record<

@@ -171,6 +171,7 @@ export interface SceneScriptItem {
   imageUrl?: string | null;
   image_result_url?: string | null;
   videoUrl?: string | null;
+  videoResultUrl?: string | null;
   video_result_url?: string | null;
   videoStatus?: string | null;
   duration?: number | null;
@@ -226,6 +227,49 @@ export interface AiImageModelListResult {
   page_num: number;
   page_size: number;
   items: AiImageModelConfigDTO[];
+}
+
+export interface AiVideoModelConfigDTO {
+  id: number;
+  model_id: string;
+  modelId?: string | null;
+  model_name: string;
+  modelName?: string | null;
+  model_version?: string | null;
+  modelVersion?: string | null;
+  model_type?: string | null;
+  modelType?: string | null;
+  platform?: string | null;
+  status?: string | null;
+  description?: string | null;
+  supported_ratios?: string | string[] | null;
+  supportedRatios?: string | string[] | null;
+  quality_levels?: string | string[] | null;
+  qualityLevels?: string | string[] | null;
+  default_quality?: string | null;
+  defaultQuality?: string | null;
+  max_resolution?: string | null;
+  maxResolution?: string | null;
+  min_duration?: number | null;
+  minDuration?: number | null;
+  max_duration?: number | null;
+  maxDuration?: number | null;
+  supported_durations?: number[] | null;
+  supportedDurations?: number[] | null;
+  support_audio_modes?: number[] | null;
+  supportAudioModes?: number[] | null;
+  support_image_to_video?: number[] | null;
+  supportImageToVideo?: number[] | null;
+  cost_per_video?: number | string | null;
+  costPerVideo?: number | string | null;
+  cost_per_second?: number | string | null;
+  costPerSecond?: number | string | null;
+  business_type?: number[] | null;
+  businessType?: number[] | null;
+  has_discount?: boolean | null;
+  hasDiscount?: boolean | null;
+  discount_label?: string | null;
+  discountLabel?: string | null;
 }
 
 // Tenant account

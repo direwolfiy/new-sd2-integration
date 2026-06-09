@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { BookOpen, Film, Sparkles } from "lucide-react";
-import { episodesApi, shotsApi, useApi, videosApi } from "@/lib/api";
+import { aiApi, episodesApi, shotsApi, useApi, videosApi } from "@/lib/api";
 import { adaptSeedanceAssets, getChapterContent } from "@/lib/adapters";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,13 @@ import { SkeletonBlock } from "./_components/skeleton-block";
 import { GenerationHistory } from "./_components/video-results";
 import { ShotStrip } from "./_components/shot-strip";
 import { PromptPanel } from "./_components/prompt-panel";
+import {
+  adaptVideoModelOptions,
+  DEFAULT_VIDEO_CHANNEL,
+  DEFAULT_VIDEO_MODEL,
+  getOptionValue,
+} from "./_components/video-options";
+import { VideoPreviewDialog } from "./_components/video-preview-dialog";
 
 function VideoWorkspaceSkeleton() {
   return (
@@ -89,11 +96,15 @@ export default function VideoPage() {
   const projectId = params.id;
   const episodeId = params.ep;
   const [selectedShotId, setSelectedShotId] = useState<string | null>(null);
-  const [selectedModel, setSelectedModel] = useState("Seedance 2.0");
+  const [selectedModel, setSelectedModel] = useState(DEFAULT_VIDEO_MODEL.id);
+  const [selectedChannel, setSelectedChannel] = useState(
+    DEFAULT_VIDEO_CHANNEL.id,
+  );
   const [selectedDuration, setSelectedDuration] = useState("5s");
   const [selectedResolution, setSelectedResolution] = useState("720p");
   const [selectedRatio, setSelectedRatio] = useState("16:9");
   const [selectedSound, setSelectedSound] = useState("有声");
+  const [previewItem, setPreviewItem] = useState<VideoHistoryItem | null>(null);
   const [promptDrafts, setPromptDrafts] = useState<Record<string, string>>({});
   const [finalVideoOverrides, setFinalVideoOverrides] = useState<
     Record<string, string | null>
@@ -112,11 +123,69 @@ export default function VideoPage() {
     () => shotsApi.fetchChapterScripts(episodeId),
     [episodeId],
   );
-  const { data: rawAssets, isLoading: assetsLoading } = useApi(
+  const {
+    data: rawAssets,
+    isLoading: assetsLoading,
+    refetch: refetchAssets,
+  } = useApi(
     () => shotsApi.fetchSeedanceAssets(episodeId, projectId),
     [episodeId, projectId],
   );
+  const { data: rawModelData } = useApi(
+    () => aiApi.fetchAvailableVideoModelsByBusinessType(5),
+    [],
+  );
 
+  const modelOptions = useMemo(
+    () => adaptVideoModelOptions(rawModelData),
+    [rawModelData],
+  );
+  const selectedModelOption = useMemo(
+    () =>
+      modelOptions.find((model) => model.id === selectedModel) ??
+      modelOptions[0] ??
+      DEFAULT_VIDEO_MODEL,
+    [modelOptions, selectedModel],
+  );
+  const selectedChannelOption = useMemo(
+    () =>
+      selectedModelOption.channels.find(
+        (channel) => channel.id === selectedChannel,
+      ) ??
+      selectedModelOption.channels[0] ??
+      DEFAULT_VIDEO_CHANNEL,
+    [selectedChannel, selectedModelOption],
+  );
+  useEffect(() => {
+    if (!modelOptions.some((model) => model.id === selectedModel)) {
+      setSelectedModel(modelOptions[0]?.id ?? DEFAULT_VIDEO_MODEL.id);
+    }
+  }, [modelOptions, selectedModel]);
+  useEffect(() => {
+    if (
+      !selectedModelOption.channels.some(
+        (channel) => channel.id === selectedChannel,
+      )
+    ) {
+      setSelectedChannel(
+        selectedModelOption.channels[0]?.id ?? DEFAULT_VIDEO_CHANNEL.id,
+      );
+    }
+  }, [selectedChannel, selectedModelOption]);
+  useEffect(() => {
+    setSelectedDuration((value) =>
+      getOptionValue(value, selectedChannelOption.durations),
+    );
+    setSelectedResolution((value) =>
+      getOptionValue(value, selectedChannelOption.resolutions),
+    );
+    setSelectedRatio((value) =>
+      getOptionValue(value, selectedChannelOption.supportedRatios),
+    );
+    setSelectedSound((value) =>
+      getOptionValue(value, selectedChannelOption.soundOptions),
+    );
+  }, [selectedChannelOption]);
   const assets = useMemo(
     () => adaptSeedanceAssets(rawAssets ?? []),
     [rawAssets],
@@ -131,18 +200,18 @@ export default function VideoPage() {
   );
   const videoShots = useMemo(
     () =>
-      shots.map((shot) => ({
-        ...shot,
-        videoUrl:
+      shots.map((shot) => {
+        const finalVideoUrl =
           finalVideoOverrides[shot.id] === undefined
-            ? (finalVideoMap[shot.id] ?? shot.videoUrl)
-            : finalVideoOverrides[shot.id],
-        hasVideo: Boolean(
-          finalVideoOverrides[shot.id] === undefined
-            ? (finalVideoMap[shot.id] ?? shot.videoUrl ?? shot.hasVideo)
-            : finalVideoOverrides[shot.id],
-        ),
-      })),
+            ? (finalVideoMap[shot.id] ?? null)
+            : finalVideoOverrides[shot.id];
+
+        return {
+          ...shot,
+          finalVideoUrl,
+          hasVideo: Boolean(finalVideoUrl ?? shot.videoUrl ?? shot.hasVideo),
+        };
+      }),
     [finalVideoMap, finalVideoOverrides, shots],
   );
   const shotPreviewKey = useMemo(
@@ -178,8 +247,8 @@ export default function VideoPage() {
     if (override === undefined) return selectedShotBase;
     return {
       ...selectedShotBase,
-      videoUrl: override,
-      hasVideo: Boolean(override),
+      finalVideoUrl: override,
+      hasVideo: Boolean(override ?? selectedShotBase.videoUrl),
     };
   }, [finalVideoOverrides, selectedShotBase]);
   const { data: rawVideoHistory, isLoading: videoHistoryLoading } = useApi(
@@ -243,7 +312,12 @@ export default function VideoPage() {
 
   return (
     <div className="flex h-full min-h-0">
-      <AssetPanel assets={assets} isLoading={assetsLoading} />
+      <AssetPanel
+        assets={assets}
+        projectId={projectId}
+        isLoading={assetsLoading}
+        onChanged={refetchAssets}
+      />
 
       <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <div className="flex h-11 items-center justify-between border-b border-white/[0.12] px-6">
@@ -279,6 +353,10 @@ export default function VideoPage() {
                   selectedShot={selectedShot}
                   selectedPrompt={selectedPrompt}
                   selectedModel={selectedModel}
+                  selectedChannel={selectedChannel}
+                  modelOptions={modelOptions}
+                  selectedModelOption={selectedModelOption}
+                  selectedChannelOption={selectedChannelOption}
                   selectedDuration={selectedDuration}
                   selectedResolution={selectedResolution}
                   selectedRatio={selectedRatio}
@@ -290,6 +368,7 @@ export default function VideoPage() {
                     }))
                   }
                   onModelChange={setSelectedModel}
+                  onChannelChange={setSelectedChannel}
                   onDurationChange={setSelectedDuration}
                   onResolutionChange={setSelectedResolution}
                   onRatioChange={setSelectedRatio}
@@ -302,6 +381,7 @@ export default function VideoPage() {
                   shot={selectedShot}
                   onToggleFinal={handleToggleFinalVideo}
                   updatingFinalId={updatingFinalId}
+                  onPreview={setPreviewItem}
                 />
               </div>
             )}
@@ -310,6 +390,17 @@ export default function VideoPage() {
               shots={thumbnailShots}
               selectedShotId={selectedShot?.id ?? null}
               onSelectShot={setSelectedShotId}
+            />
+
+            <VideoPreviewDialog
+              item={previewItem}
+              shot={selectedShot}
+              open={previewItem !== null}
+              onOpenChange={(open) => {
+                if (!open) setPreviewItem(null);
+              }}
+              onToggleFinal={handleToggleFinalVideo}
+              updatingFinalId={updatingFinalId}
             />
           </div>
         )}

@@ -72,6 +72,7 @@ export function normalizeVideoShot(
     ),
     posterUrl,
     videoUrl,
+    finalVideoUrl: null,
   };
 }
 
@@ -168,7 +169,14 @@ export function adaptVideoHistory(
         status: "completed" as const,
         videoUrl,
         posterUrl: getHistoryPosterUrl(item, shot),
-        isFinal: videoUrl === shot.videoUrl,
+        isFinal: Boolean(shot.finalVideoUrl && videoUrl === shot.finalVideoUrl),
+        prompt:
+          firstPresentString(item.prompt, item.videoPrompt, item.video_prompt) ??
+          shot.prompt,
+        modelId: firstPresentString(item.modelId) ?? null,
+        duration: item.duration ?? shot.duration,
+        createdTime: item.createdTime ?? null,
+        updateTime: item.updateTime ?? null,
       },
     ];
   });
@@ -183,7 +191,14 @@ export function adaptVideoHistory(
       status: "completed",
       videoUrl: shot.videoUrl,
       posterUrl: shot.posterUrl,
-      isFinal: true,
+      isFinal: Boolean(
+        shot.finalVideoUrl && shot.videoUrl === shot.finalVideoUrl,
+      ),
+      prompt: shot.prompt,
+      modelId: null,
+      duration: shot.duration,
+      createdTime: null,
+      updateTime: null,
     },
   ];
 }
@@ -205,7 +220,7 @@ export function getFinalVideoMap(
   return Object.fromEntries(
     items.map((item) => [
       String(item.id),
-      firstPresentString(item.videoUrl, item.video_result_url),
+      firstPresentString(item.videoResultUrl, item.video_result_url),
     ]),
   ) as Record<string, string | null>;
 }
@@ -268,4 +283,11 @@ export function formatVideoDuration(seconds: number | null) {
   const minutes = Math.floor(totalSeconds / 60);
   const remainingSeconds = totalSeconds % 60;
   return `${minutes}:${String(remainingSeconds).padStart(2, "0")}`;
+}
+
+export function formatVideoTime(value?: string | null) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString("zh-CN", { hour12: false });
 }

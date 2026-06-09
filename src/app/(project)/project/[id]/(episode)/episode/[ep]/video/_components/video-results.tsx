@@ -16,15 +16,16 @@ export function GenerationHistory({
   shot,
   onToggleFinal,
   updatingFinalId,
+  onPreview,
 }: {
   historyItems: VideoHistoryItem[];
   isLoading: boolean;
   shot: VideoShot;
   onToggleFinal: (item: VideoHistoryItem) => void;
   updatingFinalId: string | null;
+  onPreview: (item: VideoHistoryItem) => void;
 }) {
-  const selectedVideo =
-    historyItems.find((item) => item.isFinal) ?? historyItems.at(-1) ?? null;
+  const selectedVideo = historyItems.find((item) => item.isFinal) ?? null;
 
   return (
     <section className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-white/[0.12] bg-[#181818]">
@@ -49,6 +50,7 @@ export function GenerationHistory({
                     shot={shot}
                     onToggleFinal={onToggleFinal}
                     isUpdatingFinal={updatingFinalId === selectedVideo.id}
+                    onPreview={onPreview}
                   />
                 </div>
               ) : (
@@ -104,6 +106,7 @@ export function GenerationHistory({
                     shot={shot}
                     onToggleFinal={onToggleFinal}
                     isUpdatingFinal={updatingFinalId === item.id}
+                    onPreview={onPreview}
                   />
                 ))}
               </div>
@@ -120,14 +123,20 @@ function VideoResultCard({
   shot,
   onToggleFinal,
   isUpdatingFinal,
+  onPreview,
 }: {
   item: VideoHistoryItem;
   shot: VideoShot;
   onToggleFinal: (item: VideoHistoryItem) => void;
   isUpdatingFinal: boolean;
+  onPreview: (item: VideoHistoryItem) => void;
 }) {
   return (
-    <div className="group relative overflow-hidden rounded-lg border border-border bg-black">
+    <button
+      type="button"
+      onClick={() => onPreview(item)}
+      className="group relative overflow-hidden rounded-lg border border-border bg-black text-left outline-none transition-colors hover:border-white/[0.24] focus-visible:ring-2 focus-visible:ring-ring/50"
+    >
       <AspectRatio ratio={9 / 16}>
         {item.videoUrl ? (
           <VideoPreview
@@ -159,7 +168,7 @@ function VideoResultCard({
           {isUpdatingFinal ? "处理中" : item.isFinal ? "取消定稿" : "定稿"}
         </Button>
       )}
-    </div>
+    </button>
   );
 }
 

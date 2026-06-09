@@ -1,4 +1,4 @@
-import { Clock, Coins, Send } from "lucide-react";
+import { Check, ChevronDown, Clock, Coins, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -6,20 +6,38 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { calcVideoCost } from "@/lib/pricing";
+import { cn } from "@/lib/utils";
 import type { VideoShot } from "./types";
+import type { VideoChannelOption, VideoModelOption } from "./video-options";
+
+const CONTROL_TRIGGER_CLASS =
+  "h-8 w-full min-w-0 rounded-md border border-white/[0.14] bg-[#202020] px-3 text-left text-xs font-normal text-[#d8d8d8] shadow-none outline-none transition-colors duration-200 hover:border-white/[0.22] focus-visible:border-[#00CAE0]/60 focus-visible:ring-0 focus-visible:ring-offset-0";
 
 export function PromptPanel({
   selectedShot,
   selectedPrompt,
   selectedModel,
+  selectedChannel,
+  modelOptions,
+  selectedModelOption,
+  selectedChannelOption,
   selectedDuration,
   selectedResolution,
   selectedRatio,
   selectedSound,
   onPromptChange,
   onModelChange,
+  onChannelChange,
   onDurationChange,
   onResolutionChange,
   onRatioChange,
@@ -28,12 +46,17 @@ export function PromptPanel({
   selectedShot: VideoShot;
   selectedPrompt: string;
   selectedModel: string;
+  selectedChannel: string;
+  modelOptions: VideoModelOption[];
+  selectedModelOption: VideoModelOption;
+  selectedChannelOption: VideoChannelOption;
   selectedDuration: string;
   selectedResolution: string;
   selectedRatio: string;
   selectedSound: string;
   onPromptChange: (value: string) => void;
   onModelChange: (value: string) => void;
+  onChannelChange: (value: string) => void;
   onDurationChange: (value: string) => void;
   onResolutionChange: (value: string) => void;
   onRatioChange: (value: string) => void;
@@ -66,26 +89,34 @@ export function PromptPanel({
 
       <div className="flex shrink-0 items-center justify-between gap-3 border-t border-white/[0.12] px-4 py-3">
         <div className="grid min-w-0 flex-1 grid-cols-2 gap-2">
-          <SelectPill
-            label="模型"
-            value={selectedModel}
-            options={["Seedance 2.0"]}
-            onChange={onModelChange}
-            showLabel={false}
+          <ModelChannelPicker
+            selectedModel={selectedModel}
+            selectedChannel={selectedChannel}
+            modelOptions={modelOptions}
+            selectedModelOption={selectedModelOption}
+            selectedChannelOption={selectedChannelOption}
+            onModelChange={onModelChange}
+            onChannelChange={onChannelChange}
           />
           <div className="min-w-0">
             <Popover>
               <PopoverTrigger asChild>
                 <button
                   type="button"
-                  className="h-8 w-full truncate rounded-md border border-white/[0.14] bg-[#202020] px-3 text-left text-xs text-[#d8d8d8] outline-none transition-colors duration-200 hover:border-white/[0.22] focus-visible:border-[#00CAE0]/60"
+                  className={cn(
+                    CONTROL_TRIGGER_CLASS,
+                    "flex items-center justify-between gap-2",
+                  )}
                 >
-                  {ParameterSummary({
-                    duration: selectedDuration,
-                    resolution: selectedResolution,
-                    ratio: selectedRatio,
-                    sound: selectedSound,
-                  })}
+                  <span className="truncate">
+                    {ParameterSummary({
+                      duration: selectedDuration,
+                      resolution: selectedResolution,
+                      ratio: selectedRatio,
+                      sound: selectedSound,
+                    })}
+                  </span>
+                  <ChevronDown className="size-4 shrink-0 text-[#8f8f8f]" />
                 </button>
               </PopoverTrigger>
               <PopoverContent align="start" side="top" className="w-72">
@@ -93,26 +124,26 @@ export function PromptPanel({
                   <SelectPill
                     label="时长"
                     value={selectedDuration}
-                    options={["5s", "10s"]}
+                    options={selectedChannelOption.durations}
                     onChange={onDurationChange}
                     icon={Clock}
                   />
                   <SelectPill
                     label="分辨率"
                     value={selectedResolution}
-                    options={["720p", "1080p"]}
+                    options={selectedChannelOption.resolutions}
                     onChange={onResolutionChange}
                   />
                   <SelectPill
                     label="比例"
                     value={selectedRatio}
-                    options={["16:9", "9:16"]}
+                    options={selectedChannelOption.supportedRatios}
                     onChange={onRatioChange}
                   />
                   <SelectPill
                     label="声音"
                     value={selectedSound}
-                    options={["有声", "无声"]}
+                    options={selectedChannelOption.soundOptions}
                     onChange={onSoundChange}
                   />
                 </div>
@@ -135,6 +166,122 @@ export function PromptPanel({
   );
 }
 
+function ModelChannelPicker({
+  selectedModel,
+  selectedChannel,
+  modelOptions,
+  selectedModelOption,
+  selectedChannelOption,
+  onModelChange,
+  onChannelChange,
+}: {
+  selectedModel: string;
+  selectedChannel: string;
+  modelOptions: VideoModelOption[];
+  selectedModelOption: VideoModelOption;
+  selectedChannelOption: VideoChannelOption;
+  onModelChange: (value: string) => void;
+  onChannelChange: (value: string) => void;
+}) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            CONTROL_TRIGGER_CLASS,
+            "flex items-center justify-between gap-2",
+          )}
+        >
+          <span className="truncate">
+            {selectedModelOption.label} · {selectedChannelOption.shortLabel}
+          </span>
+          <ChevronDown className="size-4 shrink-0 text-[#8f8f8f]" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" side="top" className="w-[28rem]">
+        <div className="grid grid-cols-[10rem_minmax(0,1fr)] gap-3">
+          <section className="min-w-0">
+            <div className="mb-2 text-xs text-[#8f8f8f]">模型</div>
+            <div className="flex flex-col gap-1">
+              {modelOptions.map((model) => (
+                <OptionButton
+                  key={model.id}
+                  active={model.id === selectedModel}
+                  label={model.label}
+                  onClick={() => {
+                    onModelChange(model.id);
+                    onChannelChange(model.channels[0]?.id ?? selectedChannel);
+                  }}
+                />
+              ))}
+            </div>
+          </section>
+
+          <section className="min-w-0">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <span className="text-xs text-[#8f8f8f]">渠道</span>
+              <span className="text-xs text-[#777]">
+                {selectedModelOption.channels.length} 个
+              </span>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              {selectedModelOption.channels.map((channel) => (
+                <button
+                  key={channel.id}
+                  type="button"
+                  onClick={() => onChannelChange(channel.id)}
+                  className={cn(
+                    "rounded-md border px-3 py-2 text-left transition-colors",
+                    channel.id === selectedChannel
+                      ? "border-[#00CAE0]/45 bg-[#00CAE0]/10"
+                      : "border-white/[0.10] bg-[#181818] hover:border-white/[0.18]",
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="min-w-0 truncate text-xs font-medium text-[#e8e8e8]">
+                      {channel.label}
+                    </span>
+                    {channel.id === selectedChannel && (
+                      <Check className="size-3.5 shrink-0 text-[#00CAE0]" />
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function OptionButton({
+  active,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex h-8 items-center justify-between gap-2 rounded-md px-2.5 text-left text-xs transition-colors",
+        active
+          ? "bg-white/[0.10] text-white"
+          : "text-[#a3a3a3] hover:bg-white/[0.06] hover:text-white",
+      )}
+    >
+      <span className="truncate">{label}</span>
+      {active && <Check className="size-3.5 shrink-0 text-[#00CAE0]" />}
+    </button>
+  );
+}
+
 function SelectPill({
   label,
   value,
@@ -145,17 +292,20 @@ function SelectPill({
 }: {
   label: string;
   value: string;
-  options: string[];
+  options: Array<string | { value: string; label: string }>;
   onChange: (value: string) => void;
   icon?: React.ElementType;
   showLabel?: boolean;
 }) {
+  const normalizedOptions = options.map((option) =>
+    typeof option === "string" ? { value: option, label: option } : option,
+  );
   return (
     <label className="min-w-0">
       {showLabel && (
         <span className="mb-2 block text-xs text-[#8f8f8f]">{label}</span>
       )}
-      <div className="relative">
+      <div className="relative min-w-0">
         {Icon && (
           <Icon
             size={14}
@@ -163,19 +313,40 @@ function SelectPill({
             className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8f8f8f]"
           />
         )}
-        <select
+        <Select
           value={value}
-          onChange={(event) => onChange(event.target.value)}
-          className={`h-8 w-full appearance-none rounded-md border border-white/[0.14] bg-[#202020] pr-7 text-xs text-[#d8d8d8] outline-none transition-colors duration-200 hover:border-white/[0.22] focus:border-[#00CAE0]/60 ${
-            Icon ? "pl-7" : "pl-3"
-          }`}
+          onValueChange={(nextValue) => {
+            if (nextValue) onChange(nextValue);
+          }}
         >
-          {options.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger
+            size="sm"
+            className={cn(
+              CONTROL_TRIGGER_CLASS,
+              Icon && "pl-7",
+              "[&>span]:truncate",
+            )}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent
+            align="start"
+            side="top"
+            className="border-white/[0.12] bg-[#202020] text-[#d8d8d8]"
+          >
+            <SelectGroup>
+              {normalizedOptions.map((option) => (
+                <SelectItem
+                  key={option.value}
+                  value={option.value}
+                  className="text-xs focus:bg-white/[0.08] focus:text-white"
+                >
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </div>
     </label>
   );
