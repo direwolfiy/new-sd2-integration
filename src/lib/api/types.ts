@@ -169,7 +169,9 @@ export interface SceneScriptItem {
   imagePrompt?: string | null;
   videoPrompt?: string | null;
   imageUrl?: string | null;
+  image_result_url?: string | null;
   videoUrl?: string | null;
+  video_result_url?: string | null;
   videoStatus?: string | null;
   duration?: number | null;
   createdAt?: string | null;

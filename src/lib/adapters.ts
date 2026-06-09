@@ -4,6 +4,7 @@ import type {
   SceneRoleItem,
   SceneScriptItem,
 } from "@/lib/api/types";
+import type { SeedanceAssetListItem } from "@/lib/api/shots";
 import type {
   Project,
   Episode,
@@ -23,8 +24,14 @@ const PRODUCTION_STAGE_MAP: Record<number, string> = {
 
 const TEMPLATE_TYPE_MAP: Record<string, ElementType> = {
   ROLE: "character",
+  CHARACTER: "character",
   SCENE: "scene",
   PROP: "prop",
+  PROPS: "prop",
+  MATERIAL: "material",
+  IMAGE: "material",
+  VIDEO: "material",
+  FILE: "material",
   AUDIO: "audio",
 };
 
@@ -83,7 +90,7 @@ export function adaptElements(roles: SceneRoleItem[]): ElementItem[] {
   const items: ElementItem[] = [];
 
   for (const r of roles) {
-    const type = TEMPLATE_TYPE_MAP[r.template_type ?? ""] ?? "prop";
+    const type = TEMPLATE_TYPE_MAP[(r.template_type ?? "").toUpperCase()] ?? "prop";
     const isCharacter = type === "character";
     const charName = isCharacter
       ? extractBeforeDash(r.template_name ?? "")
@@ -109,6 +116,54 @@ export function adaptElements(roles: SceneRoleItem[]): ElementItem[] {
       createdAt: "",
     });
   }
+  return items;
+}
+
+export function adaptSeedanceAssets(
+  assets: SeedanceAssetListItem[],
+): ElementItem[] {
+  const seen = new Set<string>();
+  const items: ElementItem[] = [];
+
+  for (const asset of assets) {
+    const templateType = asset.templateType ?? asset.template_type ?? "";
+    const templateName = asset.templateName ?? asset.template_name ?? "";
+    const type = TEMPLATE_TYPE_MAP[templateType.toUpperCase()] ?? "material";
+    const name =
+      type === "character"
+        ? extractBeforeDash(templateName)
+        : templateName;
+    const stableId = String(
+      asset.resourceTempId ?? asset.resource_temp_id ?? asset.id ?? name,
+    );
+    const key = `${type}:${stableId || name}`;
+
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const meta = (asset.templateMetadata ?? asset.template_metadata) as Record<
+      string,
+      unknown
+    > | null;
+    const metaTags = meta?.tags as string[] | undefined;
+    const tags =
+      metaTags ??
+      ([
+        asset.roleType ?? asset.role_type,
+        asset.templateCategory ?? asset.template_category,
+      ].filter(Boolean) as string[]);
+
+    items.push({
+      id: stableId,
+      projectId: String(asset.contentId ?? asset.content_id ?? ""),
+      type,
+      name,
+      thumbnailUrl: asset.coverImage ?? asset.cover_image ?? "",
+      tags,
+      createdAt: "",
+    });
+  }
+
   return items;
 }
 

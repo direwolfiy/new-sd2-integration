@@ -28,17 +28,76 @@ export interface GenerationMeta {
 export interface SeedanceScriptItem {
   id?: string | number;
   sequence?: number;
+  order_sort?: number | null;
   dialogue?: string | string[] | Record<string, unknown>[] | null;
   sourceText?: string | null;
+  source_text?: string | null;
   speechContent?: string | null;
+  speech_content?: string | null;
   rawDescription?: string | null;
+  raw_description?: string | null;
+  body?: string | null;
+  title?: string | null;
   estimatedDuration?: number | null;
+  estimated_duration?: number | null;
+  duration_seconds?: number | null;
   videoPrompt?: string | null;
+  video_prompt?: string | null;
   hasVideoResult?: boolean | null;
+  has_video_result?: boolean | null;
   videoCount?: number | null;
+  video_count?: number | null;
+  imageUrl?: string | null;
+  image_url?: string | null;
+  imageResultUrl?: string | null;
+  image_result_url?: string | null;
+  resultImageUrl?: string | null;
+  result_image_url?: string | null;
+  thumbnailUrl?: string | null;
+  thumbnail_url?: string | null;
+  coverUrl?: string | null;
+  cover_url?: string | null;
+  lastFrameUrl?: string | null;
+  last_frame_url?: string | null;
   videoUrl?: string | null;
+  video_url?: string | null;
   videoResultUrl?: string | null;
+  video_result_url?: string | null;
   resultVideoUrl?: string | null;
+  result_video_url?: string | null;
+}
+
+export interface SeedanceAssetListItem {
+  id?: string | number;
+  contentId?: string | number | null;
+  content_id?: string | number | null;
+  resourceTempId?: string | number | null;
+  resource_temp_id?: string | number | null;
+  status?: number | null;
+  type?: number | null;
+  chapterId?: string | number | null;
+  chapter_id?: string | number | null;
+  remark?: string | null;
+  templateName?: string | null;
+  template_name?: string | null;
+  roleType?: string | null;
+  role_type?: string | null;
+  templateCategory?: string | null;
+  template_category?: string | null;
+  templateType?: string | null;
+  template_type?: string | null;
+  description?: string | null;
+  coverImage?: string | null;
+  cover_image?: string | null;
+  appearance?: Record<string, unknown> | null;
+  templateMetadata?: Record<string, unknown> | null;
+  template_metadata?: Record<string, unknown> | null;
+  isReferencedFromProject?: boolean | null;
+  is_referenced_from_project?: boolean | null;
+  seedanceAssetUuid?: string | null;
+  seedance_asset_uuid?: string | null;
+  seedanceAssetStatus?: string | null;
+  seedance_asset_status?: string | null;
 }
 
 export interface SeedanceScriptListResponse {
@@ -83,6 +142,13 @@ export function fetchSeedanceScripts(chapterId: string, forceRefresh = false) {
   return get<SeedanceScriptListResponse>(
     `/seedance/chapter/${chapterId}/scripts`,
     forceRefresh ? { _t: String(Date.now()) } : undefined,
+  );
+}
+
+export function fetchSeedanceAssets(chapterId: string, contentId?: string) {
+  return get<SeedanceAssetListItem[]>(
+    `/seedance/chapter/${chapterId}/assets`,
+    contentId ? { contentId } : undefined,
   );
 }
 

@@ -17,7 +17,9 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const range = request.headers.get("range");
     const response = await fetch(url, {
+      headers: range ? { Range: range } : undefined,
       signal: AbortSignal.timeout(60000),
     });
 
@@ -28,11 +30,15 @@ export async function GET(request: NextRequest) {
 
     const headers = new Headers();
     headers.set("Content-Type", response.headers.get("Content-Type") ?? "video/mp4");
-    headers.set("Content-Length", response.headers.get("Content-Length") ?? "");
+    const contentLength = response.headers.get("Content-Length");
+    if (contentLength) headers.set("Content-Length", contentLength);
+    const contentRange = response.headers.get("Content-Range");
+    if (contentRange) headers.set("Content-Range", contentRange);
+    headers.set("Accept-Ranges", response.headers.get("Accept-Ranges") ?? "bytes");
     headers.set("Cache-Control", "public, max-age=86400");
 
     return new Response(response.body, {
-      status: 200,
+      status: response.status === 206 ? 206 : 200,
       headers,
     });
   } catch {

@@ -30,7 +30,13 @@ export interface Episode {
   lastEditedAt: string;
 }
 
-export type ElementType = "character" | "scene" | "prop" | "audio" | "script";
+export type ElementType =
+  | "character"
+  | "scene"
+  | "prop"
+  | "material"
+  | "audio"
+  | "script";
 
 export interface ElementItem {
   id: string;
