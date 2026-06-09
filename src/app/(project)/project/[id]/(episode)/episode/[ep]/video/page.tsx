@@ -2,12 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { BookOpen, Film, Sparkles } from "lucide-react";
+import { BookOpen, Film } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { aiApi, episodesApi, shotsApi, useApi, videosApi } from "@/lib/api";
 import { adaptSeedanceAssets, getChapterContent } from "@/lib/adapters";
 import { useParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import {
   adaptVideoHistory,
@@ -358,17 +357,13 @@ export default function VideoPage() {
       />
 
       <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <div className="flex h-11 items-center justify-between border-b border-white/[0.12] px-6">
+        <div className="flex h-11 items-center border-b border-white/[0.12] px-6">
           <div className="flex items-center gap-2">
             <h2 className="text-sm font-medium text-white">视频生成</h2>
             <span className="text-xs text-[#777]">
               {shots.length} / {completedCount}
             </span>
           </div>
-          <Button variant="ghost" size="sm" title="批量生成视频">
-            <Sparkles />
-            批量生成
-          </Button>
         </div>
 
         {shotsLoading ? (
@@ -432,6 +427,21 @@ export default function VideoPage() {
               shots={thumbnailShots}
               selectedShotId={selectedShot?.id ?? null}
               onSelectShot={setSelectedShotId}
+              onBatchGenerateVideos={(shotIds) => {
+                sonnerToast.info(`已选择 ${shotIds.length} 个镜头`, {
+                  description: "批量生成视频功能待接入",
+                });
+              }}
+              onBatchDownloadVideos={(shotIds) => {
+                sonnerToast.info(`已选择 ${shotIds.length} 个镜头`, {
+                  description: "批量下载功能待接入",
+                });
+              }}
+              onScheduleSubmitVideos={(shotIds) => {
+                sonnerToast.info(`已选择 ${shotIds.length} 个镜头`, {
+                  description: "定时提交功能待接入",
+                });
+              }}
             />
 
             <VideoPreviewDialog
