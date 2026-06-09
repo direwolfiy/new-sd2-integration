@@ -40,6 +40,8 @@ export type ElementType =
 
 export interface ElementItem {
   id: string;
+  bindingId?: string;
+  templateId?: string;
   projectId: string;
   type: ElementType;
   name: string;

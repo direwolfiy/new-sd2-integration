@@ -108,6 +108,8 @@ export function adaptElements(roles: SceneRoleItem[]): ElementItem[] {
 
     items.push({
       id: String(r.id),
+      bindingId: String(r.id),
+      templateId: r.resource_temp_id ? String(r.resource_temp_id) : undefined,
       projectId: String(r.content_id ?? ""),
       type,
       name: isCharacter ? charName! : (r.template_name ?? ""),
@@ -136,6 +138,7 @@ export function adaptSeedanceAssets(
     const stableId = String(
       asset.resourceTempId ?? asset.resource_temp_id ?? asset.id ?? name,
     );
+    const bindingId = asset.id != null ? String(asset.id) : undefined;
     const key = `${type}:${stableId || name}`;
 
     if (seen.has(key)) continue;
@@ -155,6 +158,8 @@ export function adaptSeedanceAssets(
 
     items.push({
       id: stableId,
+      bindingId,
+      templateId: stableId,
       projectId: String(asset.contentId ?? asset.content_id ?? ""),
       type,
       name,

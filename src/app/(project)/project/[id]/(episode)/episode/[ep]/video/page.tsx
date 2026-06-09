@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { BookOpen, Film, Sparkles } from "lucide-react";
+import { toast as sonnerToast } from "sonner";
 import { aiApi, episodesApi, shotsApi, useApi, videosApi } from "@/lib/api";
 import { adaptSeedanceAssets, getChapterContent } from "@/lib/adapters";
 import { useParams } from "next/navigation";
@@ -104,7 +105,9 @@ export default function VideoPage() {
   const [selectedResolution, setSelectedResolution] = useState("720p");
   const [selectedRatio, setSelectedRatio] = useState("16:9");
   const [selectedSound, setSelectedSound] = useState("有声");
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [previewItem, setPreviewItem] = useState<VideoHistoryItem | null>(null);
+  const [previewShotId, setPreviewShotId] = useState<string | null>(null);
   const [promptDrafts, setPromptDrafts] = useState<Record<string, string>>({});
   const [finalVideoOverrides, setFinalVideoOverrides] = useState<
     Record<string, string | null>
@@ -269,6 +272,17 @@ export default function VideoPage() {
     () => (selectedShot ? adaptVideoHistory(rawVideoHistory, selectedShot) : []),
     [rawVideoHistory, selectedShot],
   );
+  useEffect(() => {
+    if (!previewOpen) return;
+    if (!previewItem) {
+      setPreviewItem(videoHistoryItems[0] ?? null);
+      return;
+    }
+    const stillExists = videoHistoryItems.some((item) => item.id === previewItem.id);
+    if (!stillExists) {
+      setPreviewItem(videoHistoryItems[0] ?? null);
+    }
+  }, [previewItem, previewOpen, videoHistoryItems]);
   const hasScript = !!getChapterContent(chapter).trim();
   const completedCount = shots.filter((shot) => shot.hasVideo).length;
 
@@ -276,15 +290,38 @@ export default function VideoPage() {
     if (!selectedShot || !item.videoUrl || updatingFinalId) return;
 
     setUpdatingFinalId(item.id);
+    const previousVideoUrl = selectedShot.finalVideoUrl ?? null;
     const nextVideoUrl = item.isFinal ? null : item.videoUrl;
+    setFinalVideoOverrides((overrides) => ({
+      ...overrides,
+      [selectedShot.id]: nextVideoUrl,
+    }));
+    setPreviewItem((current) =>
+      current?.id === item.id
+        ? { ...current, isFinal: !item.isFinal }
+        : current,
+    );
     try {
       await videosApi.updateScriptVideoResultUrl(selectedShot.id, {
         videoResultUrl: nextVideoUrl,
       });
+    } catch (error) {
       setFinalVideoOverrides((overrides) => ({
         ...overrides,
-        [selectedShot.id]: nextVideoUrl,
+        [selectedShot.id]: previousVideoUrl,
       }));
+      setPreviewItem((current) =>
+        current?.id === item.id
+          ? { ...current, isFinal: item.isFinal }
+          : current,
+      );
+      sonnerToast.error(
+        item.isFinal ? "取消定稿失败" : "设置定稿失败",
+        {
+          description:
+            error instanceof Error ? error.message : "请稍后重试",
+        },
+      );
     } finally {
       setUpdatingFinalId(null);
     }
@@ -315,6 +352,7 @@ export default function VideoPage() {
       <AssetPanel
         assets={assets}
         projectId={projectId}
+        episodeId={episodeId}
         isLoading={assetsLoading}
         onChanged={refetchAssets}
       />
@@ -381,7 +419,11 @@ export default function VideoPage() {
                   shot={selectedShot}
                   onToggleFinal={handleToggleFinalVideo}
                   updatingFinalId={updatingFinalId}
-                  onPreview={setPreviewItem}
+                  onPreview={(item) => {
+                    setPreviewShotId(selectedShot.id);
+                    setPreviewItem(item);
+                    setPreviewOpen(true);
+                  }}
                 />
               </div>
             )}
@@ -395,10 +437,23 @@ export default function VideoPage() {
             <VideoPreviewDialog
               item={previewItem}
               shot={selectedShot}
-              open={previewItem !== null}
+              shots={thumbnailShots}
+              historyItems={videoHistoryItems}
+              open={previewOpen}
               onOpenChange={(open) => {
-                if (!open) setPreviewItem(null);
+                setPreviewOpen(open);
+                if (!open) {
+                  setPreviewItem(null);
+                  setPreviewShotId(null);
+                }
               }}
+              onSelectShot={(shotId) => {
+                setPreviewShotId(shotId);
+                setSelectedShotId(shotId);
+                setPreviewItem(null);
+              }}
+              previewShotId={previewShotId}
+              onSelectVersion={setPreviewItem}
               onToggleFinal={handleToggleFinalVideo}
               updatingFinalId={updatingFinalId}
             />

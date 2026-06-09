@@ -5,6 +5,35 @@ export function fetchElements(contentId: string) {
   return get<SceneRoleItem[]>(`/resource/scene-role/content/${contentId}`);
 }
 
+export function fetchUnreferencedElements(
+  contentId: string,
+  chapterId: string,
+  elementType?: string,
+) {
+  return get<SceneRoleItem[]>(
+    `/resource/scene-role/content/${contentId}/unreferenced`,
+    {
+      chapterId,
+      ...(elementType ? { elementType } : {}),
+    },
+  );
+}
+
+export function batchBindElements(data: {
+  content_id?: string | number;
+  contentId?: string | number;
+  chapter_id?: string | number;
+  chapterId?: string | number;
+  bindings: Array<{
+    resource_temp_id?: string | number;
+    resourceTempId?: string | number;
+    type?: number;
+    remark?: string | null;
+  }>;
+}) {
+  return post<boolean>("/resource/scene-role/batch-bind", data);
+}
+
 export function fetchElement(templateId: string) {
   return get<TemplateItem>(`/resource/template/${templateId}`);
 }
