@@ -1,0 +1,25 @@
+export type VideoShot = {
+  id: string;
+  number: number;
+  description: string;
+  prompt: string;
+  duration: number | null;
+  hasVideo: boolean;
+  videoCount: number;
+  posterUrl: string | null;
+  videoUrl: string | null;
+};
+
+export type VideoHistoryItem = {
+  id: string;
+  version: number;
+  status: "pending" | "generating" | "completed";
+  videoUrl: string | null;
+  posterUrl: string | null;
+  isFinal: boolean;
+};
+
+export type ShotPreviewMap = Record<
+  string,
+  Pick<VideoShot, "posterUrl" | "videoUrl">
+>;
