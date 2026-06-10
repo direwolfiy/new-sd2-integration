@@ -283,7 +283,7 @@ export function ElementDesignEditor({
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-[#0a0a0a]">
-      <div className="grid h-14 shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 border-b border-border px-6">
+      <div className="grid h-14 shrink-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-4 border-b border-border px-6">
         <Button type="button" variant="ghost" size="sm" onClick={onClose} className="justify-start text-muted-foreground hover:text-foreground">
           <ArrowLeft className="size-3.5" />
           返回
@@ -301,49 +301,51 @@ export function ElementDesignEditor({
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex rounded-full bg-muted p-0.5">
-            {typeTabs.map((tab) => (
-              <Button
-                key={tab.key}
-                type="button"
-                size="sm"
-                variant={activeType === tab.key ? "secondary" : "ghost"}
-                onClick={() => setActiveType(tab.key)}
-                className={cn(
-                  "text-xs",
-                  activeType === tab.key
-                    ? "bg-secondary text-foreground hover:bg-secondary"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                <tab.icon className="size-3.5" />
-                {tab.label}
-              </Button>
-            ))}
-          </div>
-          <Select value={episodeFilter} onValueChange={setEpisodeFilter}>
-            <SelectTrigger className="h-8 w-28 rounded-full text-xs">
-              <SelectValue placeholder="全部分集" />
-            </SelectTrigger>
-            <SelectContent align="end" className="min-w-28">
-              <SelectItem value="all">全部分集</SelectItem>
-              {(chapters ?? [])
-                .slice()
-                .sort((a, b) => a.chapterOrder - b.chapterOrder)
-                .map((chapter) => (
-                  <SelectItem key={chapter.id} value={String(chapter.id)}>
-                    第 {chapter.chapterOrder} 集
-                  </SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
-        </div>
       </div>
 
       <div className="flex min-h-0 flex-1">
-        <ScrollArea className="h-full w-44 shrink-0 border-r border-border">
-          <nav className="p-3">
+        <aside className="flex h-full w-44 shrink-0 flex-col border-r border-border">
+          <div className="shrink-0 p-3">
+            <div className="space-y-2 border-b border-border pb-3">
+              <div className="grid grid-cols-3 gap-1 rounded-full bg-muted p-0.5">
+                {typeTabs.map((tab) => (
+                  <Button
+                    key={tab.key}
+                    type="button"
+                    size="sm"
+                    variant={activeType === tab.key ? "secondary" : "ghost"}
+                    onClick={() => setActiveType(tab.key)}
+                    className={cn(
+                      "h-7 px-2 text-xs",
+                      activeType === tab.key
+                        ? "bg-secondary text-foreground hover:bg-secondary"
+                        : "text-muted-foreground hover:text-foreground",
+                    )}
+                  >
+                    {tab.label}
+                  </Button>
+                ))}
+              </div>
+              <Select value={episodeFilter} onValueChange={setEpisodeFilter}>
+                <SelectTrigger className="h-8 w-full rounded-full text-xs">
+                  <SelectValue placeholder="全部分集" />
+                </SelectTrigger>
+                <SelectContent align="start" className="min-w-36">
+                  <SelectItem value="all">全部分集</SelectItem>
+                  {(chapters ?? [])
+                    .slice()
+                    .sort((a, b) => a.chapterOrder - b.chapterOrder)
+                    .map((chapter) => (
+                      <SelectItem key={chapter.id} value={String(chapter.id)}>
+                        第 {chapter.chapterOrder} 集
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <ScrollArea className="min-h-0 flex-1">
+            <nav className="px-3 pb-3">
             <div className="space-y-1.5">
               {visibleItems.map((item) => (
                 <ElementListItem
@@ -359,8 +361,9 @@ export function ElementDesignEditor({
                 </div>
               )}
             </div>
-          </nav>
-        </ScrollArea>
+            </nav>
+          </ScrollArea>
+        </aside>
 
         <ScrollArea className="min-h-0 flex-1">
           <div className="p-6">
@@ -507,8 +510,8 @@ function ElementDetail({
 }) {
   const first = item.records[0];
   return (
-    <div className="mx-auto max-w-5xl space-y-4">
-      <section className="rounded-xl border border-white/[0.12] bg-[#181818] p-4">
+    <div className="w-full space-y-4">
+      <section className="rounded-xl border border-white/[0.12] p-4">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
             <div className="flex min-w-0 items-center gap-2">
@@ -579,7 +582,7 @@ function CharacterVariants({
                 <Button type="button" variant="secondary" size="sm" onClick={() => onEditVariant(record)} className="text-xs">
                   编辑形象信息
                 </Button>
-                <Button type="button" variant="secondary" size="sm" onClick={() => onGenerateImage(String(record.id))} className="text-xs">
+                <Button type="button" size="sm" onClick={() => onGenerateImage(String(record.id))} className="text-xs">
                   修改形象图
                 </Button>
               </div>
