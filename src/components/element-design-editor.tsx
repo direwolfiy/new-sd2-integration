@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ImageIcon, Mountain, Package, Plus, Star, User } from "lucide-react";
+import { ArrowLeft, MoreHorizontal, Mountain, Package, Plus, Star, Trash2, User } from "lucide-react";
 import { toast as sonnerToast } from "sonner";
 import { elementsApi, episodesApi, useApi } from "@/lib/api";
 import type { SceneRoleItem } from "@/lib/api/types";
@@ -14,6 +14,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -23,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { ImageGenerateOverlay } from "./image-generate-overlay";
@@ -60,6 +67,12 @@ const typeLabel: Record<DesignType, string> = {
   character: "角色",
   scene: "场景",
   prop: "道具",
+};
+
+const templateTypeValue: Record<DesignType, string> = {
+  character: "ROLE",
+  scene: "SCENE",
+  prop: "PROP",
 };
 
 function getDesignType(templateType: string | null | undefined): DesignType | null {
@@ -151,14 +164,19 @@ export function ElementDesignEditor({
   const [selectedKey, setSelectedKey] = useState("");
   const [episodeFilter, setEpisodeFilter] = useState("all");
   const [generateVariantId, setGenerateVariantId] = useState<string | null>(null);
+  const [generateVariantSnapshot, setGenerateVariantSnapshot] = useState<SceneRoleItem | null>(null);
   const [editingInfoItem, setEditingInfoItem] = useState<DesignItem | null>(null);
   const [editingVariant, setEditingVariant] = useState<SceneRoleItem | null>(null);
+  const [addingType, setAddingType] = useState<DesignType | null>(null);
   const [infoDraftName, setInfoDraftName] = useState("");
   const [infoDraftDesc, setInfoDraftDesc] = useState("");
   const [variantDraftName, setVariantDraftName] = useState("");
   const [variantDraftTags, setVariantDraftTags] = useState("");
   const [variantDraftDesc, setVariantDraftDesc] = useState("");
+  const [addDraftName, setAddDraftName] = useState("");
+  const [addDraftDesc, setAddDraftDesc] = useState("");
   const [savingInfo, setSavingInfo] = useState(false);
+  const [initializedFor, setInitializedFor] = useState("");
 
   const { data: chapters } = useApi(
     () => episodesApi.fetchChapters(projectId),
@@ -167,11 +185,19 @@ export function ElementDesignEditor({
 
   useEffect(() => {
     if (!open) return;
+    const key = `${initialType}:${initialId}`;
+    if (initializedFor === key) return;
     const initial = getItemForInitialId(items, initialId, initialType);
     setActiveType(initial?.type ?? initialType);
     setSelectedKey(initial?.key ?? "");
     setEpisodeFilter("all");
-  }, [initialId, initialType, items, open]);
+    setInitializedFor(key);
+  }, [initialId, initialType, initializedFor, items, open]);
+
+  useEffect(() => {
+    if (open) return;
+    setInitializedFor("");
+  }, [open]);
 
   const visibleItems = useMemo(
     () =>
@@ -194,7 +220,21 @@ export function ElementDesignEditor({
     items.find((item) => item.key === selectedKey) ??
     null;
 
-  const generateVariant = selectedItem?.records.find((record) => String(record.id) === generateVariantId);
+  const liveGenerateVariant = useMemo(
+    () => items.flatMap((item) => item.records).find((record) => String(record.id) === generateVariantId) ?? null,
+    [generateVariantId, items],
+  );
+  const generateVariant = liveGenerateVariant ?? generateVariantSnapshot;
+
+  useEffect(() => {
+    if (!generateVariantId) {
+      setGenerateVariantSnapshot(null);
+      return;
+    }
+    if (liveGenerateVariant) {
+      setGenerateVariantSnapshot(liveGenerateVariant);
+    }
+  }, [generateVariantId, liveGenerateVariant]);
 
   function openInfoEditor(item: DesignItem) {
     setEditingInfoItem(item);
@@ -208,6 +248,12 @@ export function ElementDesignEditor({
     setVariantDraftName(String(app?.name ?? variant.template_name?.split("-").slice(1).join("-") ?? ""));
     setVariantDraftTags((app?.tags as string[] | undefined)?.join(", ") ?? "");
     setVariantDraftDesc(String(app?.description ?? variant.description ?? ""));
+  }
+
+  function openAddDialog(type: DesignType) {
+    setAddingType(type);
+    setAddDraftName("");
+    setAddDraftDesc("");
   }
 
   async function saveInfoEdit() {
@@ -256,6 +302,52 @@ export function ElementDesignEditor({
     }
   }
 
+  async function createElementItem() {
+    if (!addingType) return;
+    const name = addDraftName.trim();
+    if (!name) return;
+    setSavingInfo(true);
+    try {
+      if (addingType === "character" && selectedItem?.type === "character") {
+        await elementsApi.createCharacter(projectId, {
+          templateName: `${selectedItem.name}-${name}`,
+          contentId: projectId,
+          description: addDraftDesc,
+        });
+      } else {
+        await elementsApi.createElement({
+          template_name: name,
+          template_type: templateTypeValue[addingType],
+          content_id: projectId,
+          description: addDraftDesc,
+        });
+      }
+      onRefresh();
+      setAddingType(null);
+      sonnerToast.success(`已新增${addingType === "character" ? "形象" : typeLabel[addingType]}`);
+    } catch {
+      sonnerToast.error("新增失败");
+    } finally {
+      setSavingInfo(false);
+    }
+  }
+
+  async function deleteRecord(record: SceneRoleItem) {
+    const type = getDesignType(record.template_type);
+    const id = String(record.resource_temp_id ?? record.id);
+    try {
+      if (type === "character") {
+        await elementsApi.deleteSceneRole(String(record.id));
+      } else {
+        await elementsApi.deleteElement(id);
+      }
+      onRefresh();
+      sonnerToast.success("已删除");
+    } catch {
+      sonnerToast.error("删除失败");
+    }
+  }
+
   async function setPrimaryImage(variant: SceneRoleItem, imageIdx: number) {
     const images = (getAppearance(variant)?.images as string[] | undefined) ?? [];
     if (images.length <= 1 || imageIdx === 0) return;
@@ -271,9 +363,15 @@ export function ElementDesignEditor({
   async function handleImagesChange(imageUrls: string[]) {
     if (!generateVariant) return;
     const templateId = String(generateVariant.resource_temp_id ?? generateVariant.id);
+    const nextAppearance = { ...(getAppearance(generateVariant) ?? {}), images: imageUrls };
     await elementsApi.updateElement(templateId, {
-      appearance: { ...(getAppearance(generateVariant) ?? {}), images: imageUrls },
+      appearance: nextAppearance,
     });
+    setGenerateVariantSnapshot((prev) =>
+      prev && String(prev.id) === String(generateVariant.id)
+        ? { ...prev, appearance: nextAppearance }
+        : prev,
+    );
     onRefresh();
     sonnerToast.success(imageUrls.length > 0 ? "已更新形象图" : "已移除形象图");
   }
@@ -304,28 +402,22 @@ export function ElementDesignEditor({
       </div>
 
       <div className="flex min-h-0 flex-1">
-        <aside className="flex h-full w-44 shrink-0 flex-col border-r border-border">
+        <aside className="flex h-full w-52 shrink-0 flex-col border-r border-border">
           <div className="shrink-0 p-3">
             <div className="space-y-2 border-b border-border pb-3">
-              <div className="grid grid-cols-3 gap-1 rounded-full bg-muted p-0.5">
-                {typeTabs.map((tab) => (
-                  <Button
-                    key={tab.key}
-                    type="button"
-                    size="sm"
-                    variant={activeType === tab.key ? "secondary" : "ghost"}
-                    onClick={() => setActiveType(tab.key)}
-                    className={cn(
-                      "h-7 px-2 text-xs",
-                      activeType === tab.key
-                        ? "bg-secondary text-foreground hover:bg-secondary"
-                        : "text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    {tab.label}
-                  </Button>
-                ))}
-              </div>
+              <Tabs value={activeType} onValueChange={(value) => setActiveType(value as DesignType)}>
+                <TabsList className="grid h-8 w-full grid-cols-3 rounded-full px-1 py-0.5">
+                  {typeTabs.map((tab) => (
+                    <TabsTrigger
+                      key={tab.key}
+                      value={tab.key}
+                      className="h-7 rounded-full px-2 text-xs"
+                    >
+                      {tab.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
               <Select value={episodeFilter} onValueChange={setEpisodeFilter}>
                 <SelectTrigger className="h-8 w-full rounded-full text-xs">
                   <SelectValue placeholder="全部分集" />
@@ -371,9 +463,11 @@ export function ElementDesignEditor({
               <ElementDetail
                 item={selectedItem}
                 onEditInfo={openInfoEditor}
+                onAddItem={openAddDialog}
                 onGenerateImage={(id) => setGenerateVariantId(id)}
                 onEditVariant={openVariantEditor}
                 onSetPrimaryImage={setPrimaryImage}
+                onDeleteRecord={deleteRecord}
               />
             ) : (
               <div className="flex h-80 items-center justify-center text-sm text-muted-foreground">
@@ -449,6 +543,34 @@ export function ElementDesignEditor({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={addingType !== null} onOpenChange={(open) => !open && setAddingType(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              新增{addingType === "character" ? "形象" : addingType ? typeLabel[addingType] : "元素"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm text-muted-foreground">名称</label>
+              <Input value={addDraftName} onChange={(event) => setAddDraftName(event.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm text-muted-foreground">描述</label>
+              <Textarea value={addDraftDesc} onChange={(event) => setAddDraftDesc(event.target.value)} className="min-h-28 resize-none" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="secondary" onClick={() => setAddingType(null)}>
+              取消
+            </Button>
+            <Button type="button" onClick={createElementItem} disabled={savingInfo || !addDraftName.trim()}>
+              创建
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -498,15 +620,19 @@ function ElementListItem({
 function ElementDetail({
   item,
   onEditInfo,
+  onAddItem,
   onGenerateImage,
   onEditVariant,
   onSetPrimaryImage,
+  onDeleteRecord,
 }: {
   item: DesignItem;
   onEditInfo: (item: DesignItem) => void;
+  onAddItem: (type: DesignType) => void;
   onGenerateImage: (id: string) => void;
   onEditVariant: (variant: SceneRoleItem) => void;
   onSetPrimaryImage: (variant: SceneRoleItem, imageIdx: number) => void;
+  onDeleteRecord: (record: SceneRoleItem) => void;
 }) {
   const first = item.records[0];
   return (
@@ -541,12 +667,18 @@ function ElementDetail({
       {item.type === "character" ? (
         <CharacterVariants
           records={item.records}
+          onAddVariant={() => onAddItem("character")}
           onGenerateImage={onGenerateImage}
           onEditVariant={onEditVariant}
           onSetPrimaryImage={onSetPrimaryImage}
+          onDeleteVariant={onDeleteRecord}
         />
       ) : (
-        <StaticElementAssets item={item} />
+        <StaticElementAssets
+          item={item}
+          onAddItem={() => onAddItem(item.type)}
+          onDeleteRecord={onDeleteRecord}
+        />
       )}
     </div>
   );
@@ -554,14 +686,18 @@ function ElementDetail({
 
 function CharacterVariants({
   records,
+  onAddVariant,
   onGenerateImage,
   onEditVariant,
   onSetPrimaryImage,
+  onDeleteVariant,
 }: {
   records: SceneRoleItem[];
+  onAddVariant: () => void;
   onGenerateImage: (id: string) => void;
   onEditVariant: (variant: SceneRoleItem) => void;
   onSetPrimaryImage: (variant: SceneRoleItem, imageIdx: number) => void;
+  onDeleteVariant: (variant: SceneRoleItem) => void;
 }) {
   return (
     <section className="space-y-4">
@@ -585,6 +721,10 @@ function CharacterVariants({
                 <Button type="button" size="sm" onClick={() => onGenerateImage(String(record.id))} className="text-xs">
                   修改形象图
                 </Button>
+                <MoreActionMenu
+                  label="删除形象"
+                  onDelete={() => onDeleteVariant(record)}
+                />
               </div>
             </div>
             <ScrollArea className="whitespace-nowrap pb-2">
@@ -632,31 +772,112 @@ function CharacterVariants({
           </div>
         );
       })}
+      <Button type="button" variant="outline" className="h-11 w-full border-dashed text-xs" onClick={onAddVariant}>
+        <Plus className="size-4" />
+        添加形象
+      </Button>
     </section>
   );
 }
 
-function StaticElementAssets({ item }: { item: DesignItem }) {
-  const first = item.records[0];
-  const app = first.appearance;
+function StaticElementAssets({
+  item,
+  onAddItem,
+  onDeleteRecord,
+}: {
+  item: DesignItem;
+  onAddItem: () => void;
+  onDeleteRecord: (record: SceneRoleItem) => void;
+}) {
+  const Icon = item.type === "scene" ? Mountain : Package;
 
   return (
-    <section className="rounded-xl border border-white/[0.12] bg-[#181818] p-4">
-      <div className="flex items-center gap-2">
-        <ImageIcon className="size-4 text-muted-foreground" />
-        <h3 className="text-sm font-medium">{typeLabel[item.type]}设定</h3>
+    <section className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium">{typeLabel[item.type]}资产</h3>
       </div>
-      {app && typeof app === "object" ? (
-        <div className="mt-3 rounded-lg bg-white/[0.04] p-4">
-          <pre className="whitespace-pre-wrap break-words text-xs leading-7 text-muted-foreground">
-            {JSON.stringify(app, null, 2)}
-          </pre>
-        </div>
-      ) : (
-        <div className="mt-3 flex h-40 items-center justify-center rounded-lg border border-dashed border-white/[0.12] text-sm text-muted-foreground">
-          暂无设定内容
+      {item.records.map((record) => {
+        const app = getAppearance(record);
+        const images = (app?.images as string[] | undefined) ?? [];
+        const displayImages = images.length > 0 ? images : record.cover_image ? [record.cover_image] : [];
+        const recordName = String(app?.name ?? record.template_name ?? item.name);
+
+        return (
+          <div key={record.id} className="rounded-xl border border-white/[0.12] bg-[#181818] p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <span className="text-sm font-medium">{recordName}</span>
+              <MoreActionMenu
+                label={`删除${typeLabel[item.type]}`}
+                onDelete={() => onDeleteRecord(record)}
+              />
+            </div>
+            {displayImages.length > 0 ? (
+              <ScrollArea className="whitespace-nowrap pb-2">
+                <div className="flex gap-4">
+                  {displayImages.map((imgUrl, idx) => (
+                    <div
+                      key={`${record.id}-${idx}`}
+                      className={cn(
+                        "group relative inline-block shrink-0 overflow-hidden rounded-lg border border-white/[0.12] bg-[#0a0a0a] transition-all duration-200 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12)]",
+                        item.type === "scene" ? "w-60" : "w-36",
+                      )}
+                    >
+                      <div className={cn("relative", item.type === "scene" ? "aspect-video" : "aspect-square")}>
+                        <img src={imgUrl} alt={`${recordName} ${idx + 1}`} className="absolute inset-0 h-full w-full object-cover" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            ) : (
+              <div className="flex h-40 items-center justify-center rounded-lg border border-dashed border-white/[0.12] text-sm text-muted-foreground">
+                <Icon className="mr-2 size-4" />
+                暂无图片
+              </div>
+            )}
+            {app && typeof app === "object" && Object.keys(app).length > 0 && (
+              <div className="mt-3 rounded-lg bg-white/[0.04] p-4">
+                <pre className="whitespace-pre-wrap break-words text-xs leading-7 text-muted-foreground">
+                  {JSON.stringify(app, null, 2)}
+                </pre>
+              </div>
+            )}
+          </div>
+        );
+      })}
+      {item.records.length === 0 && (
+        <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-white/[0.12] text-sm text-muted-foreground">
+          暂无{typeLabel[item.type]}
         </div>
       )}
+      <Button type="button" variant="outline" className="h-11 w-full border-dashed text-xs" onClick={onAddItem}>
+        <Plus className="size-4" />
+        添加{typeLabel[item.type]}
+      </Button>
     </section>
+  );
+}
+
+function MoreActionMenu({
+  label,
+  onDelete,
+}: {
+  label: string;
+  onDelete: () => void;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button type="button" variant="ghost" size="icon-sm">
+          <MoreHorizontal className="size-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-32">
+        <DropdownMenuItem variant="destructive" onClick={onDelete}>
+          <Trash2 className="size-3.5" />
+          {label}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

@@ -8,7 +8,7 @@ import { HeaderUserArea } from "@/components/header-user-area";
 
 const tabs = [
   { href: "/elements", label: "元素库", icon: Layers },
-  { href: "/episodes", label: "分集管理", icon: List },
+  { href: "/episodes", label: "分集制作", icon: List },
   { href: "/workshop", label: "工坊", icon: Sparkles },
 ];
 

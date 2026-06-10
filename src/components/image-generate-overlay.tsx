@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import {
   Plus,
   Send,
@@ -18,6 +18,7 @@ import {
 import { aiApi, imagesApi, assetsApi, useApi } from "@/lib/api";
 import type { AiImageModelConfigDTO, ImageGenerationHistoryItem } from "@/lib/api/types";
 import { toast as sonnerToast } from "sonner";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface GenerationImage {
   id: string;
@@ -120,14 +121,14 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
 
 
   const { data: modelList, isLoading: modelsLoading } = useApi(() => aiApi.fetchImageModels(), []);
-  const models: AiImageModelConfigDTO[] = modelList?.items ?? [];
+  const models: AiImageModelConfigDTO[] = useMemo(() => modelList?.items ?? [], [modelList]);
   const selectedModel = models.find((m) => m.id === selectedModelId);
   const modelNames = models.map((m) => m.model_name);
   const ratios = selectedModel?.supported_aspect_ratios ?? [];
   const defaultRatio = ratios[0] ?? "1:1";
 
   const { data: historyData, refetch: refetchHistory, isLoading: historyLoading } = useApi(
-    () => imagesApi.fetchImageHistory({ businessId: variantId, pageSize: 50 }),
+    () => variantId ? imagesApi.fetchImageHistory({ businessId: variantId, pageSize: 50 }) : Promise.resolve({ list: [], total: 0 }),
     [variantId],
   );
   const history: GenerationRecord[] = adaptHistory(historyData?.list ?? []);
@@ -273,7 +274,8 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
           <div className="px-5 pt-5 pb-2 shrink-0">
             <h3 className="text-[15px] font-medium">生成设置</h3>
           </div>
-          <div className="flex-1 flex flex-col min-h-0 overflow-y-auto">
+          <ScrollArea className="min-h-0 flex-1" contentClassName="[&>div]:!h-full">
+          <div className="flex min-h-0 h-full flex-col">
             {/* Reference images */}
             <div className="px-4 pt-4 pb-3 border-b border-white/[0.12] shrink-0">
               <p className="text-[12px] text-[#a3a3a3] mb-2">参考图</p>
@@ -315,6 +317,7 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
               />
             </div>
           </div>
+          </ScrollArea>
 
           {/* Bottom bar */}
           <div className="shrink-0 px-4 py-3 border-t border-white/[0.12]">
@@ -369,7 +372,8 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
           ) : (
             <div className="flex-1 flex min-h-0">
               {/* Main scroll area */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-5">
+              <ScrollArea className="min-h-0 flex-1">
+              <div className="space-y-5 p-4">
                 {history.map((record) => {
                   const img = record.images[0];
                   const isAdded = img?.url ? addedImages.has(img.url) : false;
@@ -437,9 +441,11 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
                   );
                 })}
               </div>
+              </ScrollArea>
 
               {/* Thumbnail strip */}
-              <div className="w-[56px] shrink-0 overflow-y-auto py-3 pl-1 pr-2 space-y-2">
+              <ScrollArea className="w-[56px] shrink-0">
+              <div className="space-y-2 py-3 pl-1 pr-2">
                 {history.map((record) => {
                   const img = record.images[0];
                   const isAdded = img?.url ? addedImages.has(img.url) : false;
@@ -468,6 +474,7 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
                   );
                 })}
               </div>
+              </ScrollArea>
             </div>
           )}
           </div>
@@ -499,7 +506,8 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
             </div>
 
             {/* Body */}
-            <div className="flex-1 min-h-0 overflow-y-auto p-5">
+            <ScrollArea className="min-h-0 flex-1">
+            <div className="p-5">
               {refTab === "library" ? (
                 <>
                   <div className="h-8 px-3 rounded-full bg-[#2b2b2b] flex items-center gap-2 text-[12px] text-[#a3a3a3] mb-4">
@@ -550,6 +558,7 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
                 </div>
               )}
             </div>
+            </ScrollArea>
 
             {/* Footer */}
             <div className="flex items-center justify-between px-5 py-3 border-t border-white/[0.12] shrink-0">

@@ -56,9 +56,11 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
   const [moreMenuId, setMoreMenuId] = useState<string | null>(null);
   const [editVariantId, setEditVariantId] = useState<string | null>(null);
   const [generateVariantId, setGenerateVariantId] = useState<string | null>(null);
+  const [generateVariantSnapshot, setGenerateVariantSnapshot] = useState<SceneRoleItem | null>(null);
   const [addVariantOpen, setAddVariantOpen] = useState(false);
   const [newVariantName, setNewVariantName] = useState("");
   const [saving, setSaving] = useState(false);
+  const [initializedFor, setInitializedFor] = useState("");
 
   // Edit modal draft state
   const [draftName, setDraftName] = useState("");
@@ -67,9 +69,17 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
   const [draftEpisodes, setDraftEpisodes] = useState("");
 
   useEffect(() => {
+    if (!open) return;
+    if (initializedFor === characterId) return;
     const match = groups.find((g) => g.variants.some((v) => String(v.id) === characterId));
     if (match) setSelectedName(match.name);
-  }, [characterId, groups]);
+    setInitializedFor(characterId);
+  }, [characterId, groups, initializedFor, open]);
+
+  useEffect(() => {
+    if (open) return;
+    setInitializedFor("");
+  }, [open]);
 
   useEffect(() => { setMoreMenuId(null); }, [selectedName]);
 
@@ -124,6 +134,22 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
     }
   }, [editVariantId, selectedGroup, draftName, draftDesc, draftTags, onRefresh]);
 
+  const liveGenerateVariant = useMemo(
+    () => groups.flatMap((group) => group.variants).find((variant) => String(variant.id) === generateVariantId) ?? null,
+    [generateVariantId, groups],
+  );
+  const generateVariant = liveGenerateVariant ?? generateVariantSnapshot;
+
+  useEffect(() => {
+    if (!generateVariantId) {
+      setGenerateVariantSnapshot(null);
+      return;
+    }
+    if (liveGenerateVariant) {
+      setGenerateVariantSnapshot(liveGenerateVariant);
+    }
+  }, [generateVariantId, liveGenerateVariant]);
+
   if (!open || !selectedGroup) return null;
 
   const first = selectedGroup.variants[0];
@@ -167,9 +193,6 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
       sonnerToast.error("创建失败");
     }
   }
-
-  const generateVariant = selectedGroup.variants.find((v) => String(v.id) === generateVariantId);
-  const generatePrompt = generateVariant ? String(getAppearance(generateVariant)?.imagePrompt ?? "") : "";
 
   return (
     <div className="fixed inset-0 z-50 bg-[#0a0a0a] flex flex-col">
@@ -397,10 +420,15 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
           if (!generateVariant) return;
           const templateId = String(generateVariant.resource_temp_id ?? generateVariant.id);
           if (!templateId) throw new Error("missing variant id");
-          const app = getAppearance(generateVariant) ?? {};
+          const nextAppearance = { ...(getAppearance(generateVariant) ?? {}), images: imageUrls };
           await elementsApi.updateElement(templateId, {
-            appearance: { ...app, images: imageUrls },
+            appearance: nextAppearance,
           });
+          setGenerateVariantSnapshot((prev) =>
+            prev && String(prev.id) === String(generateVariant.id)
+              ? { ...prev, appearance: nextAppearance }
+              : prev,
+          );
           onRefresh();
           sonnerToast.success(imageUrls.length > 0 ? "已更新形象图" : "已移除形象图");
         }}

@@ -16,6 +16,7 @@ import {
 import { episodesApi, useApi } from "@/lib/api";
 import { adaptChapter } from "@/lib/adapters";
 import { useParams } from "next/navigation";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const stageLabels = [
   { key: "script", label: "剧本", icon: FileText },
@@ -54,27 +55,19 @@ export default function EpisodesPage() {
   );
 
   const episodeList = (chapters ?? []).map((ch) => adaptChapter(ch, id));
-  const stageSummary = stageLabels.map((stage) => ({
-    ...stage,
-    completed: episodeList.filter((episode) => episode.stages[stage.key])
-      .length,
-  }));
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full min-h-0 flex-col">
       <div className="border-b border-white/[0.12] bg-[#0d0d0d] px-6 py-4">
-        <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-3">
+        <div className="mx-auto flex w-full max-w-[1120px] flex-col">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h2 className="text-[16px] font-medium text-white">分集管理</h2>
+                <h2 className="text-[16px] font-medium text-white">分集</h2>
                 <span className="rounded-md border border-white/[0.12] bg-white/[0.06] px-2 py-0.5 text-[12px] text-[#c7c7c7]">
                   共 {episodeList.length} 集
                 </span>
               </div>
-              <p className="mt-1 text-[12px] text-[#8f8f8f]">
-                按分集顺序推进剧本、分镜、视频和剪辑交付。
-              </p>
             </div>
             <div className="flex flex-wrap items-center justify-end gap-2">
               <div className="flex items-center rounded-md bg-white/[0.08] p-0.5">
@@ -111,30 +104,11 @@ export default function EpisodesPage() {
               </button>
             </div>
           </div>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            {stageSummary.map((stage) => (
-              <div
-                key={stage.key}
-                className="flex items-center justify-between rounded-lg border border-white/[0.10] bg-white/[0.045] px-3 py-2"
-              >
-                <span className="flex items-center gap-1.5 text-[12px] text-[#cfcfcf]">
-                  <stage.icon
-                    size={13}
-                    strokeWidth={1.6}
-                    className="text-[#9f9f9f]"
-                  />
-                  {stage.label}
-                </span>
-                <span className="text-[12px] font-medium text-white">
-                  {stage.completed}/{episodeList.length}
-                </span>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto px-6 py-5">
+      <ScrollArea className="min-h-0 flex-1">
+        <div className="px-6 py-5">
         {isLoading ? (
           <GridSkeleton />
         ) : view === "list" ? (
@@ -231,7 +205,8 @@ export default function EpisodesPage() {
             ))}
           </div>
         )}
-      </div>
+        </div>
+      </ScrollArea>
     </div>
   );
 }
