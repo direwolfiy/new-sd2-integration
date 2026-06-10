@@ -7,8 +7,7 @@ import { elementsApi, scriptsApi, useApi } from "@/lib/api";
 import { adaptElements, adaptScriptMetadata, adaptScriptEpisode } from "@/lib/adapters";
 import { ElementType, ElementItem, ScriptData } from "@/mocks/types";
 import { ScriptOverlay } from "@/components/script-overlay";
-import { CharacterEditor } from "@/components/character-editor";
-import { SceneEditor } from "@/components/scene-editor";
+import { ElementDesignEditor } from "@/components/element-design-editor";
 import { ScriptImportOverlay } from "@/components/script-import-overlay";
 import { ExtractionProgressOverlay } from "@/components/extraction-progress-overlay";
 import { ScriptAnalysisProgressOverlay } from "@/components/script-analysis-progress-overlay";
@@ -26,14 +25,14 @@ const typeTabs: { key: ElementType; label: string }[] = [
 ];
 
 const typeLabels: Record<string, string> = { character: "角色", scene: "场景", prop: "道具", audio: "音效" };
+type EditingElement = { id: string; type: "character" | "scene" | "prop" };
 
 export default function ElementsPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>("character");
   const [scriptOpen, setScriptOpen] = useState(false);
-  const [editingCharacterId, setEditingCharacterId] = useState<string | null>(null);
-  const [editingSceneId, setEditingSceneId] = useState<string | null>(null);
+  const [editingElement, setEditingElement] = useState<EditingElement | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [createName, setCreateName] = useState("");
   const [moreMenuId, setMoreMenuId] = useState<string | null>(null);
@@ -174,7 +173,10 @@ export default function ElementsPage() {
           <TabEmptyState activeTab={activeTab as ElementType} typeLabel={typeLabels[activeTab]} onCreate={() => setCreateOpen(true)} />
         ) : (
           <ElementGrid elements={filtered} activeTab={activeTab as ElementType} moreMenuId={moreMenuId}
-            onSetMoreMenuId={setMoreMenuId} onEditCharacter={(id) => setEditingCharacterId(id)} onEditScene={(id) => setEditingSceneId(id)}
+            onSetMoreMenuId={setMoreMenuId}
+            onEditCharacter={(id) => setEditingElement({ id, type: "character" })}
+            onEditScene={(id) => setEditingElement({ id, type: "scene" })}
+            onEditProp={(id) => setEditingElement({ id, type: "prop" })}
             onDeleteRequest={(id) => setDeleteConfirmId(id)} />
         )}
       </div>
@@ -182,8 +184,15 @@ export default function ElementsPage() {
       <CreateElementModal open={createOpen} activeTab={activeTab as ElementType} name={createName} setName={setCreateName}
         onClose={() => { setCreateOpen(false); setCreateName(""); }} onConfirm={handleCreate} />
       <ScriptOverlay open={scriptOpen} onClose={() => setScriptOpen(false)} script={script} />
-      <CharacterEditor open={editingCharacterId !== null} onClose={() => setEditingCharacterId(null)} projectId={params.id} characterId={editingCharacterId ?? ""} roles={roles ?? []} onRefresh={refetchRoles} />
-      <SceneEditor open={editingSceneId !== null} onClose={() => setEditingSceneId(null)} projectId={params.id} sceneId={editingSceneId ?? ""} roles={roles ?? []} />
+      <ElementDesignEditor
+        open={editingElement !== null}
+        onClose={() => setEditingElement(null)}
+        projectId={params.id}
+        initialId={editingElement?.id ?? ""}
+        initialType={editingElement?.type ?? "character"}
+        roles={roles ?? []}
+        onRefresh={refetchRoles}
+      />
       <ScriptImportOverlay open={scriptImportOpen} onClose={() => setScriptImportOpen(false)}
         onAnalysisStart={() => { setScriptImportOpen(false); if (!hasScript) { router.push("/project/proj-7/elements"); } else { setAnalysisProgressOpen(true); } }} />
       <ScriptAnalysisProgressOverlay open={analysisProgressOpen} onCancel={() => setAnalysisProgressOpen(false)} onComplete={() => setAnalysisProgressOpen(false)} />

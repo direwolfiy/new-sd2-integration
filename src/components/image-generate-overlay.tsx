@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import {
-  ArrowLeft,
   Plus,
   Send,
   Image as ImageIcon,
@@ -252,21 +251,25 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] bg-[#0a0a0a] flex flex-col animate-in fade-in duration-150 ease-out">
-      {/* Header */}
-      <div className="shrink-0 flex items-center gap-4 px-5 h-[56px] border-b border-white/[0.12]">
-        <button onClick={onClose} className="flex items-center gap-2 text-[13px] text-[#b8b8b8] hover:text-white transition-colors duration-200 shrink-0">
-          <ArrowLeft size={16} strokeWidth={1.5} />
-          返回
-        </button>
-        <div className="w-px h-5 bg-white/[0.10] shrink-0" />
-        <span className="text-[14px] font-medium">生成形象图 — {variantName}</span>
-      </div>
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm animate-in fade-in duration-150 ease-out">
+      <div className="flex h-[min(860px,calc(100dvh-48px))] w-[min(1280px,calc(100vw-48px))] flex-col overflow-hidden rounded-xl border border-white/[0.14] bg-[#0a0a0a] shadow-[0_24px_80px_rgba(0,0,0,0.55)]">
+        {/* Header */}
+        <div className="grid h-14 shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-white/[0.12] px-5">
+          <div className="min-w-0">
+            <h3 className="truncate text-[15px] font-medium">生成形象图</h3>
+            {variantName && (
+              <p className="mt-0.5 truncate text-[12px] text-[#888]">{variantName}</p>
+            )}
+          </div>
+          <button onClick={onClose} className="flex size-8 items-center justify-center rounded-full text-[#a3a3a3] transition-colors duration-200 hover:bg-white/[0.10] hover:text-white">
+            <X size={15} strokeWidth={1.5} />
+          </button>
+        </div>
 
-      {/* Main */}
-      <div className="flex flex-1 min-h-0 p-4 gap-4">
-        {/* Left — generation panel */}
-        <div className="w-[40%] shrink-0 rounded-xl border border-white/[0.12] bg-[#181818] flex flex-col">
+        {/* Main */}
+        <div className="flex min-h-0 flex-1 gap-4 p-4">
+          {/* Left — generation panel */}
+          <div className="w-[40%] shrink-0 rounded-xl border border-white/[0.12] bg-[#181818] flex flex-col">
           <div className="px-5 pt-5 pb-2 shrink-0">
             <h3 className="text-[15px] font-medium">生成设置</h3>
           </div>
@@ -339,8 +342,8 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
           </div>
         </div>
 
-        {/* Right — history */}
-        <div className="flex-1 rounded-xl border border-white/[0.12] bg-[#181818] flex flex-col min-w-0 overflow-hidden">
+          {/* Right — history */}
+          <div className="flex-1 rounded-xl border border-white/[0.12] bg-[#181818] flex flex-col min-w-0 overflow-hidden">
           <div className="flex items-center justify-between px-5 pt-5 pb-2 shrink-0 mr-[56px]">
             <h3 className="text-[15px] font-medium">生成历史</h3>
             <div className="flex items-center gap-1.5">
@@ -467,6 +470,7 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
               </div>
             </div>
           )}
+          </div>
         </div>
       </div>
 

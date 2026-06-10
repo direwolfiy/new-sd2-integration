@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { X, Mountain } from "lucide-react";
 import type { SceneRoleItem } from "@/lib/api/types";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Props {
   open: boolean;
@@ -31,22 +32,24 @@ export function SceneEditor({ open, onClose, projectId, sceneId, roles }: Props)
       </div>
 
       <div className="flex flex-1 min-h-0">
-        <nav className="w-[160px] shrink-0 border-r border-white/[0.12] p-3 overflow-y-auto">
-          <div className="flex flex-col gap-3">
-            {scenes.map((scene) => (
-              <button key={scene.id} onClick={() => setSelectedId(String(scene.id))} className={`shrink-0 rounded-lg overflow-hidden transition-all duration-200 ${String(scene.id) === selectedId ? "ring-2 ring-white/20 bg-white/[0.08]" : "opacity-50 hover:opacity-80"}`}>
-                <div className="relative aspect-video bg-gradient-to-br from-[#222] to-[#141414] flex items-center justify-center">
-                  {scene.cover_image ? (
-                    <img src={scene.cover_image} alt={scene.template_name ?? ""} className="absolute inset-0 w-full h-full object-cover" />
-                  ) : (
-                    <Mountain size={20} strokeWidth={1} className="text-white/[0.06]" />
-                  )}
-                </div>
-                <p className="text-[11px] text-center py-1.5 truncate px-1.5">{scene.template_name}</p>
-              </button>
-            ))}
-          </div>
-        </nav>
+        <ScrollArea className="h-full w-[160px] shrink-0 border-r border-white/[0.12]">
+          <nav className="p-3">
+            <div className="flex flex-col gap-3">
+              {scenes.map((scene) => (
+                <button key={scene.id} onClick={() => setSelectedId(String(scene.id))} className={`shrink-0 rounded-lg overflow-hidden transition-all duration-200 ${String(scene.id) === selectedId ? "ring-2 ring-white/20 bg-white/[0.08]" : "opacity-50 hover:opacity-80"}`}>
+                  <div className="relative aspect-video bg-gradient-to-br from-[#222] to-[#141414] flex items-center justify-center">
+                    {scene.cover_image ? (
+                      <img src={scene.cover_image} alt={scene.template_name ?? ""} className="absolute inset-0 w-full h-full object-cover" />
+                    ) : (
+                      <Mountain size={20} strokeWidth={1} className="text-white/[0.06]" />
+                    )}
+                  </div>
+                  <p className="text-[11px] text-center py-1.5 truncate px-1.5">{scene.template_name}</p>
+                </button>
+              ))}
+            </div>
+          </nav>
+        </ScrollArea>
 
         <div className="flex-1 overflow-y-auto">
           <div className="p-6 space-y-4">

@@ -10,10 +10,11 @@ interface ElementGridProps {
   onSetMoreMenuId: (id: string | null) => void;
   onEditCharacter: (id: string) => void;
   onEditScene: (id: string) => void;
+  onEditProp: (id: string) => void;
   onDeleteRequest: (id: string) => void;
 }
 
-export function ElementGrid({ elements, activeTab, moreMenuId, onSetMoreMenuId, onEditCharacter, onEditScene, onDeleteRequest }: ElementGridProps) {
+export function ElementGrid({ elements, activeTab, moreMenuId, onSetMoreMenuId, onEditCharacter, onEditScene, onEditProp, onDeleteRequest }: ElementGridProps) {
   const gridCls = activeTab === "scene"
     ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
     : activeTab === "audio"
@@ -26,7 +27,7 @@ export function ElementGrid({ elements, activeTab, moreMenuId, onSetMoreMenuId, 
         if (activeTab === "audio") return <AudioRow key={element.id} element={element} moreMenuId={moreMenuId} onSetMoreMenuId={onSetMoreMenuId} onDeleteRequest={onDeleteRequest} />;
         if (activeTab === "character") return <CharacterCard key={element.id} element={element} moreMenuId={moreMenuId} onSetMoreMenuId={onSetMoreMenuId} onEdit={onEditCharacter} onDeleteRequest={onDeleteRequest} />;
         if (activeTab === "scene") return <SceneCard key={element.id} element={element} moreMenuId={moreMenuId} onSetMoreMenuId={onSetMoreMenuId} onEdit={onEditScene} onDeleteRequest={onDeleteRequest} />;
-        return <PropCard key={element.id} element={element} moreMenuId={moreMenuId} onSetMoreMenuId={onSetMoreMenuId} onDeleteRequest={onDeleteRequest} />;
+        return <PropCard key={element.id} element={element} moreMenuId={moreMenuId} onSetMoreMenuId={onSetMoreMenuId} onEdit={onEditProp} onDeleteRequest={onDeleteRequest} />;
       })}
     </div>
   );
@@ -90,9 +91,9 @@ function SceneCard({ element, moreMenuId, onSetMoreMenuId, onEdit, onDeleteReque
   );
 }
 
-function PropCard({ element, moreMenuId, onSetMoreMenuId, onDeleteRequest }: { element: ElementItem; moreMenuId: string | null; onSetMoreMenuId: (id: string | null) => void; onDeleteRequest: (id: string) => void }) {
+function PropCard({ element, moreMenuId, onSetMoreMenuId, onEdit, onDeleteRequest }: { element: ElementItem; moreMenuId: string | null; onSetMoreMenuId: (id: string | null) => void; onEdit: (id: string) => void; onDeleteRequest: (id: string) => void }) {
   return (
-    <div className={`group relative rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-[0_8px_24px_rgba(0,0,0,0.5)] ${moreMenuId === element.id ? "z-10" : ""}`}>
+    <div onClick={() => { if (moreMenuId !== element.id) onEdit(element.id); }} className={`group relative rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:scale-[1.02] hover:shadow-[0_8px_24px_rgba(0,0,0,0.5)] ${moreMenuId === element.id ? "z-10" : ""}`}>
       <div className="relative aspect-square bg-gradient-to-br from-[#1a1a1a] to-[#141414] flex items-center justify-center">
         {element.thumbnailUrl ? (
           <img src={element.thumbnailUrl} alt={element.name} className="absolute inset-0 w-full h-full object-cover" />
@@ -103,7 +104,7 @@ function PropCard({ element, moreMenuId, onSetMoreMenuId, onDeleteRequest }: { e
           <p className="text-xs font-medium text-white truncate">{element.name}</p>
           {element.tags.length > 0 && (<p className="mt-0.5 text-[10px] text-white/60 truncate">{element.tags.join(" · ")}</p>)}
         </div>
-        <div className="absolute top-2 right-2 z-20">
+        <div className="absolute top-2 right-2 z-20" onClick={(e) => e.stopPropagation()}>
           <button onClick={() => onSetMoreMenuId(moreMenuId === element.id ? null : element.id)} className="w-6 h-6 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white/60 opacity-0 group-hover:opacity-100 hover:text-white hover:bg-black/60 transition-all duration-200">
             <MoreHorizontal size={14} strokeWidth={1.5} />
           </button>
