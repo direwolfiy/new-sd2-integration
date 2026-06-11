@@ -1,8 +1,13 @@
 import { shotsApi, videosApi } from "@/lib/api";
 import type { SeedanceScriptItem } from "@/lib/api/shots";
-import type { SceneScriptItem } from "@/lib/api/types";
+import type { ImageGenerationHistoryItem, SceneScriptItem } from "@/lib/api/types";
 import type { VideoGenerationHistoryItem } from "@/lib/api/videos";
-import type { ShotPreviewMap, VideoHistoryItem, VideoShot } from "./types";
+import type {
+  ImageHistoryItem,
+  ShotPreviewMap,
+  VideoHistoryItem,
+  VideoShot,
+} from "./types";
 
 export function firstPresentString(
   ...values: Array<string | number | null | undefined>
@@ -201,6 +206,65 @@ export function adaptVideoHistory(
       updateTime: null,
     },
   ];
+}
+
+function normalizeImageStatus(
+  status?: string | null,
+): ImageHistoryItem["status"] {
+  const value = String(status ?? "").toUpperCase();
+  if (value === "COMPLETED" || value === "SUCCEEDED" || value === "SUCCESS") {
+    return "completed";
+  }
+  if (value === "FAILED" || value === "ERROR") return "failed";
+  if (value === "RUNNING" || value === "PROCESSING" || value === "GENERATING") {
+    return "generating";
+  }
+  return "pending";
+}
+
+function getImageHistoryList(
+  data:
+    | { list?: ImageGenerationHistoryItem[]; items?: ImageGenerationHistoryItem[] }
+    | ImageGenerationHistoryItem[]
+    | null
+    | undefined,
+): ImageGenerationHistoryItem[] {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  return data.list ?? data.items ?? [];
+}
+
+function getHistoryImageUrls(item: ImageGenerationHistoryItem) {
+  return [...(item.imageUrls ?? []), item.thumbnailUrl ?? ""].filter(Boolean);
+}
+
+export function adaptImageHistory(
+  data:
+    | { list?: ImageGenerationHistoryItem[]; items?: ImageGenerationHistoryItem[] }
+    | ImageGenerationHistoryItem[]
+    | null
+    | undefined,
+): ImageHistoryItem[] {
+  const rawItems = getImageHistoryList(data).slice().reverse();
+  const seenUrls = new Set<string>();
+  return rawItems.flatMap((item) => {
+    const urls = getHistoryImageUrls(item).filter((url) => {
+      if (seenUrls.has(url)) return false;
+      seenUrls.add(url);
+      return true;
+    });
+
+    return urls.map((url, urlIndex) => ({
+      id: `${item.taskId}-${urlIndex}`,
+      version: seenUrls.size - urls.length + urlIndex + 1,
+      status: normalizeImageStatus(item.status),
+      imageUrl: url,
+      prompt: item.prompt ?? null,
+      modelId: item.modelId ?? null,
+      createdTime: item.createdTime ?? null,
+      updateTime: item.updateTime ?? null,
+    }));
+  });
 }
 
 export function getFinalVideoMap(

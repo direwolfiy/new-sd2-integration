@@ -290,11 +290,13 @@ export interface ImageGenerationHistoryQuery {
   pageNum?: number;
   pageSize?: number;
   businessId?: string;
+  businessIds?: string[] | string;
   businessType?: string;
   contentId?: string;
   taskStatus?: string;
   modelId?: string;
   prompt?: string;
+  forStoryboard?: boolean;
 }
 
 export interface ImageGenerationHistoryItem {
@@ -313,6 +315,29 @@ export interface ImageGenerationHistoryItem {
   generationType?: string | null;
   aspectRatio?: string | null;
   imageCount?: number | null;
+}
+
+export interface SceneScriptPromptItem {
+  id?: string | number | null;
+  sceneScriptId?: string | number | null;
+  scene_script_id?: string | number | null;
+  chapterId?: string | number | null;
+  chapter_id?: string | number | null;
+  aiVideoPrompt?: string | null;
+  ai_video_prompt?: string | null;
+  referenceAssets?: Array<Record<string, unknown>> | null;
+  reference_assets?: Array<Record<string, unknown>> | null;
+  videoFirstImg?: string | null;
+  video_first_img?: string | null;
+  aspectRatio?: string | null;
+  aspect_ratio?: string | null;
+  type?: number | null;
+  imgFrameType?: number | null;
+  img_frame_type?: number | null;
+  frameOrder?: number | null;
+  frame_order?: number | null;
+  parentPromptId?: string | number | null;
+  parent_prompt_id?: string | number | null;
 }
 
 export interface ResourceTemplateAssetHistoryItem {

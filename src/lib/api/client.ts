@@ -282,7 +282,10 @@ export async function request<T>(
   }
 
   const raw = await res.text();
-  const safe = raw.replace(/"(id|resource_temp_id|content_id|chapter_id)":(\d{15,})/g, '"$1":"$2"');
+  const safe = raw.replace(
+    /"(id|resource_temp_id|resourceTempId|content_id|contentId|chapter_id|chapterId|scene_script_id|sceneScriptId|parent_prompt_id|parentPromptId|business_id|businessId)":(\d{15,})/g,
+    '"$1":"$2"',
+  );
   const result: ApiResult<T> = JSON.parse(safe);
 
   if (result.code === 200) return result.data as T;

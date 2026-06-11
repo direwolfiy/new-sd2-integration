@@ -61,7 +61,29 @@ export function fetchImageTaskStatus(taskId: string) {
 }
 
 export function fetchImageHistory(data: ImageGenerationHistoryQuery) {
-  return post<PageResult<ImageGenerationHistoryItem>>("/image/generation/history", data);
+  const body: Record<string, unknown> = {
+    page_num: data.pageNum ?? 1,
+    page_size: data.pageSize ?? 50,
+  };
+  if (data.businessId) body.business_id = data.businessId;
+  if (data.businessIds) {
+    body.business_ids = Array.isArray(data.businessIds)
+      ? data.businessIds.join(",")
+      : data.businessIds;
+  }
+  if (data.businessType) body.business_type = data.businessType;
+  if (data.contentId) body.content_id = data.contentId;
+  if (data.taskStatus) body.task_status = data.taskStatus;
+  if (data.modelId) body.model_id = data.modelId;
+  if (data.prompt) body.prompt = data.prompt;
+  if (data.forStoryboard !== undefined) {
+    body.for_storyboard = data.forStoryboard;
+  }
+
+  return post<PageResult<ImageGenerationHistoryItem>>(
+    "/image-generation/history",
+    body,
+  );
 }
 
 export function fetchLatestImages() {

@@ -25,6 +25,17 @@ export type VideoHistoryItem = {
   updateTime: string | null;
 };
 
+export type ImageHistoryItem = {
+  id: string;
+  version: number;
+  status: "pending" | "generating" | "completed" | "failed";
+  imageUrl: string | null;
+  prompt: string | null;
+  modelId: string | null;
+  createdTime: string | null;
+  updateTime: string | null;
+};
+
 export type ShotPreviewMap = Record<
   string,
   Pick<VideoShot, "posterUrl" | "videoUrl">

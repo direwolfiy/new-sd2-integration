@@ -1,5 +1,5 @@
-import { get, post } from "./client";
-import type { ContentItem, ChapterItem } from "./types";
+import { get, post, put } from "./client";
+import type { ContentItem, ChapterItem, SceneScriptPromptItem } from "./types";
 import { fetchProject } from "./projects";
 import { fetchChapters } from "./episodes";
 
@@ -18,6 +18,23 @@ export async function fetchProjectScript(projectId: string): Promise<ProjectScri
 
 export function fetchScript(chapterId: string) {
   return get<unknown>(`/resource/scene-script/chapter/${chapterId}`);
+}
+
+export function fetchSceneScriptPrompts(chapterId: string) {
+  return get<SceneScriptPromptItem[]>(
+    "/resource/scene-script-prompt/list",
+    { chapterId },
+  );
+}
+
+export function updateSceneScriptPromptFirstImage(
+  promptId: string,
+  videoFirstImg: string | null,
+) {
+  return put<SceneScriptPromptItem>(
+    `/resource/scene-script-prompt/${promptId}/video-first-img`,
+    { videoFirstImg },
+  );
 }
 
 export function importScript(data: { contentId: string; rawContent: string }) {

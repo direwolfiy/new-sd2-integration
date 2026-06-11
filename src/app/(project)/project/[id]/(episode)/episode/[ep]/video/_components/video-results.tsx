@@ -7,7 +7,7 @@ import {
   formatVideoDuration,
   getPlayableVideoUrl,
 } from "./video-data";
-import type { VideoHistoryItem, VideoShot } from "./types";
+import type { ImageHistoryItem, VideoHistoryItem, VideoShot } from "./types";
 import { SkeletonBlock } from "./skeleton-block";
 
 export function GenerationHistory({
@@ -115,6 +115,158 @@ export function GenerationHistory({
         </div>
       </ScrollArea>
     </section>
+  );
+}
+
+export function ImageGenerationHistory({
+  historyItems,
+  isLoading,
+  shot,
+  onToggleFinal,
+  updatingFinalId,
+}: {
+  historyItems: ImageHistoryItem[];
+  isLoading: boolean;
+  shot: VideoShot;
+  onToggleFinal: (item: ImageHistoryItem) => void;
+  updatingFinalId: string | null;
+}) {
+  const selectedImage =
+    historyItems.find((item) => item.imageUrl === shot.posterUrl) ?? null;
+
+  return (
+    <section className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-white/[0.12] bg-[#181818]">
+      <ScrollArea className="min-h-0 flex-1">
+        <div className="p-4">
+          <div className="mb-5">
+            <div className="mb-3 flex h-6 items-center">
+              <p className="text-sm font-medium text-white">定稿分镜图</p>
+            </div>
+
+            {isLoading ? (
+              <div className="grid grid-cols-4 gap-3">
+                <AspectRatio ratio={16 / 9}>
+                  <SkeletonBlock className="h-full w-full" />
+                </AspectRatio>
+              </div>
+            ) : selectedImage ? (
+              <div className="grid grid-cols-4 gap-3">
+                <ImageResultCard
+                  item={selectedImage}
+                  isFinal
+                  isUpdatingFinal={updatingFinalId === selectedImage.id}
+                  onToggleFinal={onToggleFinal}
+                />
+              </div>
+            ) : (
+              <div className="flex min-h-44 items-center justify-center rounded-lg border border-dashed border-white/[0.10] bg-[#101010]">
+                <div className="text-center">
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-white/[0.08]">
+                    <Film size={20} strokeWidth={1.5} className="text-[#777]" />
+                  </div>
+                  <p className="text-sm text-[#a3a3a3]">暂无定稿分镜图</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <div className="mb-3 flex h-6 items-center justify-between">
+              <p className="text-sm font-medium text-white">生成历史</p>
+              <span className="text-xs text-[#777]">
+                {historyItems.length} 个
+              </span>
+            </div>
+
+            {isLoading ? (
+              <div className="grid grid-cols-4 gap-3">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <AspectRatio key={index} ratio={16 / 9}>
+                    <SkeletonBlock className="h-full w-full" />
+                  </AspectRatio>
+                ))}
+              </div>
+            ) : historyItems.length === 0 ? (
+              <div className="flex min-h-44 items-center justify-center rounded-lg border border-dashed border-white/[0.10] bg-[#101010]">
+                <div className="text-center">
+                  <Film
+                    size={20}
+                    strokeWidth={1.5}
+                    className="mx-auto mb-2 text-[#777]"
+                  />
+                  <p className="text-xs text-[#8f8f8f]">暂无生成分镜图</p>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-4 gap-3">
+                {historyItems.map((item) => (
+                  <ImageResultCard
+                    key={item.id}
+                    item={item}
+                    isFinal={Boolean(item.imageUrl && item.imageUrl === shot.posterUrl)}
+                    isUpdatingFinal={updatingFinalId === item.id}
+                    onToggleFinal={onToggleFinal}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </ScrollArea>
+    </section>
+  );
+}
+
+function ImageResultCard({
+  item,
+  isFinal,
+  isUpdatingFinal,
+  onToggleFinal,
+}: {
+  item: ImageHistoryItem;
+  isFinal: boolean;
+  isUpdatingFinal: boolean;
+  onToggleFinal: (item: ImageHistoryItem) => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="group relative overflow-hidden rounded-lg border border-border bg-black text-left outline-none transition-colors hover:border-white/[0.24] focus-visible:ring-2 focus-visible:ring-ring/50"
+    >
+      <AspectRatio ratio={16 / 9}>
+        {item.imageUrl ? (
+          <img
+            src={item.imageUrl}
+            alt=""
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-muted">
+            <Film
+              size={24}
+              strokeWidth={1.5}
+              className="text-muted-foreground"
+            />
+          </div>
+        )}
+      </AspectRatio>
+      {item.imageUrl && (
+        <Button
+          type="button"
+          size="sm"
+          variant={isFinal ? "secondary" : "outline"}
+          disabled={isUpdatingFinal}
+          onClick={(event) => {
+            event.stopPropagation();
+            onToggleFinal(item);
+          }}
+          className="absolute right-2 top-2 h-7 gap-1.5 px-2 text-xs opacity-0 shadow-md transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+        >
+          {isFinal && <Check size={12} strokeWidth={2} />}
+          {isUpdatingFinal ? "处理中" : isFinal ? "取消定稿" : "定稿"}
+        </Button>
+      )}
+    </button>
   );
 }
 
