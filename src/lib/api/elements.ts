@@ -51,6 +51,17 @@ export function createElement(
   return post<TemplateItem>("/resource/template", data);
 }
 
+export function createAndBindContentLevelElement(
+  data: Partial<TemplateItem> & {
+    template_name: string;
+    template_type: string;
+    contentId?: string | number;
+    content_id?: string | number;
+  },
+) {
+  return post<TemplateItem>("/resource/template/create-and-bind-content-level", data);
+}
+
 export function updateElement(templateId: string, data: Partial<TemplateItem>) {
   return put<TemplateItem>(`/resource/template/${templateId}`, { id: Number(templateId), ...data });
 }

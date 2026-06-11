@@ -1,4 +1,4 @@
-export { get, post, put, del, request, setApiClientTokens, clearApiClientTokens, setTenantId, setOnAuthFailure, getAccessToken } from "./client";
+export { get, post, put, del, upload, request, setApiClientTokens, clearApiClientTokens, setTenantId, setOnAuthFailure, getAccessToken } from "./client";
 export type { ApiResult, PageResult, LoginResponse, RefreshTokenRequest, ContentItem, ContentQuery, ChapterItem, SceneRoleItem, TemplateItem, TemplateQuery, SceneScriptItem, AssetResourceItem, StyleItem, TenantAccountOverview } from "./types";
 export { ApiError } from "./errors";
 export { useApi } from "@/hooks/use-api";

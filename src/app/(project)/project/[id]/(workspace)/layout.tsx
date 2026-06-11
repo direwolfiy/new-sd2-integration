@@ -7,7 +7,7 @@ import { projectsApi, useApi } from "@/lib/api";
 import { HeaderUserArea } from "@/components/header-user-area";
 
 const tabs = [
-  { href: "/elements", label: "元素库", icon: Layers },
+  { href: "/elements", label: "资产库", icon: Layers },
   { href: "/episodes", label: "分集制作", icon: List },
   { href: "/workshop", label: "工坊", icon: Sparkles },
 ];

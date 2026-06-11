@@ -16,7 +16,12 @@ import {
   Coins,
 } from "lucide-react";
 import { aiApi, imagesApi, assetsApi, useApi } from "@/lib/api";
-import type { AiImageModelConfigDTO, ImageGenerationHistoryItem } from "@/lib/api/types";
+import type {
+  AiImageModelConfigDTO,
+  ImageGenerationHistoryItem,
+  ResourceTemplateAssetHistoryItem,
+} from "@/lib/api/types";
+import { ApiError } from "@/lib/api/errors";
 import { toast as sonnerToast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -40,6 +45,16 @@ const countMap: Record<string, number> = { "1 张": 1, "2 张": 2, "4 张": 4 };
 
 function parseCount(s: string): number {
   return countMap[s] ?? 1;
+}
+
+function normalizeImageUrl(url: string) {
+  return url.split("#")[0]?.split("?")[0] ?? url;
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof ApiError) return error.message || fallback;
+  if (error instanceof Error) return error.message || fallback;
+  return fallback;
 }
 
 function Dropdown({ value, options, onChange }: { value: string; options: string[]; onChange: (v: string) => void }) {
@@ -78,6 +93,7 @@ interface Props {
   open: boolean;
   onClose: () => void;
   variantName: string;
+  defaultPrompt?: string;
   projectId: string;
   variantId: string;
   currentImageUrls: string[];
@@ -99,7 +115,30 @@ function adaptHistory(items: ImageGenerationHistoryItem[]): GenerationRecord[] {
   }));
 }
 
-export function ImageGenerateOverlay({ open, onClose, variantName, projectId, variantId, currentImageUrls, onImagesChange }: Props) {
+function adaptAssetHistory(items: ResourceTemplateAssetHistoryItem[]): GenerationRecord[] {
+  return items
+    .map((item) => {
+      const url = item.assetUrl ?? item.asset_url ?? item.thumbnailUrl ?? item.thumbnail_url ?? "";
+      if (!url) return null;
+      const id = String(item.id);
+      const title = item.title ?? "本地上传";
+      return {
+        id: `asset-${id}`,
+        prompt: title,
+        model: "本地图片",
+        ratio: "-",
+        createdAt: (item.createTime ?? item.create_time)?.slice(0, 16).replace("T", " ") ?? "",
+        images: [{
+          id: `asset-img-${id}`,
+          name: title,
+          url,
+        }],
+      } satisfies GenerationRecord;
+    })
+    .filter((item): item is GenerationRecord => item !== null);
+}
+
+export function ImageGenerateOverlay({ open, onClose, variantName, defaultPrompt = "", projectId, variantId, currentImageUrls, onImagesChange }: Props) {
   const [prompt, setPrompt] = useState("");
   const [selectedModelId, setSelectedModelId] = useState<number>(0);
   const [selectedRatio, setSelectedRatio] = useState("");
@@ -107,6 +146,17 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
   const [addedImages, setAddedImages] = useState<Set<string>>(new Set(currentImageUrls));
   const [applying, setApplying] = useState(false);
   const [activeRecordId, setActiveRecordId] = useState<string>("");
+  const [uploading, setUploading] = useState(false);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
+  const addedImagesRef = useRef(addedImages);
+  const normalizedAddedImages = useMemo(
+    () => new Set(Array.from(addedImages).map(normalizeImageUrl)),
+    [addedImages],
+  );
+
+  useEffect(() => {
+    addedImagesRef.current = addedImages;
+  }, [addedImages]);
 
   // Sync addedImages with currentImageUrls only when actual URLs change
   const urlsKey = [...currentImageUrls].sort().join("|");
@@ -131,7 +181,27 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
     () => variantId ? imagesApi.fetchImageHistory({ businessId: variantId, pageSize: 50 }) : Promise.resolve({ list: [], total: 0 }),
     [variantId],
   );
-  const history: GenerationRecord[] = adaptHistory(historyData?.list ?? []);
+  const { data: assetHistoryData, refetch: refetchAssetHistory, isLoading: assetHistoryLoading } = useApi(
+    () => variantId ? imagesApi.fetchTemplateAssetHistory({
+      resourceTempId: variantId,
+      assetType: "image",
+      resourceTypes: ["uploaded_image"],
+      pageSize: 50,
+    }) : Promise.resolve({ list: [], total: 0, page_num: 1, page_size: 50 }),
+    [variantId],
+  );
+  const remoteHistory = useMemo(
+    () => adaptHistory(historyData?.list ?? []),
+    [historyData?.list],
+  );
+  const uploadHistory = useMemo(
+    () => adaptAssetHistory(assetHistoryData?.list ?? []),
+    [assetHistoryData?.list],
+  );
+  const history: GenerationRecord[] = useMemo(
+    () => [...uploadHistory, ...remoteHistory],
+    [uploadHistory, remoteHistory],
+  );
 
   const [generating, setGenerating] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -140,33 +210,61 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
     if (!prompt.trim() || !selectedModel || generating) return;
     setGenerating(true);
     try {
+      const referenceImages = refAttached.map((r) => r.coverUrl).filter(Boolean) as string[];
       const taskId = await imagesApi.createImageTask({
         prompt: prompt.trim(),
         modelBusinessType: selectedModel.id,
+        modelId: selectedModel.model_id,
         aspectRatio: selectedRatio || defaultRatio,
         imageCount: parseCount(selectedCount),
         projectId,
         businessId: variantId,
-        businessType: "CHAPTER_ASSET",
-        referenceImages: refAttached.map((r) => r.coverUrl).filter(Boolean) as string[],
+        businessType: "PROJECT_ASSET",
+        generationType: referenceImages.length > 0 ? "IMAGE_TO_IMAGE" : "TEXT_TO_IMAGE",
+        extraParams: {
+          recordAssetHistory: true,
+          bindProjectAssetImage: true,
+          bindTarget: "primary",
+        },
+        responseFormat: "url",
+        referenceImages,
       });
       // Poll for completion
       pollRef.current = setInterval(async () => {
         try {
           const status = await imagesApi.fetchImageTaskStatus(String(taskId));
-          if (status.taskStatus === "COMPLETED" || status.taskStatus === "FAILED" || status.taskStatus === "CANCELLED") {
+          const taskStatus = status.taskStatus ?? status.task_status;
+          if (taskStatus === "COMPLETED" || taskStatus === "FAILED" || taskStatus === "CANCELLED") {
             if (pollRef.current) clearInterval(pollRef.current);
             setGenerating(false);
+            if (taskStatus === "COMPLETED") {
+              const generatedUrls = [
+                ...(status.imageUrls ?? status.image_urls ?? []),
+                status.imageUrl ?? status.image_url ?? "",
+              ].filter(Boolean);
+              if (generatedUrls.length > 0) {
+                const next = new Set(addedImagesRef.current);
+                generatedUrls.forEach((url) => next.add(url));
+                await onImagesChange(Array.from(next));
+                setAddedImages(next);
+                addedImagesRef.current = next;
+              }
+            }
             refetchHistory();
-            sonnerToast.success(status.taskStatus === "COMPLETED" ? "生成完成" : "生成失败");
+            refetchAssetHistory();
+            if (taskStatus === "COMPLETED") {
+              sonnerToast.success("生成完成");
+            } else {
+              sonnerToast.error(status.errorMessage ?? "生成失败");
+            }
           }
         } catch {
           // polling error, keep trying
         }
       }, 3000);
-    } catch {
+    } catch (error) {
       setGenerating(false);
-      sonnerToast.error("提交生成失败");
+      sonnerToast.error(getErrorMessage(error, "提交生成失败"));
     }
   }
 
@@ -210,18 +308,72 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
     recordRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  function loadDefaultPrompt() {
+    const text = defaultPrompt.trim();
+    if (!text) {
+      sonnerToast.error("暂无默认提示词");
+      return;
+    }
+    setPrompt(text);
+  }
+
+  async function addUploadedFiles(files: FileList | File[]) {
+    if (uploading) return;
+    const imageFiles = Array.from(files).filter((file) => file.type.startsWith("image/"));
+    if (imageFiles.length === 0) {
+      sonnerToast.error("请选择图片文件");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const urls = await imagesApi.uploadImages(imageFiles);
+      await Promise.all(urls.map((url, index) => {
+        const file = imageFiles[index];
+        const fileName = file?.name ?? "";
+        return imagesApi.createTemplateAssetHistory({
+          assetType: "image",
+          assetUrl: url,
+          contentId: projectId,
+          metadata: {
+            assetName: variantName,
+            fileName: fileName || undefined,
+            targetType: "character",
+          },
+          resourceTempId: variantId,
+          resourceType: "uploaded_image",
+          sourceType: "local_upload",
+          title: fileName ? `本地上传 ${fileName}` : `本地上传 ${variantName || "形象图"}`,
+          usageType: "primary",
+        });
+      }));
+
+      refetchAssetHistory();
+      setRefModalOpen(false);
+      setRefSelected(new Set());
+      sonnerToast.success(`已上传 ${urls.length} 张图片`);
+    } catch (error) {
+      sonnerToast.error(getErrorMessage(error, "图片上传失败"));
+    } finally {
+      setUploading(false);
+    }
+  }
+
   async function toggleImage(url: string) {
     if (applying) return;
     const next = new Set(addedImages);
-    if (next.has(url)) next.delete(url);
+    const normalizedUrl = normalizeImageUrl(url);
+    const existing = Array.from(next).find((item) => normalizeImageUrl(item) === normalizedUrl);
+    if (existing) next.delete(existing);
     else next.add(url);
     const urls = Array.from(next);
     setApplying(true);
     try {
       await onImagesChange(urls);
       setAddedImages(next);
-    } catch {
-      // revert on failure — keep previous addedImages
+      addedImagesRef.current = next;
+    } catch (error) {
+      sonnerToast.error(getErrorMessage(error, "更新形象图失败"));
     } finally {
       setApplying(false);
     }
@@ -253,13 +405,28 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-6 backdrop-blur-sm animate-in fade-in duration-150 ease-out">
+      <input
+        ref={uploadInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        multiple
+        className="hidden"
+        onChange={(event) => {
+          const files = event.target.files;
+          if (files?.length) addUploadedFiles(files);
+          event.currentTarget.value = "";
+        }}
+      />
       <div className="flex h-[min(860px,calc(100dvh-48px))] w-[min(1280px,calc(100vw-48px))] flex-col overflow-hidden rounded-xl border border-white/[0.14] bg-[#0a0a0a] shadow-[0_24px_80px_rgba(0,0,0,0.55)]">
         {/* Header */}
         <div className="grid h-14 shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-white/[0.12] px-5">
-          <div className="min-w-0">
-            <h3 className="truncate text-[15px] font-medium">生成形象图</h3>
+          <div className="flex min-w-0 items-center gap-2">
+            <h3 className="shrink-0 text-[15px] font-medium">生成形象图</h3>
             {variantName && (
-              <p className="mt-0.5 truncate text-[12px] text-[#888]">{variantName}</p>
+              <>
+                <span className="shrink-0 text-[12px] text-[#666]">/</span>
+                <span className="truncate text-[13px] text-[#a3a3a3]">{variantName}</span>
+              </>
             )}
           </div>
           <button onClick={onClose} className="flex size-8 items-center justify-center rounded-full text-[#a3a3a3] transition-colors duration-200 hover:bg-white/[0.10] hover:text-white">
@@ -308,7 +475,17 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
 
             {/* Prompt */}
             <div className="flex-1 flex flex-col p-4 min-h-0">
-              <p className="text-[12px] text-[#a3a3a3] mb-2 shrink-0">提示词</p>
+              <div className="mb-2 flex shrink-0 items-center justify-between gap-2">
+                <p className="text-[12px] text-[#a3a3a3]">提示词</p>
+                <button
+                  type="button"
+                  onClick={loadDefaultPrompt}
+                  disabled={!defaultPrompt.trim()}
+                  className="h-7 rounded-full bg-white/[0.10] px-2.5 text-[12px] text-[#b8b8b8] transition-colors duration-200 hover:bg-white/[0.1] hover:text-white disabled:pointer-events-none disabled:opacity-40"
+                >
+                  加载默认提示词
+                </button>
+              </div>
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
@@ -350,9 +527,13 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
           <div className="flex items-center justify-between px-5 pt-5 pb-2 shrink-0 mr-[56px]">
             <h3 className="text-[15px] font-medium">生成历史</h3>
             <div className="flex items-center gap-1.5">
-              <button className="h-7 px-2.5 rounded-full bg-white/[0.10] text-[12px] text-[#b8b8b8] flex items-center gap-1.5 hover:bg-white/[0.1] hover:text-white transition-colors duration-200">
+              <button
+                onClick={() => uploadInputRef.current?.click()}
+                disabled={uploading}
+                className="h-7 px-2.5 rounded-full bg-white/[0.10] text-[12px] text-[#b8b8b8] flex items-center gap-1.5 hover:bg-white/[0.1] hover:text-white transition-colors duration-200"
+              >
                 <Upload size={12} strokeWidth={1.5} />
-                上传图片
+                {uploading ? "上传中..." : "上传图片"}
               </button>
               <button className="h-7 px-2.5 rounded-full bg-white/[0.10] text-[12px] text-[#b8b8b8] flex items-center gap-1.5 hover:bg-white/[0.1] hover:text-white transition-colors duration-200">
                 <Library size={12} strokeWidth={1.5} />
@@ -361,7 +542,7 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
             </div>
           </div>
 
-          {historyLoading ? (
+          {historyLoading || assetHistoryLoading ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
             </div>
@@ -376,7 +557,7 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
               <div className="space-y-5 p-4">
                 {history.map((record) => {
                   const img = record.images[0];
-                  const isAdded = img?.url ? addedImages.has(img.url) : false;
+                  const isAdded = img?.url ? normalizedAddedImages.has(normalizeImageUrl(img.url)) : false;
                   return (
                     <div
                       key={record.id}
@@ -448,7 +629,7 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
               <div className="space-y-2 py-3 pl-1 pr-2">
                 {history.map((record) => {
                   const img = record.images[0];
-                  const isAdded = img?.url ? addedImages.has(img.url) : false;
+                  const isAdded = img?.url ? normalizedAddedImages.has(normalizeImageUrl(img.url)) : false;
                   const isActive = activeRecordId === record.id;
                   return (
                     <button
@@ -549,11 +730,29 @@ export function ImageGenerateOverlay({ open, onClose, variantName, projectId, va
                   </div>
                 </>
               ) : (
-                <div className="flex flex-col items-center justify-center py-16 border-2 border-dashed border-white/[0.1] rounded-xl hover:border-white/[0.2] transition-colors duration-200 cursor-pointer">
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => uploadInputRef.current?.click()}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      uploadInputRef.current?.click();
+                    }
+                  }}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                  }}
+                  onDrop={(event) => {
+                    event.preventDefault();
+                    addUploadedFiles(event.dataTransfer.files);
+                  }}
+                  className="flex flex-col items-center justify-center py-16 border-2 border-dashed border-white/[0.1] rounded-xl hover:border-white/[0.2] transition-colors duration-200 cursor-pointer"
+                >
                   <div className="w-12 h-12 rounded-xl bg-white/[0.08] flex items-center justify-center mb-4">
                     <Upload size={24} strokeWidth={1.5} className="text-[#a3a3a3]" />
                   </div>
-                  <p className="text-[14px] text-[#b8b8b8] mb-1">点击或拖拽图片到此区域</p>
+                  <p className="text-[14px] text-[#b8b8b8] mb-1">{uploading ? "正在上传图片..." : "点击或拖拽图片到此区域"}</p>
                   <p className="text-[12px] text-[#b8b8b8]">支持 PNG、JPG、WebP，单张最大 10MB</p>
                 </div>
               )}

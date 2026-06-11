@@ -314,3 +314,30 @@ export interface ImageGenerationHistoryItem {
   aspectRatio?: string | null;
   imageCount?: number | null;
 }
+
+export interface ResourceTemplateAssetHistoryItem {
+  id: string | number;
+  contentId?: string | number | null;
+  resourceTempId?: string | number | null;
+  resource_temp_id?: string | number | null;
+  assetType?: string | null;
+  asset_type?: string | null;
+  resourceType?: string | null;
+  resource_type?: string | null;
+  sourceType?: string | null;
+  source_type?: string | null;
+  sourceRefType?: string | null;
+  source_ref_type?: string | null;
+  sourceRefId?: string | number | null;
+  source_ref_id?: string | number | null;
+  title?: string | null;
+  assetUrl?: string | null;
+  asset_url?: string | null;
+  thumbnailUrl?: string | null;
+  thumbnail_url?: string | null;
+  usageType?: string | null;
+  usage_type?: string | null;
+  metadata?: Record<string, unknown> | null;
+  createTime?: string | null;
+  create_time?: string | null;
+}

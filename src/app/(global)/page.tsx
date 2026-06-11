@@ -61,8 +61,7 @@ export default function ProjectListPage() {
   const projects = (page?.list ?? []).map(adaptProject);
 
   return (
-    <div className="h-full overflow-auto">
-      <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="font-heading text-xl font-medium tracking-[-0.01em]">
             我的项目
@@ -118,7 +117,6 @@ export default function ProjectListPage() {
             ))}
           </div>
         )}
-      </div>
     </div>
   );
 }

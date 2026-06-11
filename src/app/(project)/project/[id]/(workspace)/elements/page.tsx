@@ -6,6 +6,7 @@ import { Search, Plus, Sparkles, ChevronRight, BookOpen, User, Mountain, Package
 import { elementsApi, scriptsApi, useApi } from "@/lib/api";
 import { adaptElements, adaptScriptMetadata, adaptScriptEpisode } from "@/lib/adapters";
 import { ElementType, ElementItem, ScriptData } from "@/mocks/types";
+import { toast as sonnerToast } from "sonner";
 import { ScriptOverlay } from "@/components/script-overlay";
 import { ElementDesignEditor } from "@/components/element-design-editor";
 import { ScriptImportOverlay } from "@/components/script-import-overlay";
@@ -43,6 +44,7 @@ export default function ElementsPage() {
   const [extractionProgressOpen, setExtractionProgressOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [reExtractOpen, setReExtractOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   const [localElements, setLocalElements] = useState<ElementItem[]>([]);
 
@@ -82,13 +84,39 @@ export default function ElementsPage() {
   }, [activeTab, analysisProgressOpen, extractionProgressOpen, reExtractOpen, createOpen]);
 
   function deleteElement(id: string) { setLocalElements((prev) => prev.filter((e) => e.id !== id)); setDeleteConfirmId(null); setMoreMenuId(null); }
-  function handleCreate() {
+  async function handleCreate() {
     if (!createName.trim()) return;
-    setLocalElements((prev) => [...prev, {
-      id: `el-${Date.now()}`, projectId: params.id, type: activeTab as ElementType,
-      name: createName.trim(), thumbnailUrl: "", tags: [], createdAt: new Date().toISOString().slice(0, 10),
-    }]);
-    setCreateName(""); setCreateOpen(false);
+    const name = createName.trim();
+    setCreating(true);
+    try {
+      if (activeTab === "character") {
+        await elementsApi.createCharacter(params.id, {
+          templateName: name,
+          contentId: params.id,
+        });
+      } else if (activeTab === "scene" || activeTab === "prop") {
+        await elementsApi.createAndBindContentLevelElement({
+          template_name: name,
+          template_type: activeTab === "scene" ? "SCENE" : "PROP",
+          content_id: params.id,
+        });
+      } else {
+        await elementsApi.createAndBindContentLevelElement({
+          template_name: name,
+          template_type: "AUDIO",
+          content_id: params.id,
+        });
+      }
+      await refetchRoles();
+      setCreateName("");
+      setCreateOpen(false);
+      sonnerToast.success(`已添加${typeLabels[activeTab]}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "创建失败";
+      sonnerToast.error(message || "创建失败");
+    } finally {
+      setCreating(false);
+    }
   }
 
   const { data: projectScript, isLoading: scriptLoading } = useApi(
@@ -182,7 +210,8 @@ export default function ElementsPage() {
       </div>
 
       <CreateElementModal open={createOpen} activeTab={activeTab as ElementType} name={createName} setName={setCreateName}
-        onClose={() => { setCreateOpen(false); setCreateName(""); }} onConfirm={handleCreate} />
+        creating={creating}
+        onClose={() => { if (!creating) { setCreateOpen(false); setCreateName(""); } }} onConfirm={handleCreate} />
       <ScriptOverlay open={scriptOpen} onClose={() => setScriptOpen(false)} script={script} />
       <ElementDesignEditor
         open={editingElement !== null}

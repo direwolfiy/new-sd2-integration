@@ -290,6 +290,44 @@ export async function request<T>(
   throw new ApiError(result.code, result.message, result.bizCode);
 }
 
+export async function upload<T>(
+  path: string,
+  formData: FormData,
+  params?: Record<string, string>,
+): Promise<T> {
+  let url = `${API_BASE_URL}${path}`;
+  if (params) {
+    const qs = new URLSearchParams(params).toString();
+    if (qs) url += `?${qs}`;
+  }
+
+  const headers: Record<string, string> = {};
+  if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
+  if (tenantId != null) headers["X-Tenant-Id"] = String(tenantId);
+
+  const signHeaders = buildSignHeaders("POST", `${API_BASE_URL}${path}`, params);
+  Object.assign(headers, signHeaders);
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers,
+    body: formData,
+  });
+
+  if (res.status >= 400) {
+    const errText = await res.text();
+    console.error(`[API] POST ${path} → ${res.status}`, errText.slice(0, 500));
+    throw new ApiError(res.status, errText || `HTTP ${res.status}`);
+  }
+
+  const raw = await res.text();
+  const result: ApiResult<T> = JSON.parse(raw);
+
+  if (result.code === 200) return result.data as T;
+
+  throw new ApiError(result.code, result.message, result.bizCode);
+}
+
 export function get<T>(path: string, params?: Record<string, string>) {
   return request<T>("GET", path, { params });
 }

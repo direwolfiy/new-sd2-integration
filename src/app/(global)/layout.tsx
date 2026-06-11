@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Search, Bell } from "lucide-react";
 import { Sidebar } from "@/components/sidebar";
 import { CreditBalance } from "@/components/credit-balance";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 function TopBar() {
   return (
@@ -37,8 +38,12 @@ export default function GlobalLayout({
       <TopBar />
       <div className="flex flex-1 min-h-0">
         <Sidebar />
-        <main className="flex-1 overflow-auto bg-[#0a0a0a] p-6">
-          {children}
+        <main className="min-w-0 flex-1 bg-[#0a0a0a]">
+          <ScrollArea className="h-full">
+            <div className="p-6 md:pl-28">
+              {children}
+            </div>
+          </ScrollArea>
         </main>
       </div>
     </div>

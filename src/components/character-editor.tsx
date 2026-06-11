@@ -27,6 +27,15 @@ function extractCharName(templateName: string): string {
   return idx > 0 ? templateName.slice(0, idx) : templateName;
 }
 
+function getVariantDisplayName(item: SceneRoleItem) {
+  const templateName = item.template_name ?? "";
+  const appName = String(getAppearance(item)?.name ?? "");
+  if (!appName) return templateName;
+  const roleName = extractCharName(templateName);
+  if (!roleName || appName.startsWith(`${roleName}-`)) return appName;
+  return `${roleName}-${appName}`;
+}
+
 function groupCharacters(roles: SceneRoleItem[]): CharacterGroup[] {
   const map = new Map<string, SceneRoleItem[]>();
   for (const r of roles) {
@@ -46,6 +55,53 @@ function getVariantImage(v: SceneRoleItem): string | null {
   const images = getAppearance(v)?.images as string[] | undefined;
   if (images && images.length > 0) return images[0];
   return v.cover_image ?? null;
+}
+
+function normalizeImageUrl(url: string) {
+  return url.split("#")[0]?.split("?")[0] ?? url;
+}
+
+function sameImageList(a: string[], b: string[]) {
+  if (a.length !== b.length) return false;
+  return a.every((url, index) => normalizeImageUrl(url) === normalizeImageUrl(b[index] ?? ""));
+}
+
+function getEffectiveImages(v: SceneRoleItem): string[] {
+  const images = ((getAppearance(v)?.images as string[] | undefined) ?? []).filter(Boolean);
+  const cover = v.cover_image;
+  if (!cover) return images;
+  return images.some((url) => normalizeImageUrl(url) === normalizeImageUrl(cover))
+    ? images
+    : [cover, ...images];
+}
+
+function getDefaultImagePrompt(v: SceneRoleItem) {
+  const appearance = getAppearance(v) ?? {};
+  const metadata = (v.template_metadata as Record<string, unknown> | null) ?? {};
+  const candidates = [
+    metadata.seedanceImagePrompt,
+    appearance.imagePrompt,
+    appearance.image_prompt,
+  ];
+  for (const candidate of candidates) {
+    const text = typeof candidate === "string" ? candidate.trim() : "";
+    if (text) return text;
+  }
+  const nestedSources = [
+    appearance.seedanceAppearances,
+    metadata.seedanceAppearances,
+    (v as unknown as Record<string, unknown>).seedanceAppearances,
+  ];
+  for (const source of nestedSources) {
+    if (!Array.isArray(source)) continue;
+    for (const item of source) {
+      const text = typeof item === "object" && item !== null
+        ? String((item as Record<string, unknown>).imagePrompt ?? (item as Record<string, unknown>).image_prompt ?? "").trim()
+        : "";
+      if (text) return text;
+    }
+  }
+  return String(appearance.description ?? v.description ?? "").trim();
 }
 
 const inputCls = "w-full bg-[#2b2b2b] border border-white/[0.1] rounded-lg px-3 py-2 text-[13px] text-white placeholder:text-white/30 focus:outline-none focus:border-[#00CAE0]/50 focus:ring-1 focus:ring-[#00CAE0]/30 transition-colors duration-200";
@@ -96,13 +152,14 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
   }, [editVariantId, addVariantOpen, generateVariantId, moreMenuId]);
 
   async function setPrimaryImage(variant: SceneRoleItem, imageIdx: number) {
-    const images = (getAppearance(variant)?.images as string[] | undefined) ?? [];
+    const images = getEffectiveImages(variant);
     if (images.length <= 1 || imageIdx === 0) return;
     const reordered = [images[imageIdx], ...images.filter((_, i) => i !== imageIdx)];
     const templateId = String(variant.resource_temp_id ?? variant.id);
     const app = getAppearance(variant) ?? {};
     await elementsApi.updateElement(templateId, {
       appearance: { ...app, images: reordered },
+      cover_image: reordered[0],
     });
     onRefresh();
     sonnerToast.success("已设为形象");
@@ -146,9 +203,14 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
       return;
     }
     if (liveGenerateVariant) {
+      const snapshotImages = (getAppearance(generateVariantSnapshot ?? liveGenerateVariant)?.images as string[] | undefined) ?? [];
+      const liveImages = (getAppearance(liveGenerateVariant)?.images as string[] | undefined) ?? [];
+      if (generateVariantSnapshot && snapshotImages.length > 0 && !sameImageList(snapshotImages, liveImages)) {
+        return;
+      }
       setGenerateVariantSnapshot(liveGenerateVariant);
     }
-  }, [generateVariantId, liveGenerateVariant]);
+  }, [generateVariantId, generateVariantSnapshot, liveGenerateVariant]);
 
   if (!open || !selectedGroup) return null;
 
@@ -291,11 +353,10 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
 
                       <div className="flex gap-4 overflow-x-auto">
                         {(() => {
-                          const images = (getAppearance(variant)?.images as string[] | undefined) ?? [];
-                          const displayImages = images.length > 0 ? images : (variant.cover_image ? [variant.cover_image] : []);
+                          const displayImages = getEffectiveImages(variant);
                           if (displayImages.length === 0) return (
                             <div className="group relative w-[140px] shrink-0 rounded-lg overflow-hidden border border-white/[0.12] bg-[#0a0a0a] transition-all duration-200">
-                              <div className="relative aspect-[3/4] bg-gradient-to-br from-[#1a1a1a] to-[#141414] flex items-center justify-center">
+                              <div className="relative aspect-[9/16] bg-gradient-to-br from-[#1a1a1a] to-[#141414] flex items-center justify-center">
                                 <User size={32} strokeWidth={1} className="text-white/[0.06]" />
                               </div>
                               <div className="px-2 py-1.5 border-t border-white/[0.10]">
@@ -305,7 +366,7 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
                           );
                           return displayImages.map((imgUrl, idx) => (
                             <div key={idx} onClick={() => setGenerateVariantId(String(variant.id))} className="group relative w-[140px] shrink-0 rounded-lg overflow-hidden border border-white/[0.12] bg-[#0a0a0a] transition-all duration-200 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12)] cursor-pointer">
-                              <div className="relative aspect-[3/4] bg-gradient-to-br from-[#1a1a1a] to-[#141414] flex items-center justify-center">
+                              <div className="relative aspect-[9/16] bg-gradient-to-br from-[#1a1a1a] to-[#141414] flex items-center justify-center">
                                 {imgUrl ? (
                                   <img src={imgUrl} alt={`${appName} ${idx + 1}`} className="absolute inset-0 w-full h-full object-cover object-top" />
                                 ) : (
@@ -412,10 +473,11 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
       <ImageGenerateOverlay
         open={generateVariantId !== null}
         onClose={() => setGenerateVariantId(null)}
-        variantName={generateVariant ? String(getAppearance(generateVariant)?.name ?? "") : ""}
+        variantName={generateVariant ? getVariantDisplayName(generateVariant) : ""}
+        defaultPrompt={generateVariant ? getDefaultImagePrompt(generateVariant) : ""}
         projectId={projectId}
         variantId={generateVariant?.resource_temp_id ?? generateVariant?.id ?? generateVariantId ?? ""}
-        currentImageUrls={generateVariant ? ((getAppearance(generateVariant)?.images as string[] | undefined) ?? []) : []}
+        currentImageUrls={generateVariant ? getEffectiveImages(generateVariant) : []}
         onImagesChange={async (imageUrls) => {
           if (!generateVariant) return;
           const templateId = String(generateVariant.resource_temp_id ?? generateVariant.id);
@@ -423,10 +485,11 @@ export function CharacterEditor({ open, onClose, projectId, characterId, roles, 
           const nextAppearance = { ...(getAppearance(generateVariant) ?? {}), images: imageUrls };
           await elementsApi.updateElement(templateId, {
             appearance: nextAppearance,
+            cover_image: imageUrls[0] ?? "",
           });
           setGenerateVariantSnapshot((prev) =>
             prev && String(prev.id) === String(generateVariant.id)
-              ? { ...prev, appearance: nextAppearance }
+              ? { ...prev, appearance: nextAppearance, cover_image: imageUrls[0] ?? prev.cover_image }
               : prev,
           );
           onRefresh();

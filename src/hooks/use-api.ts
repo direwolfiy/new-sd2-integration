@@ -8,7 +8,7 @@ interface UseApiState<T> {
   data: T | null;
   isLoading: boolean;
   error: ApiError | null;
-  refetch: () => void;
+  refetch: () => Promise<void>;
 }
 
 export function useApi<T>(
@@ -21,15 +21,17 @@ export function useApi<T>(
   const isInitialized = useAuthStore((s) => s.isInitialized);
   const hasToken = useAuthStore((s) => s.accessToken !== null);
 
-  const fetch = useCallback(() => {
+  const fetch = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    fetcher()
-      .then(setData)
-      .catch((err) => {
-        setError(err instanceof ApiError ? err : new ApiError(0, String(err)));
-      })
-      .finally(() => setIsLoading(false));
+    try {
+      const next = await fetcher();
+      setData(next);
+    } catch (err) {
+      setError(err instanceof ApiError ? err : new ApiError(0, String(err)));
+    } finally {
+      setIsLoading(false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 

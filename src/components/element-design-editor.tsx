@@ -92,6 +92,15 @@ function extractCharacterName(name: string) {
   return idx > 0 ? name.slice(0, idx) : name;
 }
 
+function getVariantDisplayName(item: SceneRoleItem) {
+  const templateName = item.template_name ?? "";
+  const appName = String(getAppearance(item)?.name ?? "");
+  if (!appName) return templateName;
+  const roleName = extractCharacterName(templateName);
+  if (!roleName || appName.startsWith(`${roleName}-`)) return appName;
+  return `${roleName}-${appName}`;
+}
+
 function getRecordName(item: SceneRoleItem) {
   const type = getDesignType(item.template_type);
   if (type === "character") return extractCharacterName(item.template_name ?? "");
@@ -101,6 +110,53 @@ function getRecordName(item: SceneRoleItem) {
 function getRecordCover(item: SceneRoleItem): string | null {
   const images = getAppearance(item)?.images as string[] | undefined;
   return images?.[0] ?? item.cover_image ?? null;
+}
+
+function normalizeImageUrl(url: string) {
+  return url.split("#")[0]?.split("?")[0] ?? url;
+}
+
+function sameImageList(a: string[], b: string[]) {
+  if (a.length !== b.length) return false;
+  return a.every((url, index) => normalizeImageUrl(url) === normalizeImageUrl(b[index] ?? ""));
+}
+
+function getEffectiveImages(item: SceneRoleItem): string[] {
+  const images = ((getAppearance(item)?.images as string[] | undefined) ?? []).filter(Boolean);
+  const cover = item.cover_image;
+  if (!cover) return images;
+  return images.some((url) => normalizeImageUrl(url) === normalizeImageUrl(cover))
+    ? images
+    : [cover, ...images];
+}
+
+function getDefaultImagePrompt(item: SceneRoleItem) {
+  const appearance = getAppearance(item) ?? {};
+  const metadata = (item.template_metadata as Record<string, unknown> | null) ?? {};
+  const candidates = [
+    metadata.seedanceImagePrompt,
+    appearance.imagePrompt,
+    appearance.image_prompt,
+  ];
+  for (const candidate of candidates) {
+    const text = typeof candidate === "string" ? candidate.trim() : "";
+    if (text) return text;
+  }
+  const nestedSources = [
+    appearance.seedanceAppearances,
+    metadata.seedanceAppearances,
+    (item as unknown as Record<string, unknown>).seedanceAppearances,
+  ];
+  for (const source of nestedSources) {
+    if (!Array.isArray(source)) continue;
+    for (const item of source) {
+      const text = typeof item === "object" && item !== null
+        ? String((item as Record<string, unknown>).imagePrompt ?? (item as Record<string, unknown>).image_prompt ?? "").trim()
+        : "";
+      if (text) return text;
+    }
+  }
+  return String(appearance.description ?? item.description ?? "").trim();
 }
 
 function getRecordTags(item: SceneRoleItem): string[] {
@@ -177,6 +233,7 @@ export function ElementDesignEditor({
   const [addDraftDesc, setAddDraftDesc] = useState("");
   const [savingInfo, setSavingInfo] = useState(false);
   const [initializedFor, setInitializedFor] = useState("");
+  const [blockedInitialKey, setBlockedInitialKey] = useState("");
 
   const { data: chapters } = useApi(
     () => episodesApi.fetchChapters(projectId),
@@ -186,13 +243,21 @@ export function ElementDesignEditor({
   useEffect(() => {
     if (!open) return;
     const key = `${initialType}:${initialId}`;
-    if (initializedFor === key) return;
     const initial = getItemForInitialId(items, initialId, initialType);
+    if (initializedFor === key) {
+      if (!selectedKey && initial) {
+        setActiveType(initial.type);
+        setSelectedKey(initial.key);
+        setBlockedInitialKey("");
+      }
+      return;
+    }
     setActiveType(initial?.type ?? initialType);
-    setSelectedKey(initial?.key ?? "");
+    setSelectedKey(initial ? initial.key : "");
+    setBlockedInitialKey(initial ? "" : key);
     setEpisodeFilter("all");
     setInitializedFor(key);
-  }, [initialId, initialType, initializedFor, items, open]);
+  }, [initialId, initialType, initializedFor, items, open, selectedKey]);
 
   useEffect(() => {
     if (open) return;
@@ -211,9 +276,10 @@ export function ElementDesignEditor({
 
   useEffect(() => {
     if (!open) return;
+    if (!selectedKey && blockedInitialKey === `${initialType}:${initialId}`) return;
     if (visibleItems.some((item) => item.key === selectedKey)) return;
     setSelectedKey(visibleItems[0]?.key ?? "");
-  }, [open, selectedKey, visibleItems]);
+  }, [blockedInitialKey, initialId, initialType, open, selectedKey, visibleItems]);
 
   const selectedItem =
     visibleItems.find((item) => item.key === selectedKey) ??
@@ -232,9 +298,14 @@ export function ElementDesignEditor({
       return;
     }
     if (liveGenerateVariant) {
+      const snapshotImages = (getAppearance(generateVariantSnapshot ?? liveGenerateVariant)?.images as string[] | undefined) ?? [];
+      const liveImages = (getAppearance(liveGenerateVariant)?.images as string[] | undefined) ?? [];
+      if (generateVariantSnapshot && snapshotImages.length > 0 && !sameImageList(snapshotImages, liveImages)) {
+        return;
+      }
       setGenerateVariantSnapshot(liveGenerateVariant);
     }
-  }, [generateVariantId, liveGenerateVariant]);
+  }, [generateVariantId, generateVariantSnapshot, liveGenerateVariant]);
 
   function openInfoEditor(item: DesignItem) {
     setEditingInfoItem(item);
@@ -349,12 +420,13 @@ export function ElementDesignEditor({
   }
 
   async function setPrimaryImage(variant: SceneRoleItem, imageIdx: number) {
-    const images = (getAppearance(variant)?.images as string[] | undefined) ?? [];
+    const images = getEffectiveImages(variant);
     if (images.length <= 1 || imageIdx === 0) return;
     const reordered = [images[imageIdx], ...images.filter((_, i) => i !== imageIdx)];
     const templateId = String(variant.resource_temp_id ?? variant.id);
     await elementsApi.updateElement(templateId, {
       appearance: { ...(getAppearance(variant) ?? {}), images: reordered },
+      cover_image: reordered[0],
     });
     onRefresh();
     sonnerToast.success("已设为主图");
@@ -366,10 +438,11 @@ export function ElementDesignEditor({
     const nextAppearance = { ...(getAppearance(generateVariant) ?? {}), images: imageUrls };
     await elementsApi.updateElement(templateId, {
       appearance: nextAppearance,
+      cover_image: imageUrls[0] ?? "",
     });
     setGenerateVariantSnapshot((prev) =>
       prev && String(prev.id) === String(generateVariant.id)
-        ? { ...prev, appearance: nextAppearance }
+        ? { ...prev, appearance: nextAppearance, cover_image: imageUrls[0] ?? prev.cover_image }
         : prev,
     );
     onRefresh();
@@ -389,7 +462,7 @@ export function ElementDesignEditor({
 
         <div className="min-w-0">
           <div className="flex min-w-0 items-center gap-2">
-            <span className="shrink-0 text-sm font-medium">元素设计</span>
+            <span className="shrink-0 text-sm font-medium">资产设计</span>
             {selectedItem && (
               <>
                 <span className="text-xs text-muted-foreground">/</span>
@@ -405,7 +478,10 @@ export function ElementDesignEditor({
         <aside className="flex h-full w-52 shrink-0 flex-col border-r border-border">
           <div className="shrink-0 p-3">
             <div className="space-y-2 border-b border-border pb-3">
-              <Tabs value={activeType} onValueChange={(value) => setActiveType(value as DesignType)}>
+              <Tabs value={activeType} onValueChange={(value) => {
+                setBlockedInitialKey("");
+                setActiveType(value as DesignType);
+              }}>
                 <TabsList className="grid h-8 w-full grid-cols-3 rounded-full px-1 py-0.5">
                   {typeTabs.map((tab) => (
                     <TabsTrigger
@@ -481,10 +557,11 @@ export function ElementDesignEditor({
       <ImageGenerateOverlay
         open={generateVariantId !== null}
         onClose={() => setGenerateVariantId(null)}
-        variantName={generateVariant ? String(getAppearance(generateVariant)?.name ?? generateVariant.template_name ?? "") : ""}
+        variantName={generateVariant ? getVariantDisplayName(generateVariant) : ""}
+        defaultPrompt={generateVariant ? getDefaultImagePrompt(generateVariant) : ""}
         projectId={projectId}
         variantId={generateVariant?.resource_temp_id ?? generateVariant?.id ?? generateVariantId ?? ""}
-        currentImageUrls={generateVariant ? ((getAppearance(generateVariant)?.images as string[] | undefined) ?? []) : []}
+        currentImageUrls={generateVariant ? getEffectiveImages(generateVariant) : []}
         onImagesChange={handleImagesChange}
       />
 
@@ -707,8 +784,7 @@ function CharacterVariants({
       {records.map((record) => {
         const app = getAppearance(record);
         const appName = String(app?.name ?? record.template_name?.split("-").slice(1).join("-") ?? "默认形象");
-        const images = (app?.images as string[] | undefined) ?? [];
-        const displayImages = images.length > 0 ? images : record.cover_image ? [record.cover_image] : [];
+        const displayImages = getEffectiveImages(record);
 
         return (
           <div key={record.id} className="rounded-xl border border-white/[0.12] bg-[#181818] p-4">
@@ -736,7 +812,7 @@ function CharacterVariants({
                       onClick={() => onGenerateImage(String(record.id))}
                       className="group relative inline-block w-36 shrink-0 cursor-pointer overflow-hidden rounded-lg border border-white/[0.12] bg-[#0a0a0a] transition-all duration-200 hover:shadow-[0_0_0_1px_rgba(255,255,255,0.12)]"
                     >
-                      <div className="relative aspect-[3/4]">
+                      <div className="relative aspect-[9/16]">
                         <img src={imgUrl} alt={`${appName} ${idx + 1}`} className="absolute inset-0 h-full w-full object-cover object-top" />
                         {idx === 0 ? (
                           <div className="absolute right-2 top-2 flex size-5 items-center justify-center rounded-full bg-primary/20">
@@ -761,7 +837,7 @@ function CharacterVariants({
                   <button
                     type="button"
                     onClick={() => onGenerateImage(String(record.id))}
-                    className="flex aspect-[3/4] w-36 shrink-0 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-white/[0.12] bg-[#101010] text-xs text-muted-foreground transition-colors duration-200 hover:border-white/[0.2] hover:text-foreground"
+                    className="flex aspect-[9/16] w-36 shrink-0 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-white/[0.12] bg-[#101010] text-xs text-muted-foreground transition-colors duration-200 hover:border-white/[0.2] hover:text-foreground"
                   >
                     <Plus className="size-4" />
                     添加形象图
